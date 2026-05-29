@@ -57,6 +57,14 @@ app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 const isMac = process.platform === "darwin";
 const isLinux = process.platform === "linux";
 const isWin = process.platform === "win32";
+
+// ── Linux/Wayland workaround ──
+// Ubuntu 26.04 defaults to Wayland, but Electron's native Wayland support
+// for transparent + alwaysOnTop + frequent setBounds (drag) is poor.
+// Force XWayland unless the user explicitly opts into native Wayland.
+if (isLinux && process.env.CLAWD_WAYLAND !== "1") {
+  app.commandLine.appendSwitch("ozone-platform", "x11");
+}
 const LINUX_WINDOW_TYPE = "toolbar";
 const THEME_SWITCH_FADE_OUT_MS = 140;
 const THEME_SWITCH_FADE_IN_MS = 180;

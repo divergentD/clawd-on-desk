@@ -320,9 +320,19 @@ function buildElectronLaunchConfig(projectDir, options = {}) {
 
   const entry = typeof options.entry === "string" ? options.entry : ".";
   const forwardedArgs = Array.isArray(options.forwardedArgs) ? options.forwardedArgs : [];
-  const args = disableSandbox
-    ? [entry, "--no-sandbox", "--disable-setuid-sandbox", ...forwardedArgs]
-    : [entry, ...forwardedArgs];
+  const electronFlags = [];
+
+  // Force XWayland on Linux for transparent/alwaysOnTop/drag stability.
+  // Users who prefer native Wayland can set CLAWD_WAYLAND=1.
+  if (platform === "linux" && env.CLAWD_WAYLAND !== "1") {
+    electronFlags.push("--ozone-platform=x11");
+  }
+
+  if (disableSandbox) {
+    electronFlags.push("--no-sandbox", "--disable-setuid-sandbox");
+  }
+
+  const args = [entry, ...electronFlags, ...forwardedArgs];
 
   return { args, env, cwd: projectDir };
 }
