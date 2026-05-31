@@ -21,6 +21,7 @@ const {
   extractLastAssistantTextFromTranscript,
 } = require("./codex-assistant-output");
 const { readCodexThreadName } = require("./codex-session-index");
+const { applyTokenUsageFields } = require("./json-utils");
 
 const TOOL_MATCH_STRING_MAX = 240;
 const TOOL_MATCH_ARRAY_MAX = 16;
@@ -281,6 +282,7 @@ function buildPermissionBody(payload, resolve) {
     tool_name: toolName,
     tool_input: normalizeToolMatchValue(rawToolInput) || {},
   };
+  applyTokenUsageFields(body, payload);
 
   if (description) body.tool_input_description = description;
   if (typeof payload.cwd === "string" && payload.cwd) body.cwd = payload.cwd;

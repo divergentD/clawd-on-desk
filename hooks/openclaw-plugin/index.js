@@ -74,6 +74,19 @@ function firstNumber(...values) {
   return null;
 }
 
+function addTokenUsageFields(body, event) {
+  if (!event || typeof event !== "object") return;
+  const usage = event.usage && typeof event.usage === "object"
+    ? event.usage
+    : (event.tokens && typeof event.tokens === "object" ? event.tokens : event);
+  const input = firstNumber(usage.input_tokens, usage.inputTokens, usage.input);
+  const output = firstNumber(usage.output_tokens, usage.outputTokens, usage.output);
+  const cost = firstNumber(usage.total_cost, usage.totalCost, usage.cost);
+  if (Number.isFinite(input) && input >= 0) body.input_tokens = Math.floor(input);
+  if (Number.isFinite(output) && output >= 0) body.output_tokens = Math.floor(output);
+  if (Number.isFinite(cost) && cost >= 0) body.total_cost = cost;
+}
+
 function normalizeTitle(value) {
   if (typeof value !== "string") return "";
   const collapsed = value
@@ -230,6 +243,7 @@ export function createOpenClawRuntime(options = {}) {
       openclaw_call_id: firstString(nativeEvent.callId),
       ...extra,
     };
+    addTokenUsageFields(body, nativeEvent);
     return stripUndefined(body);
   }
 

@@ -90,16 +90,21 @@ function buildPostStateBody(sessionId, state, event, cwd, isSubagent, host, extr
   const body = {
     state,
     session_id: sessionId,
-    event,
     agent_id: "codex",
     cwd: cwd || "",
     host: host || hostPrefix,
     headless: isSubagent === true,
   };
+  if (event) body.event = event;
   if (extra && typeof extra.assistantLastOutput === "string" && extra.assistantLastOutput) {
     body.assistant_last_output = extra.assistantLastOutput;
     if (extra.assistantLastOutputTruncated === true) body.assistant_last_output_truncated = true;
   }
+  if (extra && typeof extra.model === "string" && extra.model) body.model = extra.model;
+  if (extra && Number.isFinite(extra.inputTokens)) body.input_tokens = extra.inputTokens;
+  if (extra && Number.isFinite(extra.outputTokens)) body.output_tokens = extra.outputTokens;
+  if (extra && extra.preserveState === true) body.preserve_state = true;
+  if (extra && extra.metadataOnly === true) body.metadata_only = true;
   return JSON.stringify(body);
 }
 
@@ -131,6 +136,33 @@ function processLine(line, entry, options = {}) {
     entry.cwd = payload.cwd || "";
     entry.isSubagent = classifySessionMeta(payload) === "subagent";
   }
+  if (type === "turn_context" && payload && typeof payload.model === "string" && payload.model.trim()) {
+    entry.model = payload.model.trim();
+  }
+  if (key === "event_msg:token_count") {
+    const usage = payload && payload.info && payload.info.total_token_usage;
+    let hasUsage = false;
+    if (usage && typeof usage === "object") {
+      if (Number.isFinite(usage.input_tokens) && usage.input_tokens >= 0) {
+        entry.inputTokens = Math.floor(usage.input_tokens);
+        hasUsage = true;
+      }
+      if (Number.isFinite(usage.output_tokens) && usage.output_tokens >= 0) {
+        entry.outputTokens = Math.floor(usage.output_tokens);
+        hasUsage = true;
+      }
+    }
+    if (!hasUsage) return;
+    const postStateFn = typeof options.postState === "function" ? options.postState : postState;
+    postStateFn(entry.sessionId, entry.lastState || "idle", null, entry.cwd, entry.isSubagent, {
+      model: entry.model || null,
+      inputTokens: entry.inputTokens,
+      outputTokens: entry.outputTokens,
+      preserveState: true,
+      metadataOnly: true,
+    });
+    return;
+  }
 
   const assistantText = extractAssistantTextFromRecord(obj);
   if (assistantText) {
@@ -160,12 +192,15 @@ function processLine(line, entry, options = {}) {
   entry.stale = false;
 
   const postStateFn = typeof options.postState === "function" ? options.postState : postState;
-  const extra = key === "event_msg:task_complete" && entry.assistantLastOutput
-    ? {
-      assistantLastOutput: entry.assistantLastOutput,
-      assistantLastOutputTruncated: entry.assistantLastOutputTruncated === true,
-    }
-    : null;
+  const extra = {
+    model: entry.model || null,
+    inputTokens: entry.inputTokens,
+    outputTokens: entry.outputTokens,
+  };
+  if (key === "event_msg:task_complete" && entry.assistantLastOutput) {
+    extra.assistantLastOutput = entry.assistantLastOutput;
+    extra.assistantLastOutputTruncated = entry.assistantLastOutputTruncated === true;
+  }
   postStateFn(entry.sessionId, finalState, key, entry.cwd, entry.isSubagent, extra);
 }
 
@@ -190,6 +225,9 @@ function pollFile(filePath, fileName, options = {}) {
       lastState: null,
       assistantLastOutput: null,
       assistantLastOutputTruncated: false,
+      model: null,
+      inputTokens: null,
+      outputTokens: null,
       partial: "",
       stale: false,
     };

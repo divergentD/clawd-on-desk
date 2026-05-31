@@ -5,6 +5,7 @@
 
 const { postStateToRunningServer, readHostPrefix } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
+const { applyTokenUsageFields } = require("./json-utils");
 const { processNames: kimiProcessNames } = require("../agents/kimi-cli");
 const fs = require("fs");
 const path = require("path");
@@ -268,6 +269,7 @@ function buildStateBody(event, payload, resolve) {
 
   const body = { state: resolvedState, session_id: sessionId, event };
   body.agent_id = "kimi-cli";
+  applyTokenUsageFields(body, payload);
   if (permissionSuspect) body.permission_suspect = true;
   if (cwd) body.cwd = cwd;
 

@@ -7,6 +7,7 @@ const os = require("os");
 const path = require("path");
 const { postPermissionToRunningServer, postStateToRunningServer, readHostPrefix } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
+const { applyTokenUsageFields } = require("./json-utils");
 
 const ANTIGRAVITY_PERMISSION_TIMEOUT_MS = 590000;
 const TOOL_INPUT_STRING_MAX = 2000;
@@ -258,6 +259,7 @@ function buildStateBody(hookName, payload, options = {}) {
   };
 
   if (cwd) body.cwd = cwd;
+  applyTokenUsageFields(body, payload);
 
   if (options.remote) {
     body.host = options.host || readHostPrefix();

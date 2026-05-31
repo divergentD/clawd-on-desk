@@ -796,6 +796,20 @@ def _event_extra(event_name: str, kwargs: Dict[str, Any], session_id: str = "") 
     provider = _first_string(kwargs.get("provider"))
     if provider:
         extra["provider"] = provider
+    usage = kwargs.get("usage")
+    if not isinstance(usage, dict):
+        usage = kwargs.get("tokens")
+    if not isinstance(usage, dict):
+        usage = kwargs
+    input_tokens = usage.get("input_tokens", usage.get("inputTokens", usage.get("input")))
+    output_tokens = usage.get("output_tokens", usage.get("outputTokens", usage.get("output")))
+    total_cost = usage.get("total_cost", usage.get("totalCost", usage.get("cost")))
+    if isinstance(input_tokens, (int, float)) and not isinstance(input_tokens, bool) and input_tokens >= 0:
+        extra["input_tokens"] = int(input_tokens)
+    if isinstance(output_tokens, (int, float)) and not isinstance(output_tokens, bool) and output_tokens >= 0:
+        extra["output_tokens"] = int(output_tokens)
+    if isinstance(total_cost, (int, float)) and not isinstance(total_cost, bool) and total_cost >= 0:
+        extra["total_cost"] = total_cost
     return extra
 
 

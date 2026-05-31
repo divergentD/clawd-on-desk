@@ -5,6 +5,7 @@
 
 const { postStateToRunningServer, readHostPrefix } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
+const { applyTokenUsageFields } = require("./json-utils");
 
 // CodeBuddy hook event → { state, event } for the Clawd state machine
 const HOOK_MAP = {
@@ -59,6 +60,7 @@ readStdinJson().then((payload) => {
 
   const body = { state, session_id: sessionId, event };
   body.agent_id = "codebuddy";
+  applyTokenUsageFields(body, payload);
   if (cwd) body.cwd = cwd;
   if (process.env.CLAWD_REMOTE) {
     body.host = readHostPrefix();

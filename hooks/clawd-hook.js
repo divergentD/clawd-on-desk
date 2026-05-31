@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const { postStateToRunningServer, readHostPrefix } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
+const { applyTokenUsageFields } = require("./json-utils");
 
 const TRANSCRIPT_TAIL_BYTES = 262144; // 256 KB
 const ASSISTANT_OUTPUT_MAX = 2200;
@@ -345,6 +346,7 @@ function buildStateBody(event, payload, resolve) {
 
   const body = { state: resolvedState, session_id: sessionId, event: resolvedEvent };
   body.agent_id = "claude-code";
+  applyTokenUsageFields(body, payload);
   if (cwd) body.cwd = cwd;
   const toolName = typeof payload.tool_name === "string" && payload.tool_name ? payload.tool_name : null;
   const toolUseId = normalizeToolUseId(payload.tool_use_id ?? payload.toolUseId ?? payload.toolUseID);

@@ -32,6 +32,20 @@ function isAbsoluteCommandToken(token) {
   return /^[A-Za-z]:[\\/]/.test(token) || token.startsWith("\\\\");
 }
 
+function applyTokenUsageFields(body, payload) {
+  if (!body || !payload || typeof payload !== "object") return body;
+  const usage = payload.usage && typeof payload.usage === "object"
+    ? payload.usage
+    : (payload.tokens && typeof payload.tokens === "object" ? payload.tokens : payload);
+  const input = usage.input_tokens ?? usage.inputTokens ?? usage.input;
+  const output = usage.output_tokens ?? usage.outputTokens ?? usage.output;
+  const cost = usage.total_cost ?? usage.totalCost ?? usage.cost;
+  if (Number.isFinite(input) && input >= 0) body.input_tokens = Math.floor(input);
+  if (Number.isFinite(output) && output >= 0) body.output_tokens = Math.floor(output);
+  if (Number.isFinite(cost) && cost >= 0) body.total_cost = cost;
+  return body;
+}
+
 /**
  * Atomically write a JS object as pretty JSON. Writes to a sibling tmp file
  * then renames into place so concurrent readers never see a half-written
@@ -434,4 +448,5 @@ module.exports = {
   extractFirstQuotedToken,
   quotePowerShellSingleArg,
   windowsPowerShellBin,
+  applyTokenUsageFields,
 };

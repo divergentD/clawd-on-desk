@@ -26,6 +26,7 @@ import { homedir, platform } from "os";
 import { join } from "path";
 import { randomBytes, timingSafeEqual } from "crypto";
 import { execFileSync, execSync } from "child_process";
+import { accumulateAssistantUsage } from "./token-usage.mjs";
 
 const CLAWD_DIR = join(homedir(), ".clawd");
 const RUNTIME_CONFIG_PATH = join(CLAWD_DIR, "runtime.json");
@@ -37,6 +38,7 @@ const STATE_PATH = "/state";
 // (main → renderer → main) ran under load and silently timed out.
 const POST_TIMEOUT_MS = 1000;
 const AGENT_ID = "opencode";
+const PLUGIN_REVISION = "token-message-v2";
 
 // Process tree walk config — mirrors hooks/clawd-hook.js exactly, minus the
 // Claude-specific detection. See docs/plans/plan-opencode-integration.md Phase 4.
@@ -74,6 +76,10 @@ let _cachedPort = null;
 // sessions (spawned by the `task` tool) don't clobber the root session's
 // dedup state. Each value is the last Clawd state sent for that session.
 const _lastStatePerSession = new Map();
+// message.updated carries per-assistant-message usage, not session totals.
+// Keep the latest snapshot for each message so streaming updates do not
+// double-count token usage.
+const _usageMessagesPerSession = new Map();
 // Fallback session ID for permission.asked events, which lack sessionID
 // in their properties. Updated on every session.*/message.part.updated
 // event so it stays fresh. Not used for state dedup.
@@ -331,7 +337,51 @@ function postPermissionToClawd(body) {
 // Clawd uses PascalCase event names matching Claude Code's hook vocabulary so
 // state.js transition rules (e.g. SubagentStop → working whitelist) are
 // reusable across agents.
-function sendState(state, eventName, sessionId) {
+function addTokenUsageFields(body, event) {
+  const props = event && event.properties;
+  const usage = props && typeof props.usage === "object"
+    ? props.usage
+    : (props && typeof props.tokens === "object" ? props.tokens : props);
+  if (!usage) return;
+  const input = usage.input_tokens ?? usage.inputTokens ?? usage.input;
+  const output = usage.output_tokens ?? usage.outputTokens ?? usage.output;
+  const cost = usage.total_cost ?? usage.totalCost ?? usage.cost;
+  if (Number.isFinite(input) && input >= 0) body.input_tokens = Math.floor(input);
+  if (Number.isFinite(output) && output >= 0) body.output_tokens = Math.floor(output);
+  if (Number.isFinite(cost) && cost >= 0) body.total_cost = cost;
+}
+
+function resolveEventSessionId(event) {
+  const props = event && event.properties;
+  const info = props && props.info;
+  const part = props && props.part;
+  return (props && props.sessionID)
+    || (info && info.sessionID)
+    || (part && part.sessionID)
+    || (event && event.sessionID)
+    || null;
+}
+
+function sendAssistantUsage(event) {
+  const usage = accumulateAssistantUsage(event, _usageMessagesPerSession);
+  if (!usage) return;
+  debugLog(`TOKENS session=${usage.sessionId} model=${usage.model || "unknown"} input=${usage.inputTokens} output=${usage.outputTokens}`);
+  postStateToClawd({
+    state: "idle",
+    session_id: usage.sessionId,
+    event: "TokenUsage",
+    agent_id: AGENT_ID,
+    preserve_state: true,
+    metadata_only: true,
+    model: usage.model,
+    provider: usage.provider,
+    input_tokens: usage.inputTokens,
+    output_tokens: usage.outputTokens,
+    total_cost: usage.totalCost,
+  });
+}
+
+function sendState(state, eventName, sessionId, nativeEvent) {
   if (!state || !eventName) return;
 
   const lastState = _lastStatePerSession.get(sessionId) || null;
@@ -344,12 +394,14 @@ function sendState(state, eventName, sessionId) {
   debugLog(`SEND ${lastState || "null"} → ${state} event=${eventName} session=${sessionId}`);
   _lastStatePerSession.set(sessionId, state);
 
-  postStateToClawd({
+  const body = {
     state,
     session_id: sessionId || "default",
     event: eventName,
     agent_id: AGENT_ID,
-  });
+  };
+  addTokenUsageFields(body, nativeEvent);
+  postStateToClawd(body);
 }
 
 // Translate an opencode event into a Clawd (state, eventName) pair, or null
@@ -569,7 +621,7 @@ export default async (ctx) => {
   _serverUrl = normalizeServerUrl(ctx && ctx.serverUrl);
   _ctxClient = ctx && ctx.client ? ctx.client : null;
   _cwd = ctx && typeof ctx.directory === "string" ? ctx.directory : "";
-  debugLog(`INIT directory=${_cwd} serverUrl=${_serverUrl} pid=${process.pid} hasClient=${!!_ctxClient}`);
+  debugLog(`INIT revision=${PLUGIN_REVISION} directory=${_cwd} serverUrl=${_serverUrl} pid=${process.pid} hasClient=${!!_ctxClient}`);
   // Sync init blocks the TUI boot path; later POSTs hit the cached result.
   getStablePid();
   startBridge();
@@ -584,7 +636,7 @@ export default async (ctx) => {
         // its session.idle will be downgraded to SessionEnd in translateEvent.
         // The session ID may be in event.properties.sessionID (most events)
         // or event.sessionID (session.created in some runtimes).
-        const sid = (event.properties && event.properties.sessionID) || event.sessionID || null;
+        const sid = resolveEventSessionId(event);
         if (sid && !_rootSessionId) {
           _rootSessionId = sid;
           debugLog(`ROOT session captured id=${sid}`);
@@ -599,6 +651,8 @@ export default async (ctx) => {
           return;
         }
 
+        sendAssistantUsage(event);
+
         const mapped = translateEvent(event);
         if (!mapped) {
           // Log ignored session.* events only — they are low-frequency and
@@ -611,9 +665,9 @@ export default async (ctx) => {
           }
           return;
         }
-        const sessionId = (event.properties && event.properties.sessionID) || event.sessionID || "default";
+        const sessionId = resolveEventSessionId(event) || "default";
         debugLog(`MAP ${event.type} → state=${mapped.state} event=${mapped.event}`);
-        sendState(mapped.state, mapped.event, sessionId);
+        sendState(mapped.state, mapped.event, sessionId, event);
       } catch (err) {
         debugLog(`ERROR in event hook: ${err && err.message}`);
       }

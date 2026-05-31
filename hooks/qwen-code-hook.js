@@ -12,6 +12,7 @@ const {
   readHostPrefix,
 } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
+const { applyTokenUsageFields } = require("./json-utils");
 
 const TOOL_MATCH_STRING_MAX = 240;
 const TOOL_MATCH_ARRAY_MAX = 16;
@@ -150,6 +151,7 @@ function buildStateBody(hookName, payload, resolve, options = {}) {
     event: hookName,
     agent_id: "qwen-code",
   };
+  applyTokenUsageFields(body, payload);
 
   if (payload && typeof payload.cwd === "string" && payload.cwd) body.cwd = payload.cwd;
   if (payload && typeof payload.model === "string" && payload.model) body.model = payload.model;
