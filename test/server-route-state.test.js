@@ -145,11 +145,64 @@ describe("server-route-state POST", () => {
         codexSource: "vscode",
         displayHint: "display.svg",
         sessionTitle: "Work title",
+        assistantLastOutput: null,
+        assistantLastOutputTruncated: false,
         permissionSuspect: true,
         preserveState: true,
         hookSource: "codex-official",
+        inputTokens: null,
+        outputTokens: null,
+        totalCost: null,
       },
     ]]);
+  });
+
+  it("passes assistant last output metadata to updateSession", async () => {
+    const res = await callStatePost(JSON.stringify({
+      state: "attention",
+      session_id: "sid",
+      event: "Stop",
+      assistant_last_output: "  Done.\nsecret=abc123  ",
+      assistant_last_output_truncated: true,
+    }));
+
+    assert.strictEqual(res.statusCode, 200);
+    assert.strictEqual(res.calls.updateSession[0][3].assistantLastOutput, "Done.\nsecret=abc123");
+    assert.strictEqual(res.calls.updateSession[0][3].assistantLastOutputTruncated, true);
+  });
+
+  it("normalizes nested token usage metadata", async () => {
+    const res = await callStatePost(JSON.stringify({
+      state: "working",
+      session_id: "sid",
+      event: "PostToolUse",
+      usage: { input_tokens: 12.9, output_tokens: 4.2, total_cost: 0.03 },
+    }));
+
+    assert.strictEqual(res.statusCode, 200);
+    assert.strictEqual(res.calls.updateSession[0][3].inputTokens, 12);
+    assert.strictEqual(res.calls.updateSession[0][3].outputTokens, 4);
+    assert.strictEqual(res.calls.updateSession[0][3].totalCost, 0.03);
+  });
+
+  it("passes metadata-only token updates through to the state runtime", async () => {
+    const res = await callStatePost(JSON.stringify({
+      state: "working",
+      session_id: "sid",
+      agent_id: "codex",
+      model: "gpt-5.5",
+      input_tokens: 120,
+      output_tokens: 8,
+      preserve_state: true,
+      metadata_only: true,
+    }));
+
+    assert.strictEqual(res.statusCode, 200);
+    assert.strictEqual(res.calls.updateSession[0][3].model, "gpt-5.5");
+    assert.strictEqual(res.calls.updateSession[0][3].inputTokens, 120);
+    assert.strictEqual(res.calls.updateSession[0][3].outputTokens, 8);
+    assert.strictEqual(res.calls.updateSession[0][3].preserveState, true);
+    assert.strictEqual(res.calls.updateSession[0][3].metadataOnly, true);
   });
 
   it("uses basename for explicit svg state overrides", async () => {

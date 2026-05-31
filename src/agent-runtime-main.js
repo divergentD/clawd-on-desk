@@ -125,6 +125,12 @@ function createAgentRuntimeMain(options = {}) {
       const codexAgent = loadCodexAgent();
       codexMonitor = new CodexLogMonitor(codexAgent, (sid, state, event, extra) => {
         if (shouldSuppressCodexLogEvent(sid, state, event)) return;
+        if (extra && extra.metadataOnly === true) {
+          updateSession(sid, state, null, buildCodexMonitorUpdateOptions(extra, {
+            includeHeadless: true,
+          }));
+          return;
+        }
         if (isCodexMonitorPermissionEvent(state)) {
           updateSession(sid, "notification", event, buildCodexMonitorUpdateOptions(extra, {
             includeHeadless: false,

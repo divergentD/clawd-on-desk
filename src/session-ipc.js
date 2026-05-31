@@ -45,6 +45,8 @@ function registerSessionIpc(options = {}) {
   on("settings:open-dashboard", () => showDashboard({ source: "settings" }));
   on("show-dashboard", () => showDashboard());
 
+  handle("token-display:get-snapshot", () => getSessionSnapshot());
+
   // Both HUD and Dashboard call into this — invoke/handle (not send) so the
   // click handlers can re-enable the Mark-read button if the ack failed.
   handle("session:ack-completion", (_event, sessionId) => {

@@ -58,6 +58,16 @@ describe("Antigravity hook script", () => {
     );
   });
 
+  it("forwards cumulative token usage when agy provides it", () => {
+    const body = __test.buildStateBody("PostInvocation", {
+      conversationId: "c1",
+      usage: { inputTokens: 12, outputTokens: 3, totalCost: 0.04 },
+    });
+    assert.strictEqual(body.input_tokens, 12);
+    assert.strictEqual(body.output_tokens, 3);
+    assert.strictEqual(body.total_cost, 0.04);
+  });
+
   it("builds a permission body from PreToolUse camelCase payloads", () => {
     const body = __test.buildPermissionBody("PreToolUse", {
       conversationId: "c1",

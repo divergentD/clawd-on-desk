@@ -8,6 +8,7 @@ const os = require("os");
 const path = require("path");
 const { postStateToRunningServer, readHostPrefix } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
+const { applyTokenUsageFields } = require("./json-utils");
 
 const SESSION_TITLE_CONTROL_RE = /[\u0000-\u001F\u007F-\u009F]+/g;
 const SESSION_TITLE_MAX = 80;
@@ -140,6 +141,7 @@ function buildStateBody(event, payload, resolve, options = {}) {
 
   const body = { state, session_id: sessionId, event };
   body.agent_id = "copilot-cli";
+  applyTokenUsageFields(body, payload);
   if (cwd) body.cwd = cwd;
 
   // Session title: prefer payload field if present, otherwise read the

@@ -84,6 +84,7 @@ test("session IPC registers owned channels and disposes them", () => {
     "dashboard:set-session-alias",
     "session-hud:get-i18n",
     "session:ack-completion",
+    "token-display:get-snapshot",
   ]);
   assert.deepStrictEqual([...ipcMain.listeners.keys()].sort(), [
     "dashboard:focus-session",

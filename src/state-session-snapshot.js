@@ -54,6 +54,17 @@ function sessionUpdatedAt(session) {
   return Number.isFinite(updatedAt) ? updatedAt : 0;
 }
 
+// A persisted session counts as "in progress" when it is non-headless and its
+// stored state is anything other than idle/sleeping (mirrors deriveSessionBadge's
+// "running" semantics). One-shot visuals like attention/notification are
+// normally stored as idle by updateSession(); permission prompts stay awake by
+// preserving the prior working/thinking state.
+function isSessionInProgress(session) {
+  if (!session || session.headless) return false;
+  if (session.state === "idle" || session.state === "sleeping") return false;
+  return true;
+}
+
 function deriveSessionBadge(session) {
   if (!session) return "idle";
   if (session.state !== "idle" && session.state !== "sleeping") return "running";
@@ -184,6 +195,13 @@ function buildSessionSnapshotEntry(id, session, sessionAliases = {}, options = {
     provider: (session && session.provider) || null,
     codexOriginator: (session && session.codexOriginator) || null,
     codexSource: (session && session.codexSource) || null,
+    inputTokens: (session && Number.isFinite(session.inputTokens)) ? session.inputTokens : null,
+    outputTokens: (session && Number.isFinite(session.outputTokens)) ? session.outputTokens : null,
+    totalCost: (session && Number.isFinite(session.totalCost)) ? session.totalCost : null,
+    assistantLastOutput: (session && typeof session.assistantLastOutput === "string")
+      ? session.assistantLastOutput
+      : null,
+    assistantLastOutputTruncated: !!(session && session.assistantLastOutputTruncated === true),
     lastEvent: latestEvent ? {
       labelKey: rawEvent ? (EVENT_LABEL_KEYS[rawEvent] || null) : null,
       rawEvent,
@@ -292,6 +310,11 @@ function sessionSnapshotSignature(snapshot) {
       provider: entry.provider,
       codexOriginator: entry.codexOriginator,
       codexSource: entry.codexSource,
+      inputTokens: entry.inputTokens,
+      outputTokens: entry.outputTokens,
+      totalCost: entry.totalCost,
+      assistantLastOutput: entry.assistantLastOutput,
+      assistantLastOutputTruncated: !!entry.assistantLastOutputTruncated,
       lastEventLabelKey: entry.lastEvent ? entry.lastEvent.labelKey : null,
       lastEventRawEvent: entry.lastEvent ? entry.lastEvent.rawEvent : null,
       lastEventAt: entry.lastEvent ? entry.lastEvent.at : null,
@@ -305,6 +328,7 @@ module.exports = {
   SESSION_TITLE_MAX,
   normalizeTitle,
   sessionUpdatedAt,
+  isSessionInProgress,
   deriveSessionBadge,
   shouldAutoClearDetachedSession,
   getSessionAliasEntry,

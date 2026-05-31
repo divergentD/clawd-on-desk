@@ -17,7 +17,11 @@ const {
   classifyHookPayload,
   classifySessionMeta,
 } = require("./codex-subagent-fields");
+const {
+  extractLastAssistantTextFromTranscript,
+} = require("./codex-assistant-output");
 const { readCodexThreadName } = require("./codex-session-index");
+const { applyTokenUsageFields } = require("./json-utils");
 
 const TOOL_MATCH_STRING_MAX = 240;
 const TOOL_MATCH_ARRAY_MAX = 16;
@@ -278,6 +282,7 @@ function buildPermissionBody(payload, resolve) {
     tool_name: toolName,
     tool_input: normalizeToolMatchValue(rawToolInput) || {},
   };
+  applyTokenUsageFields(body, payload);
 
   if (description) body.tool_input_description = description;
   if (typeof payload.cwd === "string" && payload.cwd) body.cwd = payload.cwd;
@@ -337,6 +342,13 @@ function buildStateBody(payload, resolve) {
   if (typeof payload.model === "string" && payload.model) body.model = payload.model;
   if (payload.stop_hook_active === true || payload.stop_hook_active === false) {
     body.stop_hook_active = payload.stop_hook_active;
+  }
+  if (event === "Stop") {
+    const assistantOutput = extractLastAssistantTextFromTranscript(payload.transcript_path);
+    if (assistantOutput && assistantOutput.text) {
+      body.assistant_last_output = assistantOutput.text;
+      if (assistantOutput.truncated) body.assistant_last_output_truncated = true;
+    }
   }
 
   const sessionMeta = readFirstSessionMeta(payload.transcript_path);
@@ -414,6 +426,7 @@ module.exports = {
   buildPermissionBody,
   buildStateBody,
   buildToolInputFingerprint,
+  extractLastAssistantTextFromTranscript,
   extractCodexSessionIdFromTranscriptPath,
   isCodexDesktopSession,
   normalizeCodexSessionId,

@@ -5,6 +5,7 @@ const assert = require("node:assert");
 
 const {
   deriveSessionBadge,
+  isSessionInProgress,
   buildSessionSnapshot,
   getActiveSessionAliasKeys,
   sessionSnapshotSignature,
@@ -33,6 +34,26 @@ function session(state, overrides = {}) {
     ...overrides,
   };
 }
+
+describe("isSessionInProgress state mapping", () => {
+  it("treats persisted running states as in-progress and idle/sleeping/headless as not", () => {
+    assert.strictEqual(isSessionInProgress(session("working")), true);
+    assert.strictEqual(isSessionInProgress(session("thinking")), true);
+    assert.strictEqual(isSessionInProgress(session("juggling")), true);
+    assert.strictEqual(isSessionInProgress(session("idle")), false);
+    assert.strictEqual(isSessionInProgress(session("sleeping")), false);
+  });
+
+  it("never counts headless sessions, even when active", () => {
+    assert.strictEqual(isSessionInProgress(session("working", { headless: true })), false);
+    assert.strictEqual(isSessionInProgress(session("thinking", { headless: true })), false);
+  });
+
+  it("returns false for nullish sessions", () => {
+    assert.strictEqual(isSessionInProgress(null), false);
+    assert.strictEqual(isSessionInProgress(undefined), false);
+  });
+});
 
 describe("state-session-snapshot badges", () => {
   it("derives running, done, interrupted, and idle badges", () => {
@@ -190,6 +211,19 @@ describe("state-session-snapshot builder", () => {
       url: "codex://threads/019e115a-4df2-7ed0-b90e-8e6345aca777",
     });
     assert.strictEqual(byId.get("codex:019e115a-4df2-7ed0-b90e-8e6345aca777").codexSource, "vscode");
+  });
+
+  it("exposes assistant last output for completion companion consumers", () => {
+    const snapshot = buildSessionSnapshot(new Map([
+      ["done", session("idle", {
+        assistantLastOutput: "Final assistant text",
+        assistantLastOutputTruncated: true,
+        recentEvents: [{ event: "Stop", state: "attention", at: 1 }],
+      })],
+    ]));
+    const entry = snapshot.sessions.find((s) => s.id === "done");
+    assert.strictEqual(entry.assistantLastOutput, "Final assistant text");
+    assert.strictEqual(entry.assistantLastOutputTruncated, true);
   });
 
   it("does not expose focus targets for sessions hidden from the focusable UI surface", () => {

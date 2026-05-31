@@ -4,6 +4,7 @@
 
 const { postStateToRunningServer, readHostPrefix } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
+const { applyTokenUsageFields } = require("./json-utils");
 
 // Gemini hook event → { state, event } for the Clawd state machine
 const HOOK_MAP = {
@@ -90,6 +91,7 @@ function buildStateBody(hookName, payload, options = {}) {
     event,
     agent_id: "gemini-cli",
   };
+  applyTokenUsageFields(body, payload);
 
   if (cwd) body.cwd = cwd;
   if (preserveState) body.preserve_state = true;

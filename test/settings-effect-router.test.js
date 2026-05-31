@@ -59,9 +59,11 @@ function createHarness(options = {}) {
     refreshUpdateBubbleAutoClose: () => calls.push(["refreshUpdateBubbleAutoClose"]),
     repositionFloatingBubbles: () => calls.push(["repositionFloatingBubbles"]),
     syncSessionHudVisibility: () => calls.push(["syncSessionHudVisibility"]),
+    syncTokenDisplayVisibility: () => calls.push(["syncTokenDisplayVisibility"]),
     handleSessionHudPinnedChanged: (next) => calls.push(["handleSessionHudPinnedChanged", next]),
     reclampPetAfterEdgePinningChange: () => calls.push(["reclampPetAfterEdgePinningChange"]),
     rebuildAllMenus: () => calls.push(["rebuildAllMenus"]),
+    reconcilePowerSaveBlocker: () => calls.push(["reconcilePowerSaveBlocker"]),
     logWarn: (...args) => logs.push(args),
     ...(options.routerOptions || {}),
   });
@@ -140,6 +142,23 @@ describe("settings-effect-router", () => {
     ]);
   });
 
+  it("reconciles the power save blocker when keepAwakeWhileWorking changes", () => {
+    const { calls, emit } = createHarness();
+
+    emit({ keepAwakeWhileWorking: true });
+    assert.deepStrictEqual(calls, [
+      ["updateMirrors", { keepAwakeWhileWorking: true }],
+      ["reconcilePowerSaveBlocker"],
+    ]);
+
+    calls.length = 0;
+    emit({ keepAwakeWhileWorking: false });
+    assert.deepStrictEqual(calls, [
+      ["updateMirrors", { keepAwakeWhileWorking: false }],
+      ["reconcilePowerSaveBlocker"],
+    ]);
+  });
+
   it("routes language, session alias, and session HUD effects", () => {
     const { calls, emit } = createHarness();
 
@@ -195,6 +214,18 @@ describe("settings-effect-router", () => {
     assert.deepStrictEqual(calls, [
       ["updateMirrors", { sessionHudPinned: false }],
       ["handleSessionHudPinnedChanged", false],
+    ]);
+  });
+
+  it("syncs and rebuilds menus when token display changes", () => {
+    const { calls, emit } = createHarness();
+
+    emit({ tokenDisplayEnabled: false });
+
+    assert.deepStrictEqual(calls, [
+      ["updateMirrors", { tokenDisplayEnabled: false }],
+      ["syncTokenDisplayVisibility"],
+      ["rebuildAllMenus"],
     ]);
   });
 

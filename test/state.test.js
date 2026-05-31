@@ -86,6 +86,10 @@ function update(api, o = {}) {
       provider: o.provider ?? null,
       codexOriginator: o.codexOriginator ?? null,
       codexSource: o.codexSource ?? null,
+      inputTokens: o.inputTokens ?? null,
+      outputTokens: o.outputTokens ?? null,
+      totalCost: o.totalCost ?? null,
+      metadataOnly: o.metadataOnly === true,
     },
   );
 }
@@ -811,6 +815,65 @@ describe("updateSession()", () => {
     assert.ok(api.sessions.get("s1").updatedAt >= t1);
   });
 
+  it("keeps token usage sticky when later events omit it", () => {
+    update(api, { id: "s1", inputTokens: 12, outputTokens: 4, totalCost: 0.03 });
+    update(api, { id: "s1", state: "thinking", event: "UserPromptSubmit" });
+
+    const session = api.sessions.get("s1");
+    assert.strictEqual(session.inputTokens, 12);
+    assert.strictEqual(session.outputTokens, 4);
+    assert.strictEqual(session.totalCost, 0.03);
+  });
+
+  it("keeps token usage sticky across Codex PermissionRequest focus persistence", () => {
+    update(api, {
+      id: "codex:sticky",
+      agentId: "codex",
+      inputTokens: 12,
+      outputTokens: 4,
+      totalCost: 0.03,
+    });
+    update(api, {
+      id: "codex:sticky",
+      state: "notification",
+      event: "PermissionRequest",
+      agentId: "codex",
+      sourcePid: 456,
+    });
+
+    const session = api.sessions.get("codex:sticky");
+    assert.strictEqual(session.inputTokens, 12);
+    assert.strictEqual(session.outputTokens, 4);
+    assert.strictEqual(session.totalCost, 0.03);
+  });
+
+  it("metadata-only updates refresh usage without changing state or completion ack", () => {
+    update(api, {
+      id: "s1",
+      state: "attention",
+      event: "event_msg:task_complete",
+      agentId: "codex",
+      host: "ssh:example.com",
+    });
+    update(api, {
+      id: "s1",
+      state: "idle",
+      agentId: "codex",
+      host: "ssh:example.com",
+      model: "gpt-5.5",
+      inputTokens: 120,
+      outputTokens: 8,
+      metadataOnly: true,
+    });
+
+    const session = api.sessions.get("s1");
+    assert.strictEqual(session.state, "idle");
+    assert.strictEqual(session.requiresCompletionAck, true);
+    assert.strictEqual(session.model, "gpt-5.5");
+    assert.strictEqual(session.inputTokens, 120);
+    assert.strictEqual(session.outputTokens, 8);
+  });
+
   it("juggling + working (non-SubagentStop) → keeps juggling", () => {
     update(api, { id: "s1", state: "juggling", event: "SubagentStart" });
     assert.strictEqual(api.sessions.get("s1").state, "juggling");
@@ -954,6 +1017,25 @@ describe("updateSession()", () => {
     mock.timers.tick(5000);
 
     assert.strictEqual(api.getCurrentState(), "idle");
+  });
+
+  it("stores one-shot visuals as idle while permission prompts preserve active work", () => {
+    update(api, { id: "notify", state: "notification", event: "Notification", agentId: "claude-code" });
+    assert.strictEqual(api.sessions.get("notify").state, "idle");
+
+    update(api, { id: "done", state: "attention", event: "Stop", agentId: "claude-code" });
+    assert.strictEqual(api.sessions.get("done").state, "idle");
+
+    update(api, { id: "perm-active", state: "working", event: "PreToolUse", agentId: "codex" });
+    update(api, {
+      id: "perm-active",
+      state: "notification",
+      event: "PermissionRequest",
+      agentId: "codex",
+      sourcePid: 456,
+    });
+
+    assert.strictEqual(api.sessions.get("perm-active").state, "working");
   });
 
   it("clearPermissionNotification releases a persisted notification session immediately", () => {

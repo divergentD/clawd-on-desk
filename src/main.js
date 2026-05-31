@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain, globalShortcut, nativeTheme, dialog, shell, nativeImage } = require("electron");
+const { app, BrowserWindow, screen, ipcMain, globalShortcut, nativeTheme, dialog, shell, nativeImage, powerSaveBlocker } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { EventEmitter } = require("events");
@@ -18,6 +18,12 @@ const initPermission = require("./permission");
 const { registerPermissionIpc } = initPermission;
 const { createTelegramApprovalSidecar } = require("./telegram-approval-sidecar");
 const telegramApprovalSettings = require("./telegram-approval-settings");
+const {
+  buildTelegramApprovalStatus,
+  isNativeTelegramApprovalSelected,
+  buildTelegramStatusDiagnostic,
+  formatTelegramStatusDiagnostic,
+} = require("./telegram-approval-runtime-status");
 const { createTelegramMigrationController } = require("./telegram-migration-controller");
 const initUpdateBubble = require("./update-bubble");
 const { registerUpdateBubbleIpc } = initUpdateBubble;
@@ -48,6 +54,7 @@ const {
   getSessionFocusTarget,
 } = require("./session-focus");
 const { focusCodexThreadTarget } = require("./session-focus-handoff");
+const { isSessionInProgress } = require("./state-session-snapshot");
 const { getAllAgents } = require("../agents/registry");
 
 // ── Autoplay policy: allow sound playback without user gesture ──
@@ -227,6 +234,7 @@ let telegramApprovalConfigSignature = "";
 let telegramApprovalTokenRevision = 0;
 let _telegramMigrationController = null;
 let telegramNativeRunner = null;
+let telegramCompanion = null;
 let suppressTelegramApprovalSidecarSync = 0;
 let hardwareBuddyAdapter = null;
 let hardwareBuddyStatus = null;
@@ -256,6 +264,10 @@ const _settingsController = createSettingsController({
     repairIntegrationForAgent: (id, options) =>
       agentRuntime ? agentRuntime.repairIntegrationForAgent(id, options) : false,
     stopIntegrationForAgent: (id) => agentRuntime ? agentRuntime.stopIntegrationForAgent(id) : false,
+    cleanupIntegrations: (options = {}) => {
+      const { cleanupIntegrations } = require("../hooks/cleanup-integrations.js");
+      return cleanupIntegrations({ ...options, backup: true, silent: true });
+    },
     repairLocalServer: () => _server && typeof _server.repairRuntimeStatus === "function"
       ? _server.repairRuntimeStatus()
       : false,
@@ -473,6 +485,7 @@ codexPetMain = createCodexPetMain({
   getMainWindow: () => win,
   getSettingsWindow,
   path,
+  reloadActiveTheme: () => themeRuntime.reloadActiveTheme(),
   rebuildAllMenus: () => rebuildAllMenus(),
   settingsController: _settingsController,
   shell,
@@ -661,6 +674,7 @@ let autoStartWithClaude = _settingsController.get("autoStartWithClaude");
 let openAtLogin = _settingsController.get("openAtLogin");
 let bubbleFollowPet = _settingsController.get("bubbleFollowPet");
 let sessionHudEnabled = _settingsController.get("sessionHudEnabled");
+let tokenDisplayEnabled = _settingsController.get("tokenDisplayEnabled");
 let sessionHudShowStateLabels = _settingsController.get("sessionHudShowStateLabels");
 let sessionHudShowElapsed = _settingsController.get("sessionHudShowElapsed");
 let sessionHudCleanupDetached = _settingsController.get("sessionHudCleanupDetached");
@@ -671,6 +685,7 @@ let detachedIdleStaleMs = _settingsController.get("detachedIdleStaleMs");
 let soundMuted = _settingsController.get("soundMuted");
 let soundVolume = _settingsController.get("soundVolume");
 let lowPowerIdleMode = _settingsController.get("lowPowerIdleMode");
+let keepAwakeWhileWorking = _settingsController.get("keepAwakeWhileWorking");
 let allowEdgePinningCached = _settingsController.get("allowEdgePinning");
 let keepSizeAcrossDisplaysCached = _settingsController.get("keepSizeAcrossDisplays");
 
@@ -893,6 +908,10 @@ let broadcastSessionHudSnapshot = () => {};
 let sendSessionHudI18n = () => {};
 let getSessionHudReservedOffset = () => 0;
 let getSessionHudWindow = () => null;
+let repositionTokenDisplay = () => {};
+let syncTokenDisplayVisibility = () => {};
+let broadcastTokenDisplaySnapshot = () => {};
+let tokenDisplayNeedsHoverPoll = () => false;
 const themeFadeSequencer = createThemeFadeSequencer({
   getRenderWindow: () => win,
   getHitWindow: () => hitWin,
@@ -914,6 +933,13 @@ function setLowPowerIdlePaused(value) {
   if (lowPowerIdlePaused === next) return;
   lowPowerIdlePaused = next;
   if (!next) setForceEyeResend(true);
+}
+
+function setMouseOverPet(value) {
+  const next = !!value;
+  if (mouseOverPet === next) return;
+  mouseOverPet = next;
+  syncTokenDisplayVisibility();
 }
 
 function beginDragSnapshot() { return petWindowRuntime.beginDragSnapshot(); }
@@ -1057,6 +1083,8 @@ floatingWindowRuntime = createFloatingWindowRuntime({
   repositionUpdateBubble: () => repositionUpdateBubble(),
   repositionSessionHud: () => repositionSessionHud(),
   syncSessionHudVisibility: () => syncSessionHudVisibility(),
+  repositionTokenDisplay: () => repositionTokenDisplay(),
+  syncTokenDisplayVisibility: () => syncTokenDisplayVisibility(),
   syncUpdateBubbleVisibility: () => syncUpdateBubbleVisibility(),
   hideUpdateBubble: () => hideUpdateBubble(),
   keepOutOfTaskbar,
@@ -1132,10 +1160,17 @@ const _stateCtx = {
   buildTrayMenu: () => buildTrayMenu(),
   debugLog: (msg) => sessionLog(msg),
   broadcastSessionSnapshot: (snapshot) => {
+    reconcilePowerSaveBlocker();
     broadcastDashboardSessionSnapshot(snapshot);
     broadcastSessionHudSnapshot(snapshot);
+    broadcastTokenDisplaySnapshot(snapshot);
     repositionFloatingBubbles();
     if (hardwareBuddyAdapter) hardwareBuddyAdapter.notifyStateChanged();
+    // R1a: best-effort completion notifications. Must never throw or block the
+    // broadcast — the companion computes synchronously and fires sends async.
+    if (telegramCompanion) {
+      try { telegramCompanion.onSnapshot(snapshot); } catch {}
+    }
   },
   // Phase 3b: 读 prefs.themeOverrides 判断某个 oneshot state 是否被用户禁用。
   // state.js gate 调这个做 early-return。不做白名单校验——settings-actions
@@ -1180,6 +1215,39 @@ const { setState, applyState, updateSession, resolveDisplayState, getSvgOverride
         startStartupRecovery: _startStartupRecovery } = _state;
 const sessions = _state.sessions;
 
+// ── Keep-awake: block OS sleep while any agent task is in progress ──
+// State→in-progress mapping lives in state-session-snapshot.isSessionInProgress
+// (kept as a pure helper so the semantics are unit-tested).
+let powerSaveBlockerId = null;
+function anySessionInProgress() {
+  for (const [, s] of sessions) {
+    if (isSessionInProgress(s)) return true;
+  }
+  return false;
+}
+function reconcilePowerSaveBlocker() {
+  try {
+    const shouldBlock = keepAwakeWhileWorking && anySessionInProgress();
+    const active = powerSaveBlockerId !== null && powerSaveBlocker.isStarted(powerSaveBlockerId);
+    if (shouldBlock && !active) {
+      powerSaveBlockerId = powerSaveBlocker.start("prevent-app-suspension");
+    } else if (!shouldBlock && active) {
+      powerSaveBlocker.stop(powerSaveBlockerId);
+      powerSaveBlockerId = null;
+    }
+  } catch (err) {
+    console.warn("Clawd: reconcilePowerSaveBlocker failed:", err);
+  }
+}
+function releasePowerSaveBlocker() {
+  try {
+    if (powerSaveBlockerId !== null && powerSaveBlocker.isStarted(powerSaveBlockerId)) {
+      powerSaveBlocker.stop(powerSaveBlockerId);
+    }
+  } catch {}
+  powerSaveBlockerId = null;
+}
+
 // ── Hit-test: SVG bounding box → screen coordinates ──
 function getHitRectScreen(bounds) { return petWindowRuntime.getHitRectScreen(bounds); }
 function getUpdateBubbleAnchorRect(bounds) { return petWindowRuntime.getUpdateBubbleAnchorRect(bounds); }
@@ -1204,7 +1272,8 @@ const _tickCtx = {
   get miniPeeked() { return _mini.getMiniPeeked(); },
   set miniPeeked(v) { _mini.setMiniPeeked(v); },
   get mouseOverPet() { return mouseOverPet; },
-  set mouseOverPet(v) { mouseOverPet = v; },
+  set mouseOverPet(v) { setMouseOverPet(v); },
+  get tokenDisplayNeedsHoverPoll() { return tokenDisplayNeedsHoverPoll(); },
   get forceEyeResend() { return forceEyeResend; },
   set forceEyeResend(v) { setForceEyeResend(v); },
   get forceEyeResendBoostUntil() { return forceEyeResendBoostUntil; },
@@ -1337,6 +1406,22 @@ sendSessionHudI18n = _sessionHud.sendI18n;
 getSessionHudReservedOffset = _sessionHud.getHudReservedOffset;
 getSessionHudWindow = _sessionHud.getWindow;
 
+const _tokenDisplay = require("./token-display")({
+  get win() { return win; },
+  get petHidden() { return petWindowRuntime.isPetHidden(); },
+  get tokenDisplayEnabled() { return tokenDisplayEnabled; },
+  get mouseOverPet() { return mouseOverPet; },
+  getMiniMode: () => _mini.getMiniMode(),
+  getMiniTransitioning: () => _mini.getMiniTransitioning(),
+  getPetWindowBounds,
+  getHitRectScreen,
+  getNearestWorkArea,
+});
+repositionTokenDisplay = _tokenDisplay.reposition;
+syncTokenDisplayVisibility = _tokenDisplay.syncVisibility;
+broadcastTokenDisplaySnapshot = _tokenDisplay.sendSnapshot;
+tokenDisplayNeedsHoverPoll = _tokenDisplay.hasTokenData;
+
 agentRuntime = createAgentRuntimeMain({
   getServer: () => _server,
   getStateRuntime: () => _state,
@@ -1410,14 +1495,36 @@ function getTelegramApprovalClient() {
   const controller = _telegramMigrationController;
   if (controller && typeof controller.getSnapshot === "function") {
     const snap = controller.getSnapshot() || {};
-    if (snap.state === "NATIVE_ACTIVE"
-      && telegramNativeRunner
-      && typeof telegramNativeRunner.requestApproval === "function") {
-      return telegramNativeRunner;
+    if (isNativeTelegramApprovalSelected(snap)) {
+      if (snap.state === "NATIVE_ACTIVE"
+        && telegramNativeRunner
+        && typeof telegramNativeRunner.isPolling === "function"
+        && telegramNativeRunner.isPolling()
+        && typeof telegramNativeRunner.requestApproval === "function") {
+        return telegramNativeRunner;
+      }
+      return null;
     }
   }
   if (!telegramApprovalSidecar || typeof telegramApprovalSidecar.getClient !== "function") return null;
   return telegramApprovalSidecar.getClient();
+}
+
+// R1a companion notifications are native-only: the legacy sidecar has no
+// sendNotification surface, so legacy users silently lack completion pings
+// (Settings copy must say so — tracked for a follow-up UI pass). Unlike
+// getTelegramApprovalClient this never falls back to the sidecar.
+function getTelegramCompanionClient() {
+  const controller = _telegramMigrationController;
+  if (controller && typeof controller.getSnapshot === "function") {
+    const snap = controller.getSnapshot() || {};
+    if (snap.state === "NATIVE_ACTIVE"
+      && telegramNativeRunner
+      && typeof telegramNativeRunner.sendNotification === "function") {
+      return telegramNativeRunner;
+    }
+  }
+  return null;
 }
 
 function telegramApprovalLog(level, message, meta = {}) {
@@ -1547,18 +1654,90 @@ function buildTelegramApprovalSignature(config, paths, tokenStatus) {
 function getTelegramApprovalStatus() {
   const config = getTelegramApprovalPrefs();
   const token = getTelegramApprovalTokenStatus();
-  const ready = telegramApprovalSettings.readiness(config, token);
   const sidecarStatus = telegramApprovalSidecar && typeof telegramApprovalSidecar.getStatus === "function"
     ? telegramApprovalSidecar.getStatus()
     : { status: "stopped" };
+  const migrationSnapshot = _telegramMigrationController && typeof _telegramMigrationController.getSnapshot === "function"
+    ? _telegramMigrationController.getSnapshot()
+    : null;
+  const nativePolling = telegramNativeRunner
+    && typeof telegramNativeRunner.isPolling === "function"
+    && telegramNativeRunner.isPolling();
+  return buildTelegramApprovalStatus({
+    config,
+    token,
+    sidecarStatus,
+    migrationSnapshot,
+    nativePolling,
+  });
+}
+
+function getPendingTelegramApprovalCount() {
+  return pendingPermissions.filter((entry) =>
+    entry
+    && !entry.isCodexNotify
+    && !entry.isKimiNotify
+    && !entry.isHardwareBuddyTest
+  ).length;
+}
+
+function getTelegramNativeRunnerStatus() {
+  if (telegramNativeRunner && typeof telegramNativeRunner.getStatus === "function") {
+    try { return telegramNativeRunner.getStatus(); } catch {}
+  }
   return {
-    ...sidecarStatus,
-    enabled: config.enabled === true,
-    configured: ready.ready === true,
-    reason: ready.reason || "",
-    message: sidecarStatus.message || ready.message || "",
-    tokenStored: token.tokenStored === true,
+    polling: !!(telegramNativeRunner
+      && typeof telegramNativeRunner.isPolling === "function"
+      && telegramNativeRunner.isPolling()),
+    pendingApprovalCount: telegramNativeRunner && telegramNativeRunner._pendingApprovals
+      ? telegramNativeRunner._pendingApprovals.size
+      : 0,
+    lastError: null,
   };
+}
+
+function buildTelegramStatusCommandText(options = {}) {
+  const config = getTelegramApprovalPrefs();
+  const token = getTelegramApprovalTokenStatus();
+  const sidecarStatus = telegramApprovalSidecar && typeof telegramApprovalSidecar.getStatus === "function"
+    ? telegramApprovalSidecar.getStatus()
+    : { status: "stopped" };
+  const migrationSnapshot = _telegramMigrationController && typeof _telegramMigrationController.getSnapshot === "function"
+    ? _telegramMigrationController.getSnapshot()
+    : null;
+  const nativeRunnerStatus = getTelegramNativeRunnerStatus();
+  const nativePolling = nativeRunnerStatus && nativeRunnerStatus.polling === true;
+  const approvalStatus = buildTelegramApprovalStatus({
+    config,
+    token,
+    sidecarStatus,
+    migrationSnapshot,
+    nativePolling,
+  });
+  const sessionSnapshot = _state && typeof _state.buildSessionSnapshot === "function"
+    ? _state.buildSessionSnapshot()
+    : null;
+  const diagnostic = buildTelegramStatusDiagnostic({
+    config,
+    token,
+    approvalStatus,
+    migrationSnapshot,
+    nativeRunnerStatus,
+    nativePolling,
+    pendingApprovalCount: getPendingTelegramApprovalCount(),
+    sessionSnapshot,
+    now: Date.now(),
+    all: options && options.all === true,
+  });
+  return formatTelegramStatusDiagnostic(diagnostic, {
+    all: options && options.all === true,
+    lang: _settingsController.get("lang") || lang || "en",
+  });
+}
+
+function handleTelegramNativeCommand({ command, args } = {}) {
+  if (command !== "status") return null;
+  return buildTelegramStatusCommandText({ all: true });
 }
 
 function writeTelegramApprovalToken(token) {
@@ -1732,9 +1911,32 @@ async function initTelegramMigrationController() {
       const cfg = getTelegramApprovalPrefs();
       return (cfg && cfg.allowedTgUserId) || "";
     },
+    isCommandEnabled: () => {
+      const snap = _telegramMigrationController && typeof _telegramMigrationController.getSnapshot === "function"
+        ? _telegramMigrationController.getSnapshot()
+        : null;
+      return !!(snap && snap.state === "NATIVE_ACTIVE");
+    },
+    onCommand: (payload) => handleTelegramNativeCommand(payload),
     log: telegramApprovalLog,
   });
   telegramNativeRunner = nativeRunner;
+
+  // R1a: completion notifications ride the existing snapshot fanout. The
+  // companion holds its own dedupe state (the snapshot carries no prev) and
+  // only sends while native is the active owner + the user left the toggle on.
+  const { createTelegramCompanion } = require("./telegram-companion");
+  telegramCompanion = createTelegramCompanion({
+    getClient: () => getTelegramCompanionClient(),
+    getLang: () => _settingsController.get("lang") || lang || "en",
+    getCompletionOutputMode: () => getTelegramApprovalPrefs().completionOutputMode || "full",
+    getNotifyOnComplete: () => getTelegramApprovalPrefs().notifyOnComplete === true,
+    // Native-active client present. The companion still advances its dedupe map
+    // while native is inactive, and internally decides whether to send a bare
+    // ping or require assistant output based on tgApproval prefs.
+    isEnabled: () => !!getTelegramCompanionClient(),
+    log: telegramApprovalLog,
+  });
 
   _telegramMigrationController = createTelegramMigrationController({
     sidecar: sidecarHandle,
@@ -1841,6 +2043,9 @@ function telegramApprovalUnavailableMessage(status) {
   if (status && status.reason === "disabled") return "Telegram approval is disabled";
   if (status && status.reason === "missing-token") return "Telegram bot token is not configured";
   if (status && status.reason === "invalid-config") return "Telegram approval config is incomplete";
+  if (status && status.reason === "native-inactive") return "Native Telegram approval is not active";
+  if (status && status.reason === "native-testing") return "Native Telegram approval test is already in progress";
+  if (status && status.transport === "native") return "Native Telegram approval is not active";
   return "Telegram approval sidecar is not running";
 }
 
@@ -1849,7 +2054,9 @@ async function sendTelegramApprovalTest() {
   if (beforeStatus.configured !== true) {
     return { status: "error", message: telegramApprovalUnavailableMessage(beforeStatus) };
   }
-  await queueTelegramApprovalSidecarSync("test");
+  if (!(beforeStatus && beforeStatus.transport === "native")) {
+    await queueTelegramApprovalSidecarSync("test");
+  }
   const client = getTelegramApprovalClient();
   if (!client || typeof client.requestApproval !== "function") {
     return { status: "error", message: telegramApprovalUnavailableMessage(getTelegramApprovalStatus()) };
@@ -1863,6 +2070,9 @@ async function sendTelegramApprovalTest() {
     }, { signal: controller.signal });
     if (decision === "allow" || decision === "deny") {
       return { status: "ok", decision };
+    }
+    if (decision && (decision.action === "allow" || decision.action === "deny")) {
+      return { status: "ok", decision: decision.action };
     }
     return { status: "error", message: "Telegram test did not receive a button response" };
   } finally {
@@ -2133,6 +2343,8 @@ const _menuCtx = {
   set openAtLogin(v) { _settingsController.applyUpdate("openAtLogin", v); },
   get bubbleFollowPet() { return bubbleFollowPet; },
   set bubbleFollowPet(v) { _settingsController.applyUpdate("bubbleFollowPet", v); },
+  get tokenDisplayEnabled() { return tokenDisplayEnabled; },
+  set tokenDisplayEnabled(v) { _settingsController.applyUpdate("tokenDisplayEnabled", v); },
   get hideBubbles() { return getAllBubblesHidden(); },
   set hideBubbles(v) { _settingsController.applyCommand("setAllBubblesHidden", { hidden: !!v }).catch((err) => {
     console.warn("Clawd: setAllBubblesHidden failed:", err && err.message);
@@ -2198,13 +2410,14 @@ const SETTINGS_MIRROR_SETTERS = {
   lang: (v) => { lang = v; }, size: (v) => { currentSize = v; }, showTray: (v) => { showTray = v; },
   showDock: (v) => { showDock = v; }, manageClaudeHooksAutomatically: (v) => { manageClaudeHooksAutomatically = v; },
   autoStartWithClaude: (v) => { autoStartWithClaude = v; }, openAtLogin: (v) => { openAtLogin = v; },
-  bubbleFollowPet: (v) => { bubbleFollowPet = v; }, sessionHudEnabled: (v) => { sessionHudEnabled = v; },
+  bubbleFollowPet: (v) => { bubbleFollowPet = v; }, sessionHudEnabled: (v) => { sessionHudEnabled = v; }, tokenDisplayEnabled: (v) => { tokenDisplayEnabled = v; },
   sessionHudShowStateLabels: (v) => { sessionHudShowStateLabels = v; },
   sessionHudShowElapsed: (v) => { sessionHudShowElapsed = v; }, sessionHudCleanupDetached: (v) => { sessionHudCleanupDetached = v; },
   sessionHudPinned: (v) => { sessionHudPinned = v; },
   sessionStaleMs: (v) => { sessionStaleMs = v; }, workingStaleMs: (v) => { workingStaleMs = v; },
   detachedIdleStaleMs: (v) => { detachedIdleStaleMs = v; },
   soundMuted: (v) => { soundMuted = v; }, soundVolume: (v) => { soundVolume = v; }, lowPowerIdleMode: (v) => { lowPowerIdleMode = v; },
+  keepAwakeWhileWorking: (v) => { keepAwakeWhileWorking = v; },
   allowEdgePinning: (v) => { allowEdgePinningCached = v; }, keepSizeAcrossDisplays: (v) => { keepSizeAcrossDisplaysCached = v; },
 };
 
@@ -2241,6 +2454,7 @@ const settingsEffectRouter = createSettingsEffectRouter({
   refreshUpdateBubbleAutoClose: () => callRuntimeMethod(_updateBubble, "refreshAutoCloseForPolicy"),
   repositionFloatingBubbles,
   syncSessionHudVisibility: () => syncSessionHudVisibility(),
+  syncTokenDisplayVisibility: () => syncTokenDisplayVisibility(),
   handleSessionHudPinnedChanged: (next) => {
     if (_sessionHud && typeof _sessionHud.handlePinnedChanged === "function") {
       _sessionHud.handlePinnedChanged(next);
@@ -2248,6 +2462,7 @@ const settingsEffectRouter = createSettingsEffectRouter({
   },
   reclampPetAfterEdgePinningChange,
   rebuildAllMenus,
+  reconcilePowerSaveBlocker,
   logWarn: console.warn,
 });
 settingsEffectRouter.start();
@@ -2537,6 +2752,7 @@ function createWindow() {
   win.on("resize", () => petWindowRuntime.syncFloatingWindowsAfterPetBoundsChange());
 
   syncSessionHudVisibility();
+  syncTokenDisplayVisibility();
 
   registerPetInteractionIpc({
     ipcMain,
@@ -2549,7 +2765,7 @@ function createWindow() {
     getCurrentSvg: () => _state.getCurrentSvg(),
     sendToRenderer,
     setDragLocked: (value) => { petWindowRuntime.setDragLocked(value); },
-    setMouseOverPet: (value) => { mouseOverPet = !!value; },
+    setMouseOverPet,
     beginDragSnapshot: () => beginDragSnapshot(),
     clearDragSnapshot: () => clearDragSnapshot(),
     syncHitWin: () => syncHitWin(),
@@ -2610,7 +2826,7 @@ function createWindow() {
     setLowPowerIdlePaused(false);
     petWindowRuntime.setDragLocked(false);
     idlePaused = false;
-    mouseOverPet = false;
+    setMouseOverPet(false);
     win.webContents.reload();
   });
 
@@ -2852,6 +3068,7 @@ if (!gotTheLock) {
   app.on("before-quit", () => {
     isQuitting = true;
     try { stopUpdateScheduler(); } catch {}
+    releasePowerSaveBlocker();
     flushRuntimeStateToPrefs();
     globalShortcut.unregisterAll();
     void settingsSizePreviewSession.cleanup();

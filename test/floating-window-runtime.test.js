@@ -48,11 +48,12 @@ describe("floating-window-runtime", () => {
       repositionSessionHud: () => calls.push("hud"),
       repositionPermissionBubbles: () => calls.push("permission"),
       repositionUpdateBubble: () => calls.push("update"),
+      repositionTokenDisplay: () => calls.push("token"),
     });
 
     runtime.repositionAnchoredSurfaces();
 
-    assert.deepStrictEqual(calls, ["hud", "permission", "update"]);
+    assert.deepStrictEqual(calls, ["hud", "permission", "update", "token"]);
   });
 
   it("syncs Session HUD visibility before repositioning dependent bubbles", () => {
@@ -62,11 +63,13 @@ describe("floating-window-runtime", () => {
       syncSessionHudVisibility: () => calls.push("syncHud"),
       repositionPermissionBubbles: () => calls.push("permission"),
       repositionUpdateBubble: () => calls.push("update"),
+      repositionTokenDisplay: () => calls.push("token"),
+      syncTokenDisplayVisibility: () => calls.push("syncToken"),
     });
 
     runtime.syncSessionHudVisibilityAndBubbles();
 
-    assert.deepStrictEqual(calls, ["syncHud", "permission", "update"]);
+    assert.deepStrictEqual(calls, ["syncHud", "syncToken", "permission", "update", "token"]);
   });
 
   it("restores live permission bubbles and update bubble visibility when the pet is shown", () => {

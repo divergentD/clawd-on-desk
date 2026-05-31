@@ -4,6 +4,7 @@
 
 const { postStateToRunningServer, readHostPrefix } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
+const { applyTokenUsageFields } = require("./json-utils");
 
 const HOOK_TO_STATE = {
   sessionStart: { state: "idle", event: "SessionStart" },
@@ -76,6 +77,7 @@ readStdinJson().then((payload) => {
 
   const body = { state, session_id: sessionId, event };
   body.agent_id = "cursor-agent";
+  applyTokenUsageFields(body, payload);
   const hint = displaySvgFromToolHook(hookNameResolved, payload);
   if (hint !== undefined) body.display_svg = hint;
   if (cwd) body.cwd = cwd;

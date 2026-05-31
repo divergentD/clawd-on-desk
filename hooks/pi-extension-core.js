@@ -83,6 +83,19 @@ function addToolFields(payload, nativeEvent) {
   if (toolCallId) payload.tool_use_id = toolCallId;
 }
 
+function addTokenUsageFields(payload, nativeEvent) {
+  if (!nativeEvent || typeof nativeEvent !== "object") return;
+  const usage = nativeEvent.usage && typeof nativeEvent.usage === "object"
+    ? nativeEvent.usage
+    : (nativeEvent.tokens && typeof nativeEvent.tokens === "object" ? nativeEvent.tokens : nativeEvent);
+  const input = usage.input_tokens ?? usage.inputTokens ?? usage.input;
+  const output = usage.output_tokens ?? usage.outputTokens ?? usage.output;
+  const cost = usage.total_cost ?? usage.totalCost ?? usage.cost;
+  if (Number.isFinite(input) && input >= 0) payload.input_tokens = Math.floor(input);
+  if (Number.isFinite(output) && output >= 0) payload.output_tokens = Math.floor(output);
+  if (Number.isFinite(cost) && cost >= 0) payload.total_cost = cost;
+}
+
 function buildPayload(options = {}) {
   const ctx = options.ctx || {};
   const metadata = options.metadata || {};
@@ -113,6 +126,7 @@ function buildPayload(options = {}) {
   }
 
   addToolFields(payload, options.nativeEvent);
+  addTokenUsageFields(payload, options.nativeEvent);
   return payload;
 }
 

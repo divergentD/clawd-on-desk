@@ -242,6 +242,63 @@ describe("CodexLogMonitor", () => {
     monitor.start();
   });
 
+  it("carries Codex assistant output on task_complete", (_, done) => {
+    const testFile = path.join(dateDir, TEST_FILENAME);
+    fs.writeFileSync(testFile, [
+      '{"type":"session_meta","payload":{"cwd":"/tmp"}}',
+      '{"type":"event_msg","payload":{"type":"task_started"}}',
+      '{"type":"response_item","payload":{"type":"function_call","name":"shell_command","arguments":"{\\"command\\":\\"ls\\"}"}}',
+      '{"type":"event_msg","payload":{"type":"exec_command_end"}}',
+      JSON.stringify({
+        type: "response_item",
+        payload: {
+          type: "message",
+          role: "assistant",
+          content: [{ type: "output_text", text: "Implemented the Codex fix." }],
+        },
+      }),
+      '{"type":"event_msg","payload":{"type":"task_complete"}}',
+    ].join("\n") + "\n");
+
+    const config = makeConfig(tmpDir);
+    monitor = new CodexLogMonitor(config, (sid, state, event, extra) => {
+      if (event === "event_msg:task_complete") {
+        assert.strictEqual(state, "attention");
+        assert.strictEqual(extra.assistantLastOutput, "Implemented the Codex fix.");
+        assert.strictEqual(extra.assistantLastOutputTruncated, false);
+        done();
+      }
+    });
+    monitor.start();
+  });
+
+  it("clears Codex assistant output on a new task_started turn", (_, done) => {
+    const testFile = path.join(dateDir, TEST_FILENAME);
+    fs.writeFileSync(testFile, [
+      '{"type":"session_meta","payload":{"cwd":"/tmp"}}',
+      '{"type":"event_msg","payload":{"type":"task_started"}}',
+      '{"type":"event_msg","payload":{"type":"agent_message","message":"Previous answer"}}',
+      '{"type":"event_msg","payload":{"type":"task_complete"}}',
+      '{"type":"event_msg","payload":{"type":"task_started"}}',
+      '{"type":"response_item","payload":{"type":"function_call","name":"shell_command","arguments":"{\\"command\\":\\"ls\\"}"}}',
+      '{"type":"event_msg","payload":{"type":"exec_command_end"}}',
+      '{"type":"event_msg","payload":{"type":"task_complete"}}',
+    ].join("\n") + "\n");
+
+    const config = makeConfig(tmpDir);
+    const completions = [];
+    monitor = new CodexLogMonitor(config, (sid, state, event, extra) => {
+      if (event !== "event_msg:task_complete") return;
+      completions.push(extra);
+      if (completions.length === 2) {
+        assert.strictEqual(completions[0].assistantLastOutput, "Previous answer");
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(completions[1], "assistantLastOutput"), false);
+        done();
+      }
+    });
+    monitor.start();
+  });
+
   it("marks subagent emits headless and resolves task_complete to idle", (_, done) => {
     const testFile = path.join(dateDir, TEST_FILENAME);
     fs.writeFileSync(testFile, [
@@ -359,6 +416,58 @@ describe("CodexLogMonitor", () => {
       }
     });
     monitor.start();
+  });
+
+  it("emits metadata-only usage updates from Codex token_count records", () => {
+    const testFile = path.join(dateDir, TEST_FILENAME);
+    fs.writeFileSync(testFile, [
+      '{"type":"session_meta","payload":{"cwd":"/tmp"}}',
+      '{"type":"turn_context","payload":{"model":"gpt-5.5"}}',
+      '{"type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":120,"output_tokens":8}}}}',
+    ].join("\n") + "\n");
+
+    const config = makeConfig(tmpDir);
+    const events = [];
+    monitor = new CodexLogMonitor(config, (sid, state, event, extra) => {
+      events.push({ sid, state, event, extra });
+    });
+    monitor._pollFile(testFile, path.basename(testFile));
+
+    assert.strictEqual(events.length, 2);
+    assert.strictEqual(events[1].event, null);
+    assert.strictEqual(events[1].extra.metadataOnly, true);
+    assert.strictEqual(events[1].extra.preserveState, true);
+    assert.strictEqual(events[1].extra.model, "gpt-5.5");
+    assert.strictEqual(events[1].extra.inputTokens, 120);
+    assert.strictEqual(events[1].extra.outputTokens, 8);
+  });
+
+  it("restores backfilled usage for an idle Codex session after restart", () => {
+    const testFile = path.join(dateDir, TEST_FILENAME);
+    fs.writeFileSync(testFile, JSON.stringify({
+      timestamp: new Date(Date.now() - 60 * 1000).toISOString(),
+      type: "event_msg",
+      payload: {
+        type: "token_count",
+        info: { total_token_usage: { input_tokens: 120, output_tokens: 8 } },
+      },
+    }) + "\n");
+    const oldTime = new Date(Date.now() - 10 * 1000);
+    fs.utimesSync(testFile, oldTime, oldTime);
+
+    const config = makeConfig(tmpDir);
+    const events = [];
+    monitor = new CodexLogMonitor(config, (sid, state, event, extra) => {
+      events.push({ sid, state, event, extra });
+    });
+    monitor._pollFile(testFile, path.basename(testFile));
+
+    assert.strictEqual(events.length, 1);
+    assert.strictEqual(events[0].state, "idle");
+    assert.strictEqual(events[0].event, null);
+    assert.strictEqual(events[0].extra.metadataOnly, true);
+    assert.strictEqual(events[0].extra.inputTokens, 120);
+    assert.strictEqual(events[0].extra.outputTokens, 8);
   });
 
   it("should skip old files (>5min mtime)", (_, done) => {

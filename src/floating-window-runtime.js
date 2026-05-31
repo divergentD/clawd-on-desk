@@ -18,12 +18,15 @@ function createFloatingWindowRuntime(options = {}) {
   const repositionUpdateBubble = options.repositionUpdateBubble || noop;
   const repositionSessionHud = options.repositionSessionHud || noop;
   const syncSessionHudVisibility = options.syncSessionHudVisibility || noop;
+  const repositionTokenDisplay = options.repositionTokenDisplay || noop;
+  const syncTokenDisplayVisibility = options.syncTokenDisplayVisibility || noop;
   const syncUpdateBubbleVisibility = options.syncUpdateBubbleVisibility || noop;
   const hideUpdateBubble = options.hideUpdateBubble || noop;
 
   function repositionFloatingBubbles() {
     if (getPendingList(getPendingPermissions).length) repositionPermissionBubbles();
     repositionUpdateBubble();
+    repositionTokenDisplay();
   }
 
   function repositionAnchoredSurfaces() {
@@ -33,6 +36,7 @@ function createFloatingWindowRuntime(options = {}) {
 
   function syncSessionHudVisibilityAndBubbles() {
     syncSessionHudVisibility();
+    syncTokenDisplayVisibility();
     repositionFloatingBubbles();
   }
 

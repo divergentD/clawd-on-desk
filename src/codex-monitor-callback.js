@@ -16,6 +16,12 @@ function buildCodexMonitorUpdateOptions(extra, options = {}) {
   if (Object.prototype.hasOwnProperty.call(input, "pidChain")) out.pidChain = input.pidChain;
   if (Object.prototype.hasOwnProperty.call(input, "codexOriginator")) out.codexOriginator = input.codexOriginator;
   if (Object.prototype.hasOwnProperty.call(input, "codexSource")) out.codexSource = input.codexSource;
+  if (Object.prototype.hasOwnProperty.call(input, "model")) out.model = input.model;
+  if (Object.prototype.hasOwnProperty.call(input, "inputTokens")) out.inputTokens = input.inputTokens;
+  if (Object.prototype.hasOwnProperty.call(input, "outputTokens")) out.outputTokens = input.outputTokens;
+  if (Object.prototype.hasOwnProperty.call(input, "totalCost")) out.totalCost = input.totalCost;
+  if (input.preserveState === true) out.preserveState = true;
+  if (input.metadataOnly === true) out.metadataOnly = true;
   if (options.includeHeadless) out.headless = input.headless === true;
   return out;
 }

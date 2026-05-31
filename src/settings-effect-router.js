@@ -4,6 +4,7 @@ const MENU_AFFECTING_KEYS = new Set([
   "lang",
   "soundMuted",
   "bubbleFollowPet",
+  "tokenDisplayEnabled",
   "hideBubbles",
   "permissionBubblesEnabled",
   "notificationBubbleAutoCloseSeconds",
@@ -65,9 +66,11 @@ function createSettingsEffectRouter(options = {}) {
   const refreshUpdateBubbleAutoClose = options.refreshUpdateBubbleAutoClose || noop;
   const repositionFloatingBubbles = options.repositionFloatingBubbles || noop;
   const syncSessionHudVisibility = options.syncSessionHudVisibility || noop;
+  const syncTokenDisplayVisibility = options.syncTokenDisplayVisibility || noop;
   const handleSessionHudPinnedChanged = options.handleSessionHudPinnedChanged || noop;
   const reclampPetAfterEdgePinningChange = options.reclampPetAfterEdgePinningChange || noop;
   const rebuildAllMenus = options.rebuildAllMenus || noop;
+  const reconcilePowerSaveBlocker = options.reconcilePowerSaveBlocker || noop;
 
   let started = false;
   let unsubscribeSettings = null;
@@ -92,6 +95,9 @@ function createSettingsEffectRouter(options = {}) {
     }
     if ("lowPowerIdleMode" in changes) {
       sendToRenderer("low-power-idle-mode-change", changes.lowPowerIdleMode);
+    }
+    if ("keepAwakeWhileWorking" in changes) {
+      safeCall(logWarn, "Clawd: reconcilePowerSaveBlocker failed:", reconcilePowerSaveBlocker);
     }
     if ("lang" in changes) {
       safeCall(logWarn, "Clawd: dashboard lang broadcast failed:", sendDashboardI18n);
@@ -166,6 +172,9 @@ function createSettingsEffectRouter(options = {}) {
     }
     if ("bubbleFollowPet" in changes) {
       safeCall(logWarn, "Clawd: repositionFloatingBubbles failed:", repositionFloatingBubbles);
+    }
+    if ("tokenDisplayEnabled" in changes) {
+      safeCall(logWarn, "Clawd: token display setting sync failed:", syncTokenDisplayVisibility);
     }
     if ("sessionHudPinned" in changes) {
       // Pinned transitions are handled inside session-hud.js so the visible
