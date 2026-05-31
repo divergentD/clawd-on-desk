@@ -105,6 +105,7 @@ scripts/*
 
 # oh-my-cursor state
 .omc/
+.omo/
 
 # Cursor local config (MCP, rules from omc setup)
 .cursor/
