@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "name": "Codex Pet Astronaut",
+  "author": "Codex",
+  "version": "1.0.0",
+  "description": "A static astronaut coding companion.",
+  "preview": "idle.png",
+  "viewBox": {
+    "x": 0,
+    "y": 0,
+    "width": 1402,
+    "height": 1402
+  },
+  "layout": {
+    "contentBox": {
+      "x": 0,
+      "y": 0,
+      "width": 1402,
+      "height": 1402
+    }
+  },
+  "eyeTracking": {
+    "enabled": false,
+    "states": []
+  },
+  "states": {
+    "idle": ["idle.png"],
+    "thinking": ["thinking.png"],
+    "working": ["coding.png"],
+    "error": ["error.png"],
+    "attention": ["success.png"],
+    "notification": ["thinking.png"],
+    "sleeping": ["idle.png"]
+  },
+  "sleepSequence": {
+    "mode": "direct"
+  },
+  "miniMode": {
+    "supported": false
+  },
+  "hitBoxes": {
+    "default": {
+      "x": 0,
+      "y": 0,
+      "w": 1402,
+      "h": 1402
+    },
+    "sleeping": {
+      "x": 0,
+      "y": 0,
+      "w": 1402,
+      "h": 1402
+    }
+  }
+}
