@@ -41,6 +41,20 @@ function normalizeAssistantLastOutput(value) {
     : text;
 }
 
+function normalizeTokenUsage(data) {
+  const source = data && data.usage && typeof data.usage === "object"
+    ? data.usage
+    : (data && data.tokens && typeof data.tokens === "object" ? data.tokens : data);
+  const input = source && (source.input_tokens ?? source.inputTokens ?? source.input);
+  const output = source && (source.output_tokens ?? source.outputTokens ?? source.output);
+  const cost = source && (source.total_cost ?? source.totalCost ?? source.cost);
+  return {
+    inputTokens: Number.isFinite(input) && input >= 0 ? Math.floor(input) : null,
+    outputTokens: Number.isFinite(output) && output >= 0 ? Math.floor(output) : null,
+    totalCost: Number.isFinite(cost) && cost >= 0 ? cost : null,
+  };
+}
+
 function sendStateHealthResponse(res, options) {
   const body = JSON.stringify({ ok: true, app: CLAWD_SERVER_ID, port: options.getHookServerPort() });
   res.writeHead(200, {
@@ -122,7 +136,9 @@ function handleStatePost(req, res, options) {
       const assistantLastOutputTruncated = data.assistant_last_output_truncated === true;
       const permissionSuspect = data.permission_suspect === true;
       const preserveState = data.preserve_state === true;
+      const metadataOnly = data.metadata_only === true;
       const hookSource = typeof data.hook_source === "string" ? data.hook_source : null;
+      const { inputTokens, outputTokens, totalCost } = normalizeTokenUsage(data);
       // Agent gate: user disabled this agent in the settings panel. Drop
       // with 204 so hook scripts get a quick no-op response instead of
       // hanging on our HTTP connection. Still surfaces as a success code
@@ -202,7 +218,11 @@ function handleStatePost(req, res, options) {
             assistantLastOutputTruncated,
             permissionSuspect,
             preserveState,
+            ...(metadataOnly ? { metadataOnly: true } : {}),
             hookSource,
+            inputTokens,
+            outputTokens,
+            totalCost,
           });
         }
         res.writeHead(200, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
@@ -222,4 +242,5 @@ module.exports = {
   MAX_STATE_BODY_BYTES,
   sendStateHealthResponse,
   handleStatePost,
+  normalizeTokenUsage,
 };

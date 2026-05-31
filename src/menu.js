@@ -120,6 +120,12 @@ module.exports = function initMenu(ctx) {
         checked: !ctx.soundMuted,
         click: (menuItem) => { ctx.soundMuted = !menuItem.checked; },
       },
+      {
+        label: t("tokenDisplay"),
+        type: "checkbox",
+        checked: ctx.tokenDisplayEnabled,
+        click: (menuItem) => { ctx.tokenDisplayEnabled = menuItem.checked; },
+      },
       { type: "separator" },
       {
         label: t("startOnLogin"),

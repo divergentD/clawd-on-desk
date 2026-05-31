@@ -885,8 +885,12 @@ function updateSession(sessionId, state, event, opts = {}) {
     assistantLastOutputTruncated = false,
     permissionSuspect = false,
     preserveState = false,
+    metadataOnly = false,
     hookSource = null,
     muteNotificationSound = false,
+    inputTokens = null,
+    outputTokens = null,
+    totalCost = null,
   } = opts;
   if (startupRecoveryActive) {
     startupRecoveryActive = false;
@@ -931,6 +935,9 @@ function updateSession(sessionId, state, event, opts = {}) {
       const srcCodexOriginator = codexOriginator || (existing && existing.codexOriginator) || null;
       const srcCodexSource = codexSource || (existing && existing.codexSource) || null;
       const srcSessionTitle = normalizeTitle(sessionTitle) || (existing && existing.sessionTitle) || null;
+      const srcInputTokens = Number.isFinite(inputTokens) ? inputTokens : (existing && existing.inputTokens) ?? null;
+      const srcOutputTokens = Number.isFinite(outputTokens) ? outputTokens : (existing && existing.outputTokens) ?? null;
+      const srcTotalCost = Number.isFinite(totalCost) ? totalCost : (existing && existing.totalCost) ?? null;
       // PermissionRequest should flash the pet via setState("notification"),
       // but a brand-new Codex permission session must not persist as
       // notification. Otherwise, if the prompt is resolved remotely and no
@@ -957,6 +964,9 @@ function updateSession(sessionId, state, event, opts = {}) {
         codexOriginator: srcCodexOriginator,
         codexSource: srcCodexSource,
         sessionTitle: srcSessionTitle,
+        inputTokens: srcInputTokens,
+        outputTokens: srcOutputTokens,
+        totalCost: srcTotalCost,
         recentEvents,
         pidReachable: resolvePidReachable(existing, srcAgentPid, srcPid),
         resumeState: (existing && existing.resumeState) || null,
@@ -1042,11 +1052,32 @@ function updateSession(sessionId, state, event, opts = {}) {
   const srcLastStopAt = isStopBoundary
     ? Date.now()
     : (existing && Number.isFinite(existing.lastStopAt) ? existing.lastStopAt : null);
-  const base = { sourcePid: srcPid, wtHwnd: srcWtHwnd, cwd: srcCwd, editor: srcEditor, pidChain: srcPidChain, agentPid: srcAgentPid, agentId: srcAgentId, host: srcHost, headless: srcHeadless, platform: srcPlatform, model: srcModel, provider: srcProvider, codexOriginator: srcCodexOriginator, codexSource: srcCodexSource, sessionTitle: srcSessionTitle, assistantLastOutput: srcAssistantLastOutput, assistantLastOutputTruncated: srcAssistantLastOutputTruncated, recentEvents, pidReachable, lastToolBoundaryAt: srcLastToolBoundaryAt, lastStopAt: srcLastStopAt, muteNotificationSound: state === "notification" && muteNotificationSound === true };
+  const srcInputTokens = Number.isFinite(inputTokens) ? inputTokens : (existing && existing.inputTokens) ?? null;
+  const srcOutputTokens = Number.isFinite(outputTokens) ? outputTokens : (existing && existing.outputTokens) ?? null;
+  const srcTotalCost = Number.isFinite(totalCost) ? totalCost : (existing && existing.totalCost) ?? null;
+  const base = { sourcePid: srcPid, wtHwnd: srcWtHwnd, cwd: srcCwd, editor: srcEditor, pidChain: srcPidChain, agentPid: srcAgentPid, agentId: srcAgentId, host: srcHost, headless: srcHeadless, platform: srcPlatform, model: srcModel, provider: srcProvider, codexOriginator: srcCodexOriginator, codexSource: srcCodexSource, sessionTitle: srcSessionTitle, assistantLastOutput: srcAssistantLastOutput, assistantLastOutputTruncated: srcAssistantLastOutputTruncated, recentEvents, pidReachable, lastToolBoundaryAt: srcLastToolBoundaryAt, lastStopAt: srcLastStopAt, muteNotificationSound: state === "notification" && muteNotificationSound === true, inputTokens: srcInputTokens, outputTokens: srcOutputTokens, totalCost: srcTotalCost };
   if (preserveCompletionAck) base.requiresCompletionAck = true;
 
   // Evict oldest session if at capacity and this is a new session.
   evictOldestSessionIfNeeded(sessionId);
+
+  if (metadataOnly) {
+    const storedState = existing && existing.state ? existing.state : state;
+    const displayHint = existing ? existing.displayHint : null;
+    const metadataEntry = {
+      state: storedState,
+      updatedAt: existing ? existing.updatedAt : Date.now(),
+      displayHint,
+      ...base,
+      recentEvents: (existing && existing.recentEvents) || [],
+      resumeState: (existing && existing.resumeState) || null,
+    };
+    if (existing && existing.requiresCompletionAck === true) {
+      metadataEntry.requiresCompletionAck = true;
+    }
+    sessions.set(sessionId, metadataEntry);
+    return;
+  }
 
   if (isSubagentStop) {
     updateCodexExitProbe(sessionId, srcAgentId, event);
@@ -1220,7 +1251,9 @@ function updateSession(sessionId, state, event, opts = {}) {
       const entry = sessions.get(sessionId);
       const srcAgentId = (opts && opts.agentId) || (entry && entry.agentId) || null;
       const srcHost = (opts && opts.host) || (entry && entry.host) || null;
-      reconcileAckFlag(sessionId, srcAgentId, srcHost, event);
+      if (!(opts && opts.metadataOnly === true)) {
+        reconcileAckFlag(sessionId, srcAgentId, srcHost, event);
+      }
     } catch (err) {
       // Defensive: must never let a reconciler throw shadow the outer
       // error chain. The reconciler is one Map lookup + a boolean toggle,

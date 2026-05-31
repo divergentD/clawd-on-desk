@@ -666,6 +666,7 @@ let autoStartWithClaude = _settingsController.get("autoStartWithClaude");
 let openAtLogin = _settingsController.get("openAtLogin");
 let bubbleFollowPet = _settingsController.get("bubbleFollowPet");
 let sessionHudEnabled = _settingsController.get("sessionHudEnabled");
+let tokenDisplayEnabled = _settingsController.get("tokenDisplayEnabled");
 let sessionHudShowStateLabels = _settingsController.get("sessionHudShowStateLabels");
 let sessionHudShowElapsed = _settingsController.get("sessionHudShowElapsed");
 let sessionHudCleanupDetached = _settingsController.get("sessionHudCleanupDetached");
@@ -899,6 +900,10 @@ let broadcastSessionHudSnapshot = () => {};
 let sendSessionHudI18n = () => {};
 let getSessionHudReservedOffset = () => 0;
 let getSessionHudWindow = () => null;
+let repositionTokenDisplay = () => {};
+let syncTokenDisplayVisibility = () => {};
+let broadcastTokenDisplaySnapshot = () => {};
+let tokenDisplayNeedsHoverPoll = () => false;
 const themeFadeSequencer = createThemeFadeSequencer({
   getRenderWindow: () => win,
   getHitWindow: () => hitWin,
@@ -920,6 +925,13 @@ function setLowPowerIdlePaused(value) {
   if (lowPowerIdlePaused === next) return;
   lowPowerIdlePaused = next;
   if (!next) setForceEyeResend(true);
+}
+
+function setMouseOverPet(value) {
+  const next = !!value;
+  if (mouseOverPet === next) return;
+  mouseOverPet = next;
+  syncTokenDisplayVisibility();
 }
 
 function beginDragSnapshot() { return petWindowRuntime.beginDragSnapshot(); }
@@ -1063,6 +1075,8 @@ floatingWindowRuntime = createFloatingWindowRuntime({
   repositionUpdateBubble: () => repositionUpdateBubble(),
   repositionSessionHud: () => repositionSessionHud(),
   syncSessionHudVisibility: () => syncSessionHudVisibility(),
+  repositionTokenDisplay: () => repositionTokenDisplay(),
+  syncTokenDisplayVisibility: () => syncTokenDisplayVisibility(),
   syncUpdateBubbleVisibility: () => syncUpdateBubbleVisibility(),
   hideUpdateBubble: () => hideUpdateBubble(),
   keepOutOfTaskbar,
@@ -1141,6 +1155,7 @@ const _stateCtx = {
     reconcilePowerSaveBlocker();
     broadcastDashboardSessionSnapshot(snapshot);
     broadcastSessionHudSnapshot(snapshot);
+    broadcastTokenDisplaySnapshot(snapshot);
     repositionFloatingBubbles();
     if (hardwareBuddyAdapter) hardwareBuddyAdapter.notifyStateChanged();
     // R1a: best-effort completion notifications. Must never throw or block the
@@ -1249,7 +1264,8 @@ const _tickCtx = {
   get miniPeeked() { return _mini.getMiniPeeked(); },
   set miniPeeked(v) { _mini.setMiniPeeked(v); },
   get mouseOverPet() { return mouseOverPet; },
-  set mouseOverPet(v) { mouseOverPet = v; },
+  set mouseOverPet(v) { setMouseOverPet(v); },
+  get tokenDisplayNeedsHoverPoll() { return tokenDisplayNeedsHoverPoll(); },
   get forceEyeResend() { return forceEyeResend; },
   set forceEyeResend(v) { setForceEyeResend(v); },
   get forceEyeResendBoostUntil() { return forceEyeResendBoostUntil; },
@@ -1381,6 +1397,22 @@ broadcastSessionHudSnapshot = _sessionHud.broadcastSessionSnapshot;
 sendSessionHudI18n = _sessionHud.sendI18n;
 getSessionHudReservedOffset = _sessionHud.getHudReservedOffset;
 getSessionHudWindow = _sessionHud.getWindow;
+
+const _tokenDisplay = require("./token-display")({
+  get win() { return win; },
+  get petHidden() { return petWindowRuntime.isPetHidden(); },
+  get tokenDisplayEnabled() { return tokenDisplayEnabled; },
+  get mouseOverPet() { return mouseOverPet; },
+  getMiniMode: () => _mini.getMiniMode(),
+  getMiniTransitioning: () => _mini.getMiniTransitioning(),
+  getPetWindowBounds,
+  getHitRectScreen,
+  getNearestWorkArea,
+});
+repositionTokenDisplay = _tokenDisplay.reposition;
+syncTokenDisplayVisibility = _tokenDisplay.syncVisibility;
+broadcastTokenDisplaySnapshot = _tokenDisplay.sendSnapshot;
+tokenDisplayNeedsHoverPoll = _tokenDisplay.hasTokenData;
 
 agentRuntime = createAgentRuntimeMain({
   getServer: () => _server,
@@ -2303,6 +2335,8 @@ const _menuCtx = {
   set openAtLogin(v) { _settingsController.applyUpdate("openAtLogin", v); },
   get bubbleFollowPet() { return bubbleFollowPet; },
   set bubbleFollowPet(v) { _settingsController.applyUpdate("bubbleFollowPet", v); },
+  get tokenDisplayEnabled() { return tokenDisplayEnabled; },
+  set tokenDisplayEnabled(v) { _settingsController.applyUpdate("tokenDisplayEnabled", v); },
   get hideBubbles() { return getAllBubblesHidden(); },
   set hideBubbles(v) { _settingsController.applyCommand("setAllBubblesHidden", { hidden: !!v }).catch((err) => {
     console.warn("Clawd: setAllBubblesHidden failed:", err && err.message);
@@ -2368,7 +2402,7 @@ const SETTINGS_MIRROR_SETTERS = {
   lang: (v) => { lang = v; }, size: (v) => { currentSize = v; }, showTray: (v) => { showTray = v; },
   showDock: (v) => { showDock = v; }, manageClaudeHooksAutomatically: (v) => { manageClaudeHooksAutomatically = v; },
   autoStartWithClaude: (v) => { autoStartWithClaude = v; }, openAtLogin: (v) => { openAtLogin = v; },
-  bubbleFollowPet: (v) => { bubbleFollowPet = v; }, sessionHudEnabled: (v) => { sessionHudEnabled = v; },
+  bubbleFollowPet: (v) => { bubbleFollowPet = v; }, sessionHudEnabled: (v) => { sessionHudEnabled = v; }, tokenDisplayEnabled: (v) => { tokenDisplayEnabled = v; },
   sessionHudShowStateLabels: (v) => { sessionHudShowStateLabels = v; },
   sessionHudShowElapsed: (v) => { sessionHudShowElapsed = v; }, sessionHudCleanupDetached: (v) => { sessionHudCleanupDetached = v; },
   sessionHudPinned: (v) => { sessionHudPinned = v; },
@@ -2412,6 +2446,7 @@ const settingsEffectRouter = createSettingsEffectRouter({
   refreshUpdateBubbleAutoClose: () => callRuntimeMethod(_updateBubble, "refreshAutoCloseForPolicy"),
   repositionFloatingBubbles,
   syncSessionHudVisibility: () => syncSessionHudVisibility(),
+  syncTokenDisplayVisibility: () => syncTokenDisplayVisibility(),
   handleSessionHudPinnedChanged: (next) => {
     if (_sessionHud && typeof _sessionHud.handlePinnedChanged === "function") {
       _sessionHud.handlePinnedChanged(next);
@@ -2709,6 +2744,7 @@ function createWindow() {
   win.on("resize", () => petWindowRuntime.syncFloatingWindowsAfterPetBoundsChange());
 
   syncSessionHudVisibility();
+  syncTokenDisplayVisibility();
 
   registerPetInteractionIpc({
     ipcMain,
@@ -2721,7 +2757,7 @@ function createWindow() {
     getCurrentSvg: () => _state.getCurrentSvg(),
     sendToRenderer,
     setDragLocked: (value) => { petWindowRuntime.setDragLocked(value); },
-    setMouseOverPet: (value) => { mouseOverPet = !!value; },
+    setMouseOverPet,
     beginDragSnapshot: () => beginDragSnapshot(),
     clearDragSnapshot: () => clearDragSnapshot(),
     syncHitWin: () => syncHitWin(),
@@ -2782,7 +2818,7 @@ function createWindow() {
     setLowPowerIdlePaused(false);
     petWindowRuntime.setDragLocked(false);
     idlePaused = false;
-    mouseOverPet = false;
+    setMouseOverPet(false);
     win.webContents.reload();
   });
 

@@ -181,7 +181,8 @@ function runMainTickOnce() {
 
     // Skip expensive native IPC calls (getCursorScreenPoint, getBounds) when
     // cursor tracking is not needed — saves ~20 calls/sec to the OS layer.
-    const needsCursorPoll = idleNow || miniIdleNow || ctx.miniMode;
+    const needsTokenHoverPoll = !!ctx.tokenDisplayNeedsHoverPoll;
+    const needsCursorPoll = idleNow || miniIdleNow || ctx.miniMode || needsTokenHoverPoll;
     if (!needsCursorPoll) return nextDelay();
 
     const cursor = screen.getCursorScreenPoint();
@@ -195,7 +196,8 @@ function runMainTickOnce() {
     const needsPointerBridgeBounds = !!pointerBridgeKey
       && !suppressPassiveIpc
       && (moved || ctx.forceEyeResend || pointerBridgeKey !== lastPointerBridgeKey);
-    const needsBounds = ctx.miniMode || moved || ctx.forceEyeResend || miniIdleNow || needsPointerBridgeBounds;
+    const needsBounds = ctx.miniMode || moved || ctx.forceEyeResend || miniIdleNow
+      || needsPointerBridgeBounds || needsTokenHoverPoll;
     let bounds = null;
     if (needsBounds) {
       bounds = typeof ctx.getPetWindowBounds === "function"

@@ -195,6 +195,9 @@ function buildSessionSnapshotEntry(id, session, sessionAliases = {}, options = {
     provider: (session && session.provider) || null,
     codexOriginator: (session && session.codexOriginator) || null,
     codexSource: (session && session.codexSource) || null,
+    inputTokens: (session && Number.isFinite(session.inputTokens)) ? session.inputTokens : null,
+    outputTokens: (session && Number.isFinite(session.outputTokens)) ? session.outputTokens : null,
+    totalCost: (session && Number.isFinite(session.totalCost)) ? session.totalCost : null,
     assistantLastOutput: (session && typeof session.assistantLastOutput === "string")
       ? session.assistantLastOutput
       : null,
@@ -307,6 +310,9 @@ function sessionSnapshotSignature(snapshot) {
       provider: entry.provider,
       codexOriginator: entry.codexOriginator,
       codexSource: entry.codexSource,
+      inputTokens: entry.inputTokens,
+      outputTokens: entry.outputTokens,
+      totalCost: entry.totalCost,
       assistantLastOutput: entry.assistantLastOutput,
       assistantLastOutputTruncated: !!entry.assistantLastOutputTruncated,
       lastEventLabelKey: entry.lastEvent ? entry.lastEvent.labelKey : null,

@@ -4,6 +4,7 @@ const MENU_AFFECTING_KEYS = new Set([
   "lang",
   "soundMuted",
   "bubbleFollowPet",
+  "tokenDisplayEnabled",
   "hideBubbles",
   "permissionBubblesEnabled",
   "notificationBubbleAutoCloseSeconds",
@@ -65,6 +66,7 @@ function createSettingsEffectRouter(options = {}) {
   const refreshUpdateBubbleAutoClose = options.refreshUpdateBubbleAutoClose || noop;
   const repositionFloatingBubbles = options.repositionFloatingBubbles || noop;
   const syncSessionHudVisibility = options.syncSessionHudVisibility || noop;
+  const syncTokenDisplayVisibility = options.syncTokenDisplayVisibility || noop;
   const handleSessionHudPinnedChanged = options.handleSessionHudPinnedChanged || noop;
   const reclampPetAfterEdgePinningChange = options.reclampPetAfterEdgePinningChange || noop;
   const rebuildAllMenus = options.rebuildAllMenus || noop;
@@ -170,6 +172,9 @@ function createSettingsEffectRouter(options = {}) {
     }
     if ("bubbleFollowPet" in changes) {
       safeCall(logWarn, "Clawd: repositionFloatingBubbles failed:", repositionFloatingBubbles);
+    }
+    if ("tokenDisplayEnabled" in changes) {
+      safeCall(logWarn, "Clawd: token display setting sync failed:", syncTokenDisplayVisibility);
     }
     if ("sessionHudPinned" in changes) {
       // Pinned transitions are handled inside session-hud.js so the visible
