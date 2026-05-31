@@ -59,6 +59,7 @@ function createHarness(options = {}) {
     refreshUpdateBubbleAutoClose: () => calls.push(["refreshUpdateBubbleAutoClose"]),
     repositionFloatingBubbles: () => calls.push(["repositionFloatingBubbles"]),
     syncSessionHudVisibility: () => calls.push(["syncSessionHudVisibility"]),
+    syncTokenDisplayVisibility: () => calls.push(["syncTokenDisplayVisibility"]),
     handleSessionHudPinnedChanged: (next) => calls.push(["handleSessionHudPinnedChanged", next]),
     reclampPetAfterEdgePinningChange: () => calls.push(["reclampPetAfterEdgePinningChange"]),
     rebuildAllMenus: () => calls.push(["rebuildAllMenus"]),
@@ -213,6 +214,18 @@ describe("settings-effect-router", () => {
     assert.deepStrictEqual(calls, [
       ["updateMirrors", { sessionHudPinned: false }],
       ["handleSessionHudPinnedChanged", false],
+    ]);
+  });
+
+  it("syncs and rebuilds menus when token display changes", () => {
+    const { calls, emit } = createHarness();
+
+    emit({ tokenDisplayEnabled: false });
+
+    assert.deepStrictEqual(calls, [
+      ["updateMirrors", { tokenDisplayEnabled: false }],
+      ["syncTokenDisplayVisibility"],
+      ["rebuildAllMenus"],
     ]);
   });
 

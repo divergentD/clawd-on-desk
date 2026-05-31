@@ -98,6 +98,54 @@ describe("Codex remote monitor", () => {
     assert.strictEqual(complete.assistant_last_output, "Remote Codex answer");
   });
 
+  it("posts model and usage metadata from token_count records", () => {
+    const entry = {
+      sessionId: "codex:root",
+      cwd: "/repo",
+      isSubagent: false,
+      lastEventTime: 0,
+      lastState: "working",
+    };
+    const posted = [];
+    const postState = (sessionId, state, event, cwd, isSubagent, extra) => {
+      posted.push(JSON.parse(__test.buildPostStateBody(
+        sessionId,
+        state,
+        event,
+        cwd,
+        isSubagent,
+        "remote-box",
+        extra
+      )));
+    };
+
+    __test.processLine(JSON.stringify({
+      type: "turn_context",
+      payload: { model: "gpt-5.5" },
+    }), entry, { postState });
+    __test.processLine(JSON.stringify({
+      type: "event_msg",
+      payload: {
+        type: "token_count",
+        info: { total_token_usage: { input_tokens: 120, output_tokens: 8 } },
+      },
+    }), entry, { postState });
+
+    assert.deepStrictEqual(posted, [{
+      state: "working",
+      session_id: "codex:root",
+      agent_id: "codex",
+      cwd: "/repo",
+      host: "remote-box",
+      headless: false,
+      model: "gpt-5.5",
+      input_tokens: 120,
+      output_tokens: 8,
+      preserve_state: true,
+      metadata_only: true,
+    }]);
+  });
+
   it("marks subagent bodies headless and maps task_complete to idle", () => {
     const entry = {
       sessionId: "codex:sub",

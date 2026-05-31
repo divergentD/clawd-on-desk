@@ -73,4 +73,25 @@ describe("Codex monitor callback helpers", () => {
     });
     assert.strictEqual(Object.prototype.hasOwnProperty.call(options, "headless"), false);
   });
+
+  it("passes metadata-only token updates", () => {
+    assert.deepStrictEqual(buildCodexMonitorUpdateOptions({
+      cwd: "/repo",
+      model: "gpt-5.5",
+      inputTokens: 120,
+      outputTokens: 8,
+      preserveState: true,
+      metadataOnly: true,
+    }, { includeHeadless: true }), {
+      cwd: "/repo",
+      agentId: "codex",
+      sessionTitle: undefined,
+      model: "gpt-5.5",
+      inputTokens: 120,
+      outputTokens: 8,
+      preserveState: true,
+      metadataOnly: true,
+      headless: false,
+    });
+  });
 });

@@ -418,6 +418,58 @@ describe("CodexLogMonitor", () => {
     monitor.start();
   });
 
+  it("emits metadata-only usage updates from Codex token_count records", () => {
+    const testFile = path.join(dateDir, TEST_FILENAME);
+    fs.writeFileSync(testFile, [
+      '{"type":"session_meta","payload":{"cwd":"/tmp"}}',
+      '{"type":"turn_context","payload":{"model":"gpt-5.5"}}',
+      '{"type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":120,"output_tokens":8}}}}',
+    ].join("\n") + "\n");
+
+    const config = makeConfig(tmpDir);
+    const events = [];
+    monitor = new CodexLogMonitor(config, (sid, state, event, extra) => {
+      events.push({ sid, state, event, extra });
+    });
+    monitor._pollFile(testFile, path.basename(testFile));
+
+    assert.strictEqual(events.length, 2);
+    assert.strictEqual(events[1].event, null);
+    assert.strictEqual(events[1].extra.metadataOnly, true);
+    assert.strictEqual(events[1].extra.preserveState, true);
+    assert.strictEqual(events[1].extra.model, "gpt-5.5");
+    assert.strictEqual(events[1].extra.inputTokens, 120);
+    assert.strictEqual(events[1].extra.outputTokens, 8);
+  });
+
+  it("restores backfilled usage for an idle Codex session after restart", () => {
+    const testFile = path.join(dateDir, TEST_FILENAME);
+    fs.writeFileSync(testFile, JSON.stringify({
+      timestamp: new Date(Date.now() - 60 * 1000).toISOString(),
+      type: "event_msg",
+      payload: {
+        type: "token_count",
+        info: { total_token_usage: { input_tokens: 120, output_tokens: 8 } },
+      },
+    }) + "\n");
+    const oldTime = new Date(Date.now() - 10 * 1000);
+    fs.utimesSync(testFile, oldTime, oldTime);
+
+    const config = makeConfig(tmpDir);
+    const events = [];
+    monitor = new CodexLogMonitor(config, (sid, state, event, extra) => {
+      events.push({ sid, state, event, extra });
+    });
+    monitor._pollFile(testFile, path.basename(testFile));
+
+    assert.strictEqual(events.length, 1);
+    assert.strictEqual(events[0].state, "idle");
+    assert.strictEqual(events[0].event, null);
+    assert.strictEqual(events[0].extra.metadataOnly, true);
+    assert.strictEqual(events[0].extra.inputTokens, 120);
+    assert.strictEqual(events[0].extra.outputTokens, 8);
+  });
+
   it("should skip old files (>5min mtime)", (_, done) => {
     const testFile = path.join(dateDir, TEST_FILENAME);
     fs.writeFileSync(testFile, '{"type":"session_meta","payload":{"cwd":"/tmp"}}\n');

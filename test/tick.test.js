@@ -321,6 +321,21 @@ describe("tick adaptive polling", () => {
     assert.ok(cursorCalls < 45, `expected fewer than 45 polls, got ${cursorCalls}`);
   });
 
+  it("polls hover while working when token display has data", () => {
+    const theme = cloneTheme(_defaultTheme);
+
+    ctx = makeCtx(theme, statesSeen);
+    ctx.currentState = "working";
+    ctx.tokenDisplayNeedsHoverPoll = true;
+    tickApi = loader.initTick(ctx);
+    tickApi.startMainTick();
+
+    mock.timers.tick(1);
+
+    assert.strictEqual(cursorCalls, 1);
+    assert.strictEqual(ctx.mouseOverPet, true);
+  });
+
   it("uses a very low cursor polling rate while normal idle is low-power paused", () => {
     const theme = cloneTheme(_defaultTheme);
 

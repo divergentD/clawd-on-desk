@@ -87,6 +87,19 @@ describe("pi-extension-core", () => {
     assert.strictEqual(payload.session_id, "pi:default");
   });
 
+  it("forwards cumulative token usage when Pi provides it", () => {
+    const payload = core.buildPayload({
+      state: "attention",
+      event: "Stop",
+      nativeEvent: { usage: { input_tokens: 21, output_tokens: 8, total_cost: 0.06 } },
+      ctx: makeCtx(),
+    });
+
+    assert.strictEqual(payload.input_tokens, 21);
+    assert.strictEqual(payload.output_tokens, 8);
+    assert.strictEqual(payload.total_cost, 0.06);
+  });
+
   it("registers Pi lifecycle handlers and maps them to Clawd events", async () => {
     const handlers = {};
     const pi = {

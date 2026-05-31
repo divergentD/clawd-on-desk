@@ -3,7 +3,28 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { extractExistingNodeBin, extractExistingNodeBinFromCommands, formatNodeHookCommand, writeJsonAtomicAsync } = require("../hooks/json-utils");
+const { applyTokenUsageFields, extractExistingNodeBin, extractExistingNodeBinFromCommands, formatNodeHookCommand, writeJsonAtomicAsync } = require("../hooks/json-utils");
+
+describe("applyTokenUsageFields", () => {
+  it("copies normalized nested usage without leaking unrelated payload fields", () => {
+    const body = {};
+    applyTokenUsageFields(body, {
+      usage: { input_tokens: 12.9, outputTokens: 4.2, cost: 0.03 },
+      secret: "do-not-copy",
+    });
+    assert.deepStrictEqual(body, {
+      input_tokens: 12,
+      output_tokens: 4,
+      total_cost: 0.03,
+    });
+  });
+
+  it("drops negative and non-finite values", () => {
+    const body = {};
+    applyTokenUsageFields(body, { tokens: { input: -1, output: Infinity } });
+    assert.deepStrictEqual(body, {});
+  });
+});
 
 describe("extractExistingNodeBin", () => {
   it("extracts node path from flat command format", () => {

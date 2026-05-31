@@ -119,7 +119,7 @@ describe("openclaw plugin runtime", () => {
 
   it("redacts raw tool payload fields from state posts", async () => {
     const api = await loadPluginModule();
-    const { runtime, posts } = makeRuntime(api);
+    const { runtime, posts, timers } = makeRuntime(api);
 
     runtime.handleHook(
       "before_tool_call",
@@ -155,6 +155,23 @@ describe("openclaw plugin runtime", () => {
     for (const field of FORBIDDEN_POST_FIELDS) {
       assert.strictEqual(Object.prototype.hasOwnProperty.call(posts[0], field), false, `${field} leaked`);
     }
+  });
+
+  it("forwards cumulative token usage when OpenClaw provides it", async () => {
+    const api = await loadPluginModule();
+    const { runtime, posts, timers } = makeRuntime(api);
+
+    runtime.handleHook("model_call_ended", {
+      sessionId: "session-1",
+      usage: { inputTokens: 34, outputTokens: 5, totalCost: 0.07 },
+    }, {});
+
+    assert.strictEqual(timers.length, 1);
+    timers[0].fn();
+    assert.strictEqual(posts.length, 1);
+    assert.strictEqual(posts[0].input_tokens, 34);
+    assert.strictEqual(posts[0].output_tokens, 5);
+    assert.strictEqual(posts[0].total_cost, 0.07);
   });
 
   it("redacts after_tool_call result and error strings while preserving error_present", async () => {

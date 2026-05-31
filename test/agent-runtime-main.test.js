@@ -118,6 +118,14 @@ describe("agent-runtime-main", () => {
       sessionTitle: "Run tests",
       headless: true,
     });
+    monitor.emit("sid", "working", null, {
+      cwd: "D:\\repo",
+      model: "gpt-5.5",
+      inputTokens: 120,
+      outputTokens: 8,
+      metadataOnly: true,
+      preserveState: true,
+    });
 
     assert.deepStrictEqual(calls, [
       ["update", "sid", "notification", "event_msg:exec_command_end", {
@@ -132,6 +140,17 @@ describe("agent-runtime-main", () => {
         agentId: "codex",
         sessionTitle: "Run tests",
         headless: true,
+      }],
+      ["update", "sid", "working", null, {
+        cwd: "D:\\repo",
+        agentId: "codex",
+        sessionTitle: undefined,
+        model: "gpt-5.5",
+        inputTokens: 120,
+        outputTokens: 8,
+        preserveState: true,
+        metadataOnly: true,
+        headless: false,
       }],
     ]);
   });
