@@ -297,6 +297,9 @@ class CodexLogMonitor {
         sessionTitle: retired ? retired.sessionTitle : null,
         codexOriginator: retired ? retired.codexOriginator : null,
         codexSource: retired ? retired.codexSource : null,
+        model: retired ? retired.model : null,
+        inputTokens: retired ? retired.inputTokens : null,
+        outputTokens: retired ? retired.outputTokens : null,
         lastEventTime: Date.now(),
         lastState: retired ? retired.lastState : null,
         lastStateEvent: retired ? retired.lastStateEvent : null,
@@ -357,6 +360,12 @@ class CodexLogMonitor {
     // subsequent writes to this file are live and must emit normally.
     if (tracked.backfilling) {
       this._emitBackfillSnapshot(tracked);
+      if (!tracked.hasEmittedState && this._hasTokenUsage(tracked)) {
+        this._emitStateChange(tracked, "idle", null, {
+          metadataOnly: true,
+          preserveState: true,
+        });
+      }
       tracked.backfilling = false;
     }
   }
@@ -382,12 +391,28 @@ class CodexLogMonitor {
     if (type === "session_meta") {
       this._applySessionMeta(payload, tracked);
     }
+    if (type === "turn_context") {
+      this._applyTurnContext(payload, tracked);
+    }
+    const hasTokenUsage = key === "event_msg:token_count"
+      ? this._applyTokenCount(payload, tracked)
+      : false;
 
     // Skip historical events that predate monitor start — prevents replay
     // storms on app restart from driving stale state transitions.
     if (obj && typeof obj.timestamp === "string") {
       const ts = Date.parse(obj.timestamp);
       if (Number.isFinite(ts) && ts < this._startedAtMs - 1500) return;
+    }
+
+    if (key === "event_msg:token_count") {
+      if (hasTokenUsage) {
+        this._emitStateChange(tracked, tracked.lastState || "idle", null, {
+          metadataOnly: true,
+          preserveState: true,
+        });
+      }
+      return;
     }
 
     const assistantText = extractAssistantTextFromRecord(obj);
@@ -525,6 +550,32 @@ class CodexLogMonitor {
     else if (role === "root") tracked.isSubagent = false;
   }
 
+  _applyTurnContext(payload, tracked) {
+    if (!payload || typeof payload !== "object") return;
+    if (typeof payload.model === "string" && payload.model.trim()) {
+      tracked.model = payload.model.trim();
+    }
+  }
+
+  _applyTokenCount(payload, tracked) {
+    const usage = payload && payload.info && payload.info.total_token_usage;
+    if (!usage || typeof usage !== "object") return false;
+    let hasUsage = false;
+    if (Number.isFinite(usage.input_tokens) && usage.input_tokens >= 0) {
+      tracked.inputTokens = Math.floor(usage.input_tokens);
+      hasUsage = true;
+    }
+    if (Number.isFinite(usage.output_tokens) && usage.output_tokens >= 0) {
+      tracked.outputTokens = Math.floor(usage.output_tokens);
+      hasUsage = true;
+    }
+    return hasUsage;
+  }
+
+  _hasTokenUsage(tracked) {
+    return Number.isFinite(tracked.inputTokens) || Number.isFinite(tracked.outputTokens);
+  }
+
   // Codex-authored session summary, extracted from turn_context.summary.
   // Filters "none" / "auto" placeholder values that Codex writes when
   // the model hasn't produced a real summary yet.
@@ -660,6 +711,9 @@ class CodexLogMonitor {
       sessionTitle: tracked.sessionTitle || null,
       codexOriginator: tracked.codexOriginator || null,
       codexSource: tracked.codexSource || null,
+      model: tracked.model || null,
+      inputTokens: Number.isFinite(tracked.inputTokens) ? tracked.inputTokens : null,
+      outputTokens: Number.isFinite(tracked.outputTokens) ? tracked.outputTokens : null,
       lastState: tracked.lastState || null,
       lastStateEvent: tracked.lastStateEvent || null,
       hasEmittedState: tracked.hasEmittedState === true,
@@ -731,6 +785,9 @@ class CodexLogMonitor {
       sessionTitle: tracked.sessionTitle,
       codexOriginator: tracked.codexOriginator || null,
       codexSource: tracked.codexSource || null,
+      model: tracked.model || null,
+      inputTokens: Number.isFinite(tracked.inputTokens) ? tracked.inputTokens : null,
+      outputTokens: Number.isFinite(tracked.outputTokens) ? tracked.outputTokens : null,
       ...(extra || {}),
       headless: this._isTrackedSubagent(tracked)
         ? true

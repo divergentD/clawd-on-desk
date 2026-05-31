@@ -15,6 +15,29 @@ const DEFER_COMPLETION_MS = 4000;
 
 const DEBUG = !!(process.env.CLAWD_DEBUG || process.env.CLAWD_DEBUG_GEMINI);
 
+function sumTokenUsage(messages) {
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let hasInput = false;
+  let hasOutput = false;
+  for (const message of Array.isArray(messages) ? messages : []) {
+    const tokens = message && message.tokens;
+    if (!tokens || typeof tokens !== "object") continue;
+    if (Number.isFinite(tokens.input) && tokens.input >= 0) {
+      inputTokens += Math.floor(tokens.input);
+      hasInput = true;
+    }
+    if (Number.isFinite(tokens.output) && tokens.output >= 0) {
+      outputTokens += Math.floor(tokens.output);
+      hasOutput = true;
+    }
+  }
+  return {
+    inputTokens: hasInput ? inputTokens : null,
+    outputTokens: hasOutput ? outputTokens : null,
+  };
+}
+
 class GeminiLogMonitor {
   /**
    * @param {object} agentConfig - gemini-cli.js config (logConfig)
@@ -202,7 +225,7 @@ class GeminiLogMonitor {
     });
 
     this._onStateChange(sessionId, state, event, {
-      cwd, sourcePid: null, agentPid: null,
+      cwd, sourcePid: null, agentPid: null, ...sumTokenUsage(data.messages),
     });
   }
 
@@ -237,7 +260,7 @@ class GeminiLogMonitor {
         msgCount, hasTools: false, cwd, turnHasTools: false,
       });
       this._onStateChange(sessionId, "attention", "Stop", {
-        cwd, sourcePid: null, agentPid: null,
+        cwd, sourcePid: null, agentPid: null, ...sumTokenUsage(data.messages),
       });
     }, DEFER_COMPLETION_MS);
 
@@ -289,3 +312,4 @@ class GeminiLogMonitor {
 }
 
 module.exports = GeminiLogMonitor;
+module.exports.sumTokenUsage = sumTokenUsage;
