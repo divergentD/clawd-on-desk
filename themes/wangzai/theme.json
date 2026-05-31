@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "name": "WangZai",
+  "author": "divergentD",
+  "version": "1.0.0",
+  "description": "A small astronaut coding companion.",
+  "preview": "codex-pet-idle-loop.svg",
+  "viewBox": {
+    "x": 0,
+    "y": 0,
+    "width": 192,
+    "height": 208
+  },
+  "layout": {
+    "contentBox": {
+      "x": 0,
+      "y": 0,
+      "width": 192,
+      "height": 208
+    }
+  },
+  "eyeTracking": {
+    "enabled": false,
+    "states": []
+  },
+  "rendering": {
+    "svgChannel": "object"
+  },
+  "states": {
+    "idle": [
+      "codex-pet-idle-loop.svg"
+    ],
+    "thinking": [
+      "codex-pet-review-loop.svg"
+    ],
+    "working": [
+      "codex-pet-running-loop.svg"
+    ],
+    "juggling": [
+      "codex-pet-running-loop.svg"
+    ],
+    "sweeping": [
+      "codex-pet-running-loop.svg"
+    ],
+    "carrying": [
+      "codex-pet-running-loop.svg"
+    ],
+    "notification": [
+      "codex-pet-waiting-loop.svg"
+    ],
+    "attention": [
+      "codex-pet-jumping-loop.svg"
+    ],
+    "error": [
+      "codex-pet-failed-loop.svg"
+    ],
+    "sleeping": [
+      "codex-pet-idle-static.svg"
+    ]
+  },
+  "sleepSequence": {
+    "mode": "direct"
+  },
+  "workingTiers": [
+    {
+      "minSessions": 1,
+      "file": "codex-pet-running-loop.svg"
+    }
+  ],
+  "jugglingTiers": [
+    {
+      "minSessions": 1,
+      "file": "codex-pet-running-loop.svg"
+    }
+  ],
+  "hitBoxes": {
+    "default": {
+      "x": 0,
+      "y": 0,
+      "w": 192,
+      "h": 208
+    },
+    "sleeping": {
+      "x": 0,
+      "y": 0,
+      "w": 192,
+      "h": 208
+    },
+    "wide": {
+      "x": 0,
+      "y": 0,
+      "w": 192,
+      "h": 208
+    }
+  },
+  "reactions": {
+    "drag": {
+      "file": "codex-pet-running-loop.svg",
+      "fileLeft": "codex-pet-running-left-loop.svg",
+      "fileRight": "codex-pet-running-right-loop.svg"
+    },
+    "clickLeft": {
+      "file": "codex-pet-jumping-once.svg",
+      "duration": 840
+    },
+    "clickRight": {
+      "file": "codex-pet-jumping-once.svg",
+      "duration": 840
+    },
+    "double": {
+      "files": [
+        "codex-pet-waving-once.svg"
+      ],
+      "duration": 700
+    }
+  },
+  "miniMode": {
+    "supported": false
+  }
+}
