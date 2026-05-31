@@ -137,6 +137,31 @@ describe("buildStateBody", () => {
     assert.strictEqual(body.session_id, "default");
   });
 
+  it("ignores OpenCode compatibility hooks when no Claude process exists", () => {
+    const body = buildStateBody(
+      "UserPromptSubmit",
+      { session_id: "ses_1818f1491ffe5DY4niU6S8EXFx" },
+      mockResolve
+    );
+    assert.strictEqual(body, null);
+  });
+
+  it("keeps ses_-prefixed hooks when a real Claude process exists", () => {
+    const body = buildStateBody(
+      "UserPromptSubmit",
+      { session_id: "ses_futureClaudeFormat" },
+      () => ({
+        stablePid: 123,
+        agentPid: 456,
+        agentCommandLine: "claude",
+        detectedEditor: null,
+        pidChain: [456, 123],
+      })
+    );
+    assert.strictEqual(body.agent_id, "claude-code");
+    assert.strictEqual(body.agent_pid, 456);
+  });
+
   it("omits cwd field when payload has no cwd", () => {
     const body = buildStateBody("PreToolUse", { session_id: "s" }, mockResolve);
     assert.ok(!("cwd" in body));

@@ -297,6 +297,14 @@ function shouldReportForegroundWtHwnd(event) {
   return event === "SessionStart" || event === "UserPromptSubmit";
 }
 
+function shouldIgnoreOpencodeCompatHook(payload, pidMeta) {
+  const sessionId = payload && typeof payload.session_id === "string"
+    ? payload.session_id
+    : "";
+  return /^ses_[A-Za-z0-9]+$/.test(sessionId)
+    && !(pidMeta && pidMeta.agentPid);
+}
+
 const EVENT_TO_STATE = {
   SessionStart: "idle",
   SessionEnd: "sleeping",
@@ -391,7 +399,9 @@ function buildStateBody(event, payload, resolve) {
   if (process.env.CLAWD_REMOTE) {
     body.host = readHostPrefix();
   } else {
-    const { stablePid, agentPid, agentCommandLine, detectedEditor, pidChain, foregroundWtHwnd } = resolve();
+    const pidMeta = resolve();
+    if (shouldIgnoreOpencodeCompatHook(payload, pidMeta)) return null;
+    const { stablePid, agentPid, agentCommandLine, detectedEditor, pidChain, foregroundWtHwnd } = pidMeta;
     body.source_pid = stablePid;
     if (detectedEditor) body.editor = detectedEditor;
     if (agentPid) {
@@ -440,6 +450,7 @@ if (require.main === module) main();
 
 module.exports = {
   buildStateBody,
+  shouldIgnoreOpencodeCompatHook,
   extractSessionTitleFromTranscript,
   extractApiErrorFromEntries,
   extractLastAssistantTextFromEntries,
