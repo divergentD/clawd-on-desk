@@ -37,6 +37,11 @@ def main() -> None:
     parser.add_argument("--chroma-key", default="#00FF00")
     parser.add_argument("--extractor", default=str(DEFAULT_EXTRACTOR))
     parser.add_argument("--frames-output")
+    parser.add_argument(
+        "--ping-pong",
+        action="store_true",
+        help="Append the interior frames in reverse order for a seamless return pose.",
+    )
     args = parser.parse_args()
 
     strip = Path(args.strip).expanduser().resolve()
@@ -75,6 +80,8 @@ def main() -> None:
         if len(frame_paths) != 6:
             raise SystemExit(f"expected 6 extracted frames, got {len(frame_paths)}")
         frames = [clear_transparent_rgb(Image.open(path)) for path in frame_paths]
+        if args.ping_pong and len(frames) > 2:
+            frames = frames + frames[-2:0:-1]
 
         output.parent.mkdir(parents=True, exist_ok=True)
         frames[0].save(
