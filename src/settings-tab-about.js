@@ -152,7 +152,7 @@
 
     const title = document.createElement("h2");
     title.className = "about-title";
-    title.textContent = "Clawd on Desk";
+    title.textContent = "WangPet";
 
     const tagline = document.createElement("p");
     tagline.className = "about-tagline";

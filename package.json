@@ -1,5 +1,5 @@
 {
-  "name": "clawd-on-desk",
+  "name": "wangpet",
   "version": "0.8.1",
   "description": "A desktop pet that reacts to your Claude Code sessions in real-time.",
   "main": "src/main.js",
@@ -55,11 +55,11 @@
   "license": "AGPL-3.0-only",
   "type": "commonjs",
   "build": {
-    "appId": "com.clawd.on-desk",
-    "productName": "Clawd on Desk",
+    "appId": "com.wangpet.app",
+    "productName": "WangPet",
     "protocols": [
       {
-        "name": "Clawd Import Protocol",
+        "name": "WangPet Import Protocol",
         "schemes": [
           "clawd"
         ]
@@ -67,7 +67,7 @@
     ],
     "mac": {
       "icon": "assets/icon.png",
-      "artifactName": "Clawd-on-Desk-${version}-${arch}.${ext}",
+      "artifactName": "WangPet-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",
@@ -85,7 +85,7 @@
     "win": {
       "icon": "assets/icon.ico",
       "signAndEditExecutable": false,
-      "artifactName": "Clawd-on-Desk-Setup-${version}-${arch}.${ext}",
+      "artifactName": "WangPet-Setup-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "nsis",
@@ -100,7 +100,7 @@
       "maintainer": "rullerzhou-afk <rullerzhou-afk@users.noreply.github.com>",
       "icon": "assets/icons",
       "category": "Utility",
-      "artifactName": "Clawd-on-Desk-${version}-${arch}.${ext}",
+      "artifactName": "WangPet-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "AppImage",
