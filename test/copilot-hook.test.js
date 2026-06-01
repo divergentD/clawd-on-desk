@@ -252,8 +252,8 @@ describe("buildStateBody (Copilot)", () => {
   });
 
   it("remote mode includes host prefix and skips local PID fields", () => {
-    const oldRemote = process.env.CLAWD_REMOTE;
-    process.env.CLAWD_REMOTE = "1";
+    const oldRemote = process.env.WANGPET_REMOTE;
+    process.env.WANGPET_REMOTE = "1";
     let resolveCalled = false;
     try {
       const body = buildStateBody(
@@ -274,8 +274,8 @@ describe("buildStateBody (Copilot)", () => {
       assert.strictEqual("pid_chain" in body, false);
       assert.strictEqual(resolveCalled, false);
     } finally {
-      if (oldRemote === undefined) delete process.env.CLAWD_REMOTE;
-      else process.env.CLAWD_REMOTE = oldRemote;
+      if (oldRemote === undefined) delete process.env.WANGPET_REMOTE;
+      else process.env.WANGPET_REMOTE = oldRemote;
     }
   });
 });

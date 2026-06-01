@@ -86,7 +86,7 @@ function cleanupBackupPath(filePath, options = {}) {
   const stamp = now instanceof Date && !Number.isNaN(now.getTime())
     ? now.toISOString().replace(/[-:TZ.]/g, "").slice(0, 17)
     : String(Date.now());
-  return `${filePath}.clawd-cleanup-${stamp}.bak`;
+  return `${filePath}.wang-pet-cleanup-${stamp}.bak`;
 }
 
 function uniqueBackupPath(filePath, options = {}) {

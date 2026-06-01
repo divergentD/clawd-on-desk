@@ -1,6 +1,6 @@
 "use strict";
 
-const core = globalThis.ClawdSettingsCore;
+const core = globalThis.wangpetSettingsCore;
 
 const SIDEBAR_TABS = [
   { id: "general", icon: "\u2699", labelKey: "sidebarGeneral", available: true },
@@ -19,10 +19,10 @@ function renderSidebar() {
   if (!sidebar) return;
   sidebar.innerHTML = "";
   if (
-    globalThis.ClawdSettingsDoctorModal
-    && typeof globalThis.ClawdSettingsDoctorModal.renderSidebarIndicator === "function"
+    globalThis.wangpetSettingsDoctorModal
+    && typeof globalThis.wangpetSettingsDoctorModal.renderSidebarIndicator === "function"
   ) {
-    globalThis.ClawdSettingsDoctorModal.renderSidebarIndicator(sidebar, core);
+    globalThis.wangpetSettingsDoctorModal.renderSidebarIndicator(sidebar, core);
   }
   for (const tab of SIDEBAR_TABS) {
     const item = document.createElement("div");
@@ -70,15 +70,15 @@ core.ops.installRenderHooks({
   content: renderContent,
 });
 
-globalThis.ClawdSettingsTabGeneral.init(core);
-globalThis.ClawdSettingsTabAgents.init(core);
-globalThis.ClawdSettingsTabTheme.init(core);
-globalThis.ClawdSettingsTabAnimMap.init(core);
-globalThis.ClawdSettingsTabAnimOverrides.init(core);
-globalThis.ClawdSettingsTabShortcuts.init(core);
-if (globalThis.ClawdSettingsTabTelegramApproval) globalThis.ClawdSettingsTabTelegramApproval.init(core);
-globalThis.ClawdSettingsTabAbout.init(core);
-if (globalThis.ClawdSettingsTabRemoteSsh) globalThis.ClawdSettingsTabRemoteSsh.init(core);
+globalThis.wangpetSettingsTabGeneral.init(core);
+globalThis.wangpetSettingsTabAgents.init(core);
+globalThis.wangpetSettingsTabTheme.init(core);
+globalThis.wangpetSettingsTabAnimMap.init(core);
+globalThis.wangpetSettingsTabAnimOverrides.init(core);
+globalThis.wangpetSettingsTabShortcuts.init(core);
+if (globalThis.wangpetSettingsTabTelegramApproval) globalThis.wangpetSettingsTabTelegramApproval.init(core);
+globalThis.wangpetSettingsTabAbout.init(core);
+if (globalThis.wangpetSettingsTabRemoteSsh) globalThis.wangpetSettingsTabRemoteSsh.init(core);
 
 if (window.settingsAPI && typeof window.settingsAPI.onChanged === "function") {
   window.settingsAPI.onChanged((payload) => core.ops.applyChanges(payload));

@@ -10,7 +10,7 @@ function makeRuntime(overrides = {}) {
   const repairOptions = [];
   const ctx = {
     autoStartWithClaude: true,
-    syncClawdHooksImpl: (options) => {
+    syncwangpetHooksImpl: (options) => {
       calls.push({ name: "claude", options });
       return { status: "ok", source: "claude" };
     },
@@ -54,10 +54,10 @@ function makeRuntime(overrides = {}) {
 }
 
 describe("integration sync runtime", () => {
-  it("syncClawdHooks passes auto-start and the current server port", () => {
+  it("syncwangpetHooks passes auto-start and the current server port", () => {
     const { runtime, calls } = makeRuntime();
 
-    const result = runtime.syncClawdHooks();
+    const result = runtime.syncwangpetHooks();
 
     assert.deepStrictEqual(result, { status: "ok", source: "claude" });
     assert.deepStrictEqual(calls, [
@@ -162,7 +162,7 @@ describe("integration sync runtime", () => {
       installed: true,
       skipped: false,
       updated: false,
-      extensionDir: "C:/Users/Tester/.pi/agent/extensions/clawd-on-desk",
+      extensionDir: "C:/Users/Tester/.pi/agent/extensions/wang-pet",
     });
     console.log = (message) => logs.push(message);
 

@@ -591,7 +591,7 @@ test("Windows: cmd.exe fallback disables delayed expansion and passes verbatim e
     ipcMain,
     settingsController: mockSettingsController([{
       ...baseProfile,
-      identityFile: "C:\\Keys\\%CLAWD_QUOTE_TEST%\\id",
+      identityFile: "C:\\Keys\\%WANGPET_QUOTE_TEST%\\id",
     }]),
     remoteSshRuntime: mockRuntime(),
     BrowserWindow,
@@ -603,8 +603,8 @@ test("Windows: cmd.exe fallback disables delayed expansion and passes verbatim e
   assert.equal(calls[1].cmd, "cmd.exe");
   assert.deepEqual(calls[1].args.slice(0, 4), ["/d", "/v:off", "/s", "/k"]);
   assert.equal(calls[1].opts.windowsVerbatimArguments, true);
-  assert.match(calls[1].args[4], /\^%CLAWD_QUOTE_TEST\^%/);
-  assert.doesNotMatch(calls[1].args[4], /"%CLAWD_QUOTE_TEST%"/);
+  assert.match(calls[1].args[4], /\^%WANGPET_QUOTE_TEST\^%/);
+  assert.doesNotMatch(calls[1].args[4], /"%WANGPET_QUOTE_TEST%"/);
   ipc.dispose();
 });
 

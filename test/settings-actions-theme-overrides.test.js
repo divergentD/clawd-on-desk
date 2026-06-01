@@ -23,9 +23,9 @@ test("settings theme override actions expose the command surface", () => {
 test("settings theme override actions update an active state slot with explicit reload data", () => {
   const calls = [];
   const snapshot = {
-    theme: "clawd",
+    theme: "wang-pet",
     themeOverrides: {
-      clawd: {
+      "wang-pet": {
         hitbox: { wide: { "old.svg": true } },
         sounds: { complete: { file: "done.mp3" } },
       },
@@ -34,7 +34,7 @@ test("settings theme override actions update an active state slot with explicit 
 
   const result = themeOverrideCommands.setAnimationOverride(
     {
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "state",
       stateKey: "attention",
       file: "new-attention.svg",
@@ -50,20 +50,20 @@ test("settings theme override actions update an active state slot with explicit 
   );
 
   assert.strictEqual(result.status, "ok");
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.states.attention, {
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].states.attention, {
     file: "new-attention.svg",
     transition: { in: 80, out: 120 },
   });
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.timings, {
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].timings, {
     autoReturn: { attention: 2500 },
   });
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.hitbox, snapshot.themeOverrides.clawd.hitbox);
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.sounds, snapshot.themeOverrides.clawd.sounds);
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].hitbox, snapshot.themeOverrides["wang-pet"].hitbox);
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].sounds, snapshot.themeOverrides["wang-pet"].sounds);
   assert.deepStrictEqual(calls, [
     {
-      themeId: "clawd",
+      themeId: "wang-pet",
       variantId: null,
-      overrideMap: result.commit.themeOverrides.clawd,
+      overrideMap: result.commit.themeOverrides["wang-pet"],
     },
   ]);
 });
@@ -71,9 +71,9 @@ test("settings theme override actions update an active state slot with explicit 
 test("settings theme override actions clear transition overrides that match the theme default", () => {
   const calls = [];
   const snapshot = {
-    theme: "clawd",
+    theme: "wang-pet",
     themeOverrides: {
-      clawd: {
+      "wang-pet": {
         states: {
           thinking: {
             transition: { in: 160, out: 150 },
@@ -85,7 +85,7 @@ test("settings theme override actions clear transition overrides that match the 
 
   const result = themeOverrideCommands.setAnimationOverride(
     {
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "state",
       stateKey: "thinking",
       transition: { in: 150, out: 150 },
@@ -100,10 +100,10 @@ test("settings theme override actions clear transition overrides that match the 
   );
 
   assert.strictEqual(result.status, "ok");
-  assert.strictEqual(result.commit.themeOverrides.clawd, undefined);
+  assert.strictEqual(result.commit.themeOverrides["wang-pet"], undefined);
   assert.deepStrictEqual(calls, [
     {
-      themeId: "clawd",
+      themeId: "wang-pet",
       variantId: null,
       overrideMap: {},
     },
@@ -113,7 +113,7 @@ test("settings theme override actions clear transition overrides that match the 
 test("settings theme override actions keep transition overrides that differ from the theme default", () => {
   const result = themeOverrideCommands.setAnimationOverride(
     {
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "state",
       stateKey: "thinking",
       transition: { in: 160, out: 150 },
@@ -128,7 +128,7 @@ test("settings theme override actions keep transition overrides that differ from
   );
 
   assert.strictEqual(result.status, "ok");
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.states.thinking, {
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].states.thinking, {
     transition: { in: 160, out: 150 },
   });
 });
@@ -137,7 +137,7 @@ test("settings theme override actions preserve animation and hitbox data when ch
   const snapshot = {
     theme: "calico",
     themeOverrides: {
-      clawd: {
+      "wang-pet": {
         states: { attention: { file: "attention.svg" } },
         reactions: { clickLeft: { file: "click.svg" } },
         hitbox: { wide: { "wide.svg": true } },
@@ -147,7 +147,7 @@ test("settings theme override actions preserve animation and hitbox data when ch
   };
 
   const result = themeOverrideCommands.setSoundOverride(
-    { themeId: "clawd", soundName: "complete", file: "complete.mp3", originalName: "picked.mp3" },
+    { themeId: "wang-pet", soundName: "complete", file: "complete.mp3", originalName: "picked.mp3" },
     {
       snapshot,
       activateTheme: () => {
@@ -157,10 +157,10 @@ test("settings theme override actions preserve animation and hitbox data when ch
   );
 
   assert.strictEqual(result.status, "ok");
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.states, snapshot.themeOverrides.clawd.states);
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.reactions, snapshot.themeOverrides.clawd.reactions);
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.hitbox, snapshot.themeOverrides.clawd.hitbox);
-  assert.deepStrictEqual(result.commit.themeOverrides.clawd.sounds, {
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].states, snapshot.themeOverrides["wang-pet"].states);
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].reactions, snapshot.themeOverrides["wang-pet"].reactions);
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].hitbox, snapshot.themeOverrides["wang-pet"].hitbox);
+  assert.deepStrictEqual(result.commit.themeOverrides["wang-pet"].sounds, {
     confirm: { file: "confirm.wav" },
     complete: { file: "complete.mp3", originalName: "picked.mp3" },
   });
@@ -171,14 +171,14 @@ test("settings theme override actions import active theme overrides with the com
   const payload = {
     version: 1,
     themes: {
-      clawd: {
+      "wang-pet": {
         states: {
           attention: { disabled: true },
         },
       },
     },
   };
-  const snapshot = { theme: "clawd", themeOverrides: {} };
+  const snapshot = { theme: "wang-pet", themeOverrides: {} };
 
   const result = themeOverrideCommands.importAnimationOverrides(payload, {
     snapshot,
@@ -191,9 +191,9 @@ test("settings theme override actions import active theme overrides with the com
   assert.strictEqual(result.importedThemeCount, 1);
   assert.deepStrictEqual(calls, [
     {
-      themeId: "clawd",
+      themeId: "wang-pet",
       variantId: null,
-      overrideMap: result.commit.themeOverrides.clawd,
+      overrideMap: result.commit.themeOverrides["wang-pet"],
     },
   ]);
 });
@@ -201,14 +201,14 @@ test("settings theme override actions import active theme overrides with the com
 test("settings theme override actions reset an active theme by reloading without overrides", () => {
   const calls = [];
   const snapshot = {
-    theme: "clawd",
+    theme: "wang-pet",
     themeOverrides: {
-      clawd: { states: { attention: { disabled: true } } },
+      "wang-pet": { states: { attention: { disabled: true } } },
       calico: { states: { error: { disabled: true } } },
     },
   };
 
-  const result = themeOverrideCommands.resetThemeOverrides("clawd", {
+  const result = themeOverrideCommands.resetThemeOverrides("wang-pet", {
     snapshot,
     activateTheme: (themeId, variantId, overrideMap) => {
       calls.push({ themeId, variantId, overrideMap });
@@ -216,9 +216,9 @@ test("settings theme override actions reset an active theme by reloading without
   });
 
   assert.strictEqual(result.status, "ok");
-  assert.strictEqual(result.commit.themeOverrides.clawd, undefined);
+  assert.strictEqual(result.commit.themeOverrides["wang-pet"], undefined);
   assert.ok(result.commit.themeOverrides.calico);
   assert.deepStrictEqual(calls, [
-    { themeId: "clawd", variantId: null, overrideMap: null },
+    { themeId: "wang-pet", variantId: null, overrideMap: null },
   ]);
 });

@@ -24,9 +24,9 @@ const INFO_ONLY_STATUSES = new Set([
   "not-installed",
 ]);
 const REPAIRABLE_AGENT_STATUSES = new Set(["not-connected", "broken-path"]);
-const GEMINI_HOOKS_DISABLED_DETAIL = "Gemini hooks are disabled in settings.json; Clawd preserves this user setting and will not receive hook events";
-const ANTIGRAVITY_HOOKS_DISABLED_DETAIL = "Antigravity Clawd hooks are disabled in hooks.json; Clawd preserves this user setting and will not receive hook events";
-const QWEN_HOOKS_DISABLED_DETAIL = "Qwen Code hooks are disabled in settings.json; Clawd preserves this user setting and will not receive hook events";
+const GEMINI_HOOKS_DISABLED_DETAIL = "Gemini hooks are disabled in settings.json; WangPet preserves this user setting and will not receive hook events";
+const ANTIGRAVITY_HOOKS_DISABLED_DETAIL = "Antigravity WangPet hooks are disabled in hooks.json; WangPet preserves this user setting and will not receive hook events";
+const QWEN_HOOKS_DISABLED_DETAIL = "Qwen Code hooks are disabled in settings.json; WangPet preserves this user setting and will not receive hook events";
 
 function dirExists(fsImpl, dirPath) {
   try {
@@ -50,7 +50,7 @@ function readJson(fsImpl, filePath) {
 
 function withAgentBubbleNote(detail, prefs, agentId) {
   // State-only agents (capabilities.permissionApproval === false) never
-  // surface a Clawd bubble in the first place, so annotating them as
+  // surface a WangPet bubble in the first place, so annotating them as
   // "permission bubbles disabled" would be misleading. Antigravity, Pi,
   // OpenClaw, and Hermes are current examples.
   const agent = getAgent(agentId);
@@ -100,7 +100,7 @@ function withAgentFixAction(detail, descriptor) {
     && typeof detail.supplementary.value === "string"
     && detail.supplementary.value.startsWith("disabled")
   ) {
-    // User explicitly set disableAllHooks; Clawd must not overwrite that intent.
+    // User explicitly set disableAllHooks; WangPet must not overwrite that intent.
     return detail;
   }
   const fixAction = { type: "agent-integration", agentId: descriptor.agentId };
@@ -350,14 +350,14 @@ function validateCopilotHookEvents(descriptor, settings, settingsJson, options) 
   if (settings && settings.disableAllHooks === true) {
     return makeDetail(descriptor, "not-connected", {
       level: "warning",
-      detail: `${descriptor.configPath} has disableAllHooks=true; Clawd hooks will not run`,
+      detail: `${descriptor.configPath} has disableAllHooks=true; WangPet hooks will not run`,
       supplementary: { key: "copilot_hooks", value: "disabled-file" },
     });
   }
   if (settingsJson && settingsJson.disableAllHooks === true) {
     return makeDetail(descriptor, "not-connected", {
       level: "warning",
-      detail: `${descriptor.settingsPath || "settings.json"} has disableAllHooks=true; Clawd hooks will not run`,
+      detail: `${descriptor.settingsPath || "settings.json"} has disableAllHooks=true; WangPet hooks will not run`,
       supplementary: { key: "copilot_hooks", value: "disabled-global" },
     });
   }
@@ -568,7 +568,7 @@ function getGeminiHooksSupplementary(settings, descriptor) {
     return {
       key: "gemini_hooks",
       value: "enabled",
-      detail: "hooksConfig allows Clawd Gemini hooks",
+      detail: "hooksConfig allows WangPet Gemini hooks",
     };
   }
 
@@ -581,18 +581,18 @@ function getGeminiHooksSupplementary(settings, descriptor) {
   }
 
   const disabled = Array.isArray(hooksConfig.disabled) ? hooksConfig.disabled : [];
-  if (disabled.includes("clawd")) {
+  if (disabled.includes("wang-pet")) {
     return {
       key: "gemini_hooks",
-      value: "disabled-clawd",
-      detail: 'hooksConfig.disabled includes "clawd"',
+      value: "disabled-wangpet",
+      detail: 'hooksConfig.disabled includes "wang-pet"',
     };
   }
 
   return {
     key: "gemini_hooks",
     value: "enabled",
-    detail: "hooksConfig allows Clawd Gemini hooks",
+    detail: "hooksConfig allows WangPet Gemini hooks",
   };
 }
 
@@ -626,7 +626,7 @@ function getQwenHooksSupplementary(settings) {
   return {
     key: "qwen_hooks",
     value: "enabled",
-    detail: "settings.json allows Clawd Qwen hooks",
+    detail: "settings.json allows WangPet Qwen hooks",
   };
 }
 
@@ -654,14 +654,14 @@ function getAntigravityHooksSupplementary(settings) {
   if (hookGroup && typeof hookGroup === "object" && hookGroup.enabled === false) {
     return {
       key: "antigravity_hooks",
-      value: "disabled-clawd",
+      value: "disabled-wangpet",
       detail: `${ANTIGRAVITY_HOOK_GROUP_ID}.enabled is false`,
     };
   }
   return {
     key: "antigravity_hooks",
     value: "enabled",
-    detail: "hooks.json allows Clawd Antigravity hooks",
+    detail: "hooks.json allows WangPet Antigravity hooks",
   };
 }
 
@@ -883,7 +883,7 @@ function checkKiroDirMode(descriptor, options) {
       parentDirExists: true,
       configFileExists: true,
       configPath: agentsDir,
-      detail: `${scan.fullyValidFiles.length} hooked agent(s). Use 'kiro-cli --agent clawd' to activate.`,
+      detail: `${scan.fullyValidFiles.length} hooked agent(s). Use 'kiro-cli --agent WangPet' to activate.`,
       kiroScan: scan,
     });
   }
@@ -915,7 +915,7 @@ function checkKiroDirMode(descriptor, options) {
     parentDirExists: true,
     configFileExists: true,
     configPath: agentsDir,
-    detail: "No Kiro agent config contains a valid Clawd hook",
+    detail: "No Kiro agent config contains a valid WangPet hook",
     kiroScan: scan,
   });
 }
@@ -1208,7 +1208,7 @@ function checkOpenClawPluginMode(descriptor, options) {
       parentDirExists: true,
       configFileExists: true,
       configPath: descriptor.configPath,
-      detail: `OpenClaw config is not strict JSON; Clawd startup sync will skip direct edits (${err && err.message ? err.message : "parse failed"})`,
+      detail: `OpenClaw config is not strict JSON; WangPet startup sync will skip direct edits (${err && err.message ? err.message : "parse failed"})`,
     });
   }
 
@@ -1218,7 +1218,7 @@ function checkOpenClawPluginMode(descriptor, options) {
       parentDirExists: true,
       configFileExists: true,
       configPath: descriptor.configPath,
-      detail: "OpenClaw config uses include directives; Clawd startup sync will not edit it directly",
+      detail: "OpenClaw config uses include directives; WangPet startup sync will not edit it directly",
     });
   }
 
@@ -1240,14 +1240,14 @@ function checkOpenClawPluginMode(descriptor, options) {
   const pluginConfig = settings
     && settings.plugins
     && settings.plugins.entries
-    && settings.plugins.entries[descriptor.pluginId || "clawd-on-desk"];
+    && settings.plugins.entries[descriptor.pluginId || "wang-pet"];
   if (pluginConfig && pluginConfig.enabled === false) {
     return makeDetail(descriptor, "not-connected", {
       level: "warning",
       parentDirExists: true,
       configFileExists: true,
       configPath: descriptor.configPath,
-      detail: "OpenClaw Clawd plugin is registered but disabled",
+      detail: "OpenClaw WangPet plugin is registered but disabled",
       openclawEntry: entry,
     });
   }
@@ -1286,7 +1286,7 @@ function readJsonIfPresent(fsImpl, filePath) {
 function isPiManagedMarker(value) {
   return !!(
     value
-    && value.app === "clawd-on-desk"
+    && value.app === "wang-pet"
     && value.integration === "pi"
     && value.managed === true
   );
@@ -1294,7 +1294,7 @@ function isPiManagedMarker(value) {
 
 function checkPiExtensionMode(descriptor, options) {
   const extensionDir = descriptor.configPath;
-  const markerPath = path.join(extensionDir, descriptor.markerFile || ".clawd-managed.json");
+  const markerPath = path.join(extensionDir, descriptor.markerFile || ".wang-pet-managed.json");
   const extensionPath = path.join(extensionDir, descriptor.marker || "index.ts");
   const corePath = path.join(extensionDir, descriptor.coreFile || "pi-extension-core.js");
 
@@ -1318,7 +1318,7 @@ function checkPiExtensionMode(descriptor, options) {
       configPath: extensionDir,
       extensionDir,
       markerPath,
-      detail: `${extensionDir} exists but is not Clawd-managed`,
+      detail: `${extensionDir} exists but is not wang-pet-managed`,
     });
   }
 

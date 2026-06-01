@@ -445,7 +445,7 @@ function createPetWindowRuntime(options = {}) {
       });
       renderWin.on("unresponsive", () => {
         if (isQuitting()) return;
-        console.warn("Clawd: renderer unresponsive — reloading");
+        console.warn("WangPet: renderer unresponsive — reloading");
         renderWin.webContents.reload();
       });
     }

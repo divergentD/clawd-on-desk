@@ -86,6 +86,6 @@
   if (typeof module === "object" && module.exports) {
     module.exports = api;
   } else if (root && typeof root === "object") {
-    root.ClawdBubbleFormat = api;
+    root.wangpetBubbleFormat = api;
   }
 })(typeof window !== "undefined" ? window : (typeof self !== "undefined" ? self : globalThis));

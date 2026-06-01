@@ -20,7 +20,7 @@ const os = require("os");
 const path = require("path");
 
 const AUTOSTART_DIR = path.join(os.homedir(), ".config", "autostart");
-const AUTOSTART_FILE = path.join(AUTOSTART_DIR, "wangpet.desktop");
+const AUTOSTART_FILE = path.join(AUTOSTART_DIR, "WangPet.desktop");
 
 function getLoginItemSettings({ isPackaged, openAtLogin, execPath, appPath }) {
   if (isPackaged) return { openAtLogin };

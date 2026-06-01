@@ -5,8 +5,8 @@ const assert = require("node:assert");
 const { EventEmitter } = require("node:events");
 
 const {
-  CLAWD_SERVER_HEADER,
-  CLAWD_SERVER_ID,
+  WANGPET_SERVER_HEADER,
+  WANGPET_SERVER_ID,
 } = require("../hooks/server-config");
 const {
   MAX_PERMISSION_BODY_BYTES,
@@ -155,7 +155,7 @@ describe("server-route-permission POST", () => {
 
     assert.deepStrictEqual(res.ctx.calls.sendPermissionResponse, [{
       behavior: "deny",
-      message: "Permission request too large for Clawd bubble; answer in terminal",
+      message: "Permission request too large for WangPet bubble; answer in terminal",
     }]);
   });
 
@@ -169,7 +169,7 @@ describe("server-route-permission POST", () => {
     });
 
     assert.strictEqual(res.statusCode, 204);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.deepStrictEqual(res.recorder.map((entry) => entry.outcome).filter(Boolean), ["dnd"]);
     assert.deepStrictEqual(res.ctx.pendingPermissions, []);
   });
@@ -271,7 +271,7 @@ describe("server-route-permission POST", () => {
     });
 
     assert.strictEqual(res.statusCode, 200);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.strictEqual(JSON.parse(res.body).hookSpecificOutput.decision.behavior, "allow");
     assert.deepStrictEqual(res.recorder.map((entry) => entry.outcome).filter(Boolean), ["dnd"]);
     assert.deepStrictEqual(res.ctx.pendingPermissions, []);
@@ -288,7 +288,7 @@ describe("server-route-permission POST", () => {
     });
 
     assert.strictEqual(res.statusCode, 204);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.deepStrictEqual(res.recorder.map((entry) => entry.outcome).filter(Boolean), ["dnd"]);
     assert.deepStrictEqual(res.ctx.pendingPermissions, []);
   });
@@ -310,7 +310,7 @@ describe("server-route-permission POST", () => {
     });
 
     assert.strictEqual(res.statusCode, 204);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.deepStrictEqual(res.ctx.pendingPermissions, []);
   });
 
@@ -327,7 +327,7 @@ describe("server-route-permission POST", () => {
     });
 
     assert.strictEqual(res.statusCode, 204);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.deepStrictEqual(res.recorder.map((entry) => entry.outcome).filter(Boolean), ["disabled"]);
     assert.deepStrictEqual(res.ctx.pendingPermissions, []);
   });
@@ -335,7 +335,7 @@ describe("server-route-permission POST", () => {
   it("hard-blocks a stray Antigravity PreToolUse: 204, no bubble, no entry", async () => {
     // D2 (post-codex-review-4): even if a user manually re-registers a
     // PreToolUse hook in their hooks.json (or auto-sync is skipped), the
-    // server-side antigravity branch never creates a Clawd bubble. The
+    // server-side antigravity branch never creates a WangPet bubble. The
     // hook will print decision:"ask" and agy's own native menu owns the
     // permission decision.
     const res = await callPermissionPost(JSON.stringify({
@@ -353,7 +353,7 @@ describe("server-route-permission POST", () => {
     }));
 
     assert.strictEqual(res.statusCode, 204);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.deepStrictEqual(res.ctx.pendingPermissions, []);
     assert.deepStrictEqual(res.ctx.calls.showPermissionBubble || [], []);
     assert.deepStrictEqual(res.ctx.calls.addPendingPermission || [], []);
@@ -374,7 +374,7 @@ describe("server-route-permission POST", () => {
     }));
 
     assert.strictEqual(res.statusCode, 200);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.strictEqual(JSON.parse(res.body).hookSpecificOutput.decision.behavior, "allow");
     assert.deepStrictEqual(res.ctx.pendingPermissions, []);
     assert.deepStrictEqual(res.ctx.calls.updateSession, []);
@@ -397,7 +397,7 @@ describe("server-route-permission POST", () => {
     });
 
     assert.strictEqual(res.statusCode, 200);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.strictEqual(JSON.parse(res.body).hookSpecificOutput.decision.behavior, "allow");
     assert.deepStrictEqual(res.ctx.pendingPermissions, []);
     assert.deepStrictEqual(res.recorder.map((item) => item.outcome).filter(Boolean), ["disabled"]);

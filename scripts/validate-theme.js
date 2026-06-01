@@ -2,12 +2,12 @@
 "use strict";
 
 /**
- * validate-theme.js — CLI tool to validate a Clawd theme before distribution.
+ * validate-theme.js — CLI tool to validate a WangPet theme before distribution.
  *
  * Usage:
  *   node scripts/validate-theme.js <theme-dir>
  *   node scripts/validate-theme.js themes/template
- *   node scripts/validate-theme.js ~/AppData/Roaming/clawd-on-desk/themes/my-theme
+ *   node scripts/validate-theme.js ~/AppData/Roaming/wang-pet/themes/my-theme
  *
  * Checks:
  *   1. theme.json schema (required fields, types, schemaVersion)
@@ -63,7 +63,7 @@ for (let i = 0; i < args.length; i++) {
 if (!themeDir) {
   console.error(`Usage: node ${path.basename(process.argv[1])} <theme-directory> [--assets <assets-dir>]`);
   console.error(`Example: node scripts/validate-theme.js themes/template`);
-  console.error(`         node scripts/validate-theme.js themes/clawd --assets assets/svg`);
+  console.error(`         node scripts/validate-theme.js themes/wang-pet --assets assets/svg`);
   process.exit(1);
 }
 

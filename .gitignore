@@ -86,17 +86,17 @@ tools/check_dark.py
 logs/
 
 # Telegram approval sidecar build artifacts
-bin/cc-connect-clawd/*/cc-connect-clawd
-bin/cc-connect-clawd/*/cc-connect-clawd.exe
-!bin/cc-connect-clawd/
-!bin/cc-connect-clawd/README.md
+bin/cc-connect-wang-pet/*/cc-connect-wang-pet
+bin/cc-connect-wang-pet/*/cc-connect-wang-pet.exe
+!bin/cc-connect-wang-pet/
+!bin/cc-connect-wang-pet/README.md
 
 # GIF recording tools (not part of main project)
 scripts/*
 !scripts/remote-deploy.sh
-!scripts/run-clawdbot-stress.sh
-!scripts/monitor-clawd-resources.sh
-!scripts/monitor-clawd-power.ps1
+!scripts/run-wang-petbot-stress.sh
+!scripts/monitor-wang-pet-resources.sh
+!scripts/monitor-wang-pet-power.ps1
 !scripts/validate-theme.js
 !scripts/create-theme.js
 !scripts/export-agent-icons.js

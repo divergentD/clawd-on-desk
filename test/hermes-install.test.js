@@ -15,15 +15,15 @@ const {
 
 const tempDirs = [];
 
-function makeTempDir(prefix = "clawd-hermes-install-") {
+function makeTempDir(prefix = "wang-pet-hermes-install-") {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
   tempDirs.push(dir);
   return dir;
 }
 
 function makeSourcePlugin() {
-  const dir = makeTempDir("clawd-hermes-source-");
-  fs.writeFileSync(path.join(dir, "plugin.yaml"), "name: clawd-on-desk\n", "utf8");
+  const dir = makeTempDir("wang-pet-hermes-source-");
+  fs.writeFileSync(path.join(dir, "plugin.yaml"), "name: WangPet\n", "utf8");
   fs.writeFileSync(path.join(dir, "__init__.py"), "# plugin\n", "utf8");
   return dir;
 }
@@ -74,7 +74,7 @@ describe("Hermes plugin installer", () => {
     assert.strictEqual(spawnSync.calls[0].options.env.HERMES_HOME, hermesHome);
     assert.strictEqual(
       fs.readFileSync(path.join(result.pluginDir, "plugin.yaml"), "utf8"),
-      "name: clawd-on-desk\n"
+      "name: WangPet\n"
     );
   });
 
@@ -147,7 +147,7 @@ describe("Hermes plugin installer", () => {
 
     assert.strictEqual(result.status, "error");
     assert.strictEqual(result.reason, "hermes-cli-unavailable");
-    assert.match(result.message, /hermes plugins enable clawd-on-desk/);
+    assert.match(result.message, /hermes plugins enable WangPet/);
     assert.strictEqual(fs.readFileSync(configPath, "utf8"), "plugins:\n  enabled: []\n");
     assert.ok(fs.existsSync(path.join(result.pluginDir, "__init__.py")));
   });
@@ -266,7 +266,7 @@ describe("Hermes plugin installer", () => {
     const siblingDir = path.join(hermesHome, "plugins", "other-plugin");
     fs.mkdirSync(pluginDir, { recursive: true });
     fs.mkdirSync(siblingDir, { recursive: true });
-    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: clawd-on-desk\n", "utf8");
+    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: WangPet\n", "utf8");
     fs.writeFileSync(path.join(siblingDir, "plugin.yaml"), "name: other\n", "utf8");
     const spawnSync = makeSpawn();
 

@@ -403,7 +403,7 @@ describe("topmost runtime macOS visibility", () => {
 
   it("honors deferred macOS visibility markers", () => {
     const win = new FakeWindow();
-    win.__clawdMacDeferredVisibilityUntil = Date.now() + 10000;
+    win.__wangpetMacDeferredVisibilityUntil = Date.now() + 10000;
     const runtime = createTopmostRuntime({
       isMac: true,
       getWin: () => win,

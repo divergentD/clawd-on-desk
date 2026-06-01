@@ -1,7 +1,7 @@
-name: clawd-on-desk
+name: WangPet
 version: 0.1.0
-description: "Forward Hermes Agent lifecycle and tool state events to Clawd."
-author: "Clawd on Desk"
+description: "Forward Hermes Agent lifecycle and tool state events to WangPet."
+author: "wang-pet"
 hooks:
   - on_session_start
   - pre_llm_call

@@ -227,7 +227,7 @@ describe("built-in Cloudling theme", () => {
       "utf8"
     );
 
-    assert.ok(asset.includes("window.__clawdSetGlyphFlipCompensation = enabled =>"));
+    assert.ok(asset.includes("window.__wangpetSetGlyphFlipCompensation = enabled =>"));
     assert.ok(asset.includes("const x0 = glyphFlipCompensation ? w / 2 : -w / 2;"));
   });
 });

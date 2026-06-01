@@ -17,7 +17,7 @@ const {
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-openclaw-install-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-openclaw-install-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -77,7 +77,7 @@ describe("openclaw plugin installer", () => {
     const root = makeTempDir();
     const stateDir = path.join(root, ".openclaw");
     const configPath = path.join(stateDir, "openclaw.json");
-    const pluginDir = "C:/clawd/hooks/openclaw-plugin";
+    const pluginDir = "C:/wang-pet/hooks/openclaw-plugin";
     writeJson(configPath, { theme: "dark", plugins: { load: { paths: [] }, entries: {} } });
 
     const result = registerOpenClawPlugin({
@@ -93,7 +93,7 @@ describe("openclaw plugin installer", () => {
     const config = readJson(configPath);
     assert.strictEqual(config.theme, "dark");
     assert.deepStrictEqual(config.plugins.load.paths, [pluginDir]);
-    assert.deepStrictEqual(config.plugins.entries["clawd-on-desk"], {
+    assert.deepStrictEqual(config.plugins.entries["wang-pet"], {
       enabled: true,
       hooks: { allowConversationAccess: false },
     });
@@ -103,12 +103,12 @@ describe("openclaw plugin installer", () => {
     const root = makeTempDir();
     const stateDir = path.join(root, ".openclaw");
     const configPath = path.join(stateDir, "openclaw.json");
-    const pluginDir = "C:/clawd/hooks/openclaw-plugin";
+    const pluginDir = "C:/wang-pet/hooks/openclaw-plugin";
     writeJson(configPath, {
       plugins: {
         load: { paths: [pluginDir] },
         entries: {
-          "clawd-on-desk": {
+          "wang-pet": {
             enabled: true,
             hooks: { allowConversationAccess: false },
           },
@@ -136,7 +136,7 @@ describe("openclaw plugin installer", () => {
     writeJson(configPath, {
       plugins: {
         load: { paths: [stalePath] },
-        entries: { "clawd-on-desk": { enabled: false } },
+        entries: { "wang-pet": { enabled: false } },
       },
     });
 
@@ -150,7 +150,7 @@ describe("openclaw plugin installer", () => {
     assert.strictEqual(result.updated, true);
     const config = readJson(configPath);
     assert.deepStrictEqual(config.plugins.load.paths, [pluginDir]);
-    assert.strictEqual(config.plugins.entries["clawd-on-desk"].enabled, true);
+    assert.strictEqual(config.plugins.entries["wang-pet"].enabled, true);
   });
 
   it("falls back instead of editing configs with include directives", () => {
@@ -165,7 +165,7 @@ describe("openclaw plugin installer", () => {
 
     const result = registerOpenClawPlugin({
       configPath,
-      pluginDir: "C:/clawd/hooks/openclaw-plugin",
+      pluginDir: "C:/wang-pet/hooks/openclaw-plugin",
       openclawCommandAvailable: false,
       silent: true,
     });
@@ -185,7 +185,7 @@ describe("openclaw plugin installer", () => {
     const result = registerOpenClawPlugin({
       stateDir,
       configPath,
-      pluginDir: "C:/clawd/hooks/openclaw-plugin",
+      pluginDir: "C:/wang-pet/hooks/openclaw-plugin",
       useCliFallback: true,
       openclawCommandAvailable: true,
       spawnSync: (command, args) => {
@@ -199,7 +199,7 @@ describe("openclaw plugin installer", () => {
     assert.strictEqual(result.installed, true);
     assert.deepStrictEqual(calls, [[
       "openclaw",
-      ["plugins", "install", "--link", "C:/clawd/hooks/openclaw-plugin"],
+      ["plugins", "install", "--link", "C:/wang-pet/hooks/openclaw-plugin"],
     ]]);
     assert.strictEqual(fs.existsSync(configPath), false);
   });
@@ -207,11 +207,11 @@ describe("openclaw plugin installer", () => {
   it("unregisters the managed path from strict JSON config", () => {
     const root = makeTempDir();
     const configPath = path.join(root, ".openclaw", "openclaw.json");
-    const pluginDir = "C:/clawd/hooks/openclaw-plugin";
+    const pluginDir = "C:/wang-pet/hooks/openclaw-plugin";
     writeJson(configPath, {
       plugins: {
         load: { paths: [pluginDir, "C:/other/plugin"] },
-        entries: { "clawd-on-desk": { enabled: true } },
+        entries: { "wang-pet": { enabled: true } },
       },
     });
 
@@ -225,7 +225,7 @@ describe("openclaw plugin installer", () => {
     assert.strictEqual(result.removed, true);
     const config = readJson(configPath);
     assert.deepStrictEqual(config.plugins.load.paths, ["C:/other/plugin"]);
-    assert.strictEqual(config.plugins.entries["clawd-on-desk"], undefined);
+    assert.strictEqual(config.plugins.entries["wang-pet"], undefined);
   });
 });
 
@@ -238,15 +238,15 @@ describe("openclaw installer helpers", () => {
 
   it("can link a minimal config object without clobbering other keys", () => {
     const config = { foo: true };
-    const result = ensureOpenClawConfigLinked(config, "C:/clawd/hooks/openclaw-plugin");
+    const result = ensureOpenClawConfigLinked(config, "C:/wang-pet/hooks/openclaw-plugin");
 
     assert.deepStrictEqual(result, { updated: true });
     assert.strictEqual(config.foo, true);
-    assert.deepStrictEqual(config.plugins.load.paths, ["C:/clawd/hooks/openclaw-plugin"]);
+    assert.deepStrictEqual(config.plugins.load.paths, ["C:/wang-pet/hooks/openclaw-plugin"]);
   });
 
   it("resolves a forward-slash plugin path and rewrites app.asar", () => {
-    const result = resolvePluginDir("/Applications/Clawd.app/Contents/Resources/app.asar/hooks");
+    const result = resolvePluginDir("/Applications/wang-pet.app/Contents/Resources/app.asar/hooks");
 
     assert.ok(result.endsWith("/openclaw-plugin"), `got: ${result}`);
     assert.ok(result.includes("app.asar.unpacked/hooks/openclaw-plugin"), `got: ${result}`);

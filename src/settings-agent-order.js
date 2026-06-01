@@ -105,5 +105,5 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = settingsAgentOrderExports;
 }
 if (typeof globalThis !== "undefined") {
-  globalThis.ClawdSettingsAgentOrder = settingsAgentOrderExports;
+  globalThis.wangpetSettingsAgentOrder = settingsAgentOrderExports;
 }

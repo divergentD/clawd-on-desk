@@ -1,5 +1,5 @@
 // hooks/shared-process.js — Shared process tree walk, stdin reader, platform config
-// Used by hook scripts (clawd, copilot, cursor, gemini, kiro, codebuddy).
+// Used by hook scripts (WangPet, copilot, cursor, gemini, kiro, codebuddy).
 // Zero third-party dependencies — only Node built-ins.
 
 // ── Base platform constants ──────────────────────────────────────────────────
@@ -100,7 +100,7 @@ $typeDef = @"
 using System;
 using System.Text;
 using System.Runtime.InteropServices;
-public class ClawdWin32 {
+public class wangpetWin32 {
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
   [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -109,17 +109,17 @@ public class ClawdWin32 {
 }
 "@
 Add-Type -TypeDefinition $typeDef
-$fg = [ClawdWin32]::GetForegroundWindow()
+$fg = [wangpetWin32]::GetForegroundWindow()
 if ($fg -ne [IntPtr]::Zero) {
-  $root = [ClawdWin32]::GetAncestor($fg, 2)
+  $root = [wangpetWin32]::GetAncestor($fg, 2)
   if ($root -ne [IntPtr]::Zero) { $fg = $root }
 }
 $fgPid = 0
 $fgClass = ""
 if ($fg -ne [IntPtr]::Zero) {
-  [void][ClawdWin32]::GetWindowThreadProcessId($fg, [ref]$fgPid)
+  [void][wangpetWin32]::GetWindowThreadProcessId($fg, [ref]$fgPid)
   $sb = New-Object System.Text.StringBuilder 256
-  [void][ClawdWin32]::GetClassName($fg, $sb, $sb.Capacity)
+  [void][wangpetWin32]::GetClassName($fg, $sb, $sb.Capacity)
   $fgClass = $sb.ToString()
 }
 $processes = @(Get-CimInstance Win32_Process | Select-Object ProcessId, ParentProcessId, Name, CommandLine)
@@ -312,7 +312,7 @@ function buildElectronLaunchConfig(projectDir, options = {}) {
   const env = { ...(options.env || process.env) };
   delete env.ELECTRON_RUN_AS_NODE;
 
-  const disableSandbox = platform === "linux" && env.CLAWD_DISABLE_SANDBOX === "1";
+  const disableSandbox = platform === "linux" && env.WANGPET_DISABLE_SANDBOX === "1";
   if (disableSandbox) {
     env.ELECTRON_DISABLE_SANDBOX = "1";
     env.CHROME_DEVEL_SANDBOX = "";
@@ -323,8 +323,8 @@ function buildElectronLaunchConfig(projectDir, options = {}) {
   const electronFlags = [];
 
   // Force XWayland on Linux for transparent/alwaysOnTop/drag stability.
-  // Users who prefer native Wayland can set CLAWD_WAYLAND=1.
-  if (platform === "linux" && env.CLAWD_WAYLAND !== "1") {
+  // Users who prefer native Wayland can set WANGPET_WAYLAND=1.
+  if (platform === "linux" && env.WANGPET_WAYLAND !== "1") {
     electronFlags.push("--ozone-platform=x11");
   }
 

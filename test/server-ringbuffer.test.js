@@ -100,7 +100,7 @@ function makeCtx(overrides = {}) {
     updateSession: (...args) => updateSessionCalls.push(args),
     resolvePermissionEntry: () => {},
     sendPermissionResponse: (res, behavior, message) => {
-      res.writeHead(200, { "x-clawd-server": "clawd-on-desk" });
+      res.writeHead(200, { "x-wang-pet-server": "wang-pet" });
       res.end(JSON.stringify({ behavior, message }));
     },
     showPermissionBubble: (entry) => shown.push(entry),

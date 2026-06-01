@@ -9,7 +9,7 @@ const MARKER = "gemini-hook.js";
 const tempDirs = [];
 
 function makeTempSettingsFile(initial = {}) {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-gemini-"));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-gemini-"));
   const settingsPath = path.join(tmpDir, "settings.json");
   fs.writeFileSync(settingsPath, JSON.stringify(initial, null, 2), "utf8");
   tempDirs.push(tmpDir);
@@ -49,7 +49,7 @@ describe("Gemini hook installer", () => {
       assert.strictEqual(entry.hooks.length, 1);
       const hook = entry.hooks[0];
       assert.strictEqual(hook.type, "command");
-      assert.strictEqual(hook.name, "clawd");
+      assert.strictEqual(hook.name, "wang-pet");
       assert.ok(hook.command.includes(MARKER));
       assert.ok(hook.command.includes("/usr/local/bin/node"));
       assert.ok(hook.command.endsWith(`"${event}"`));
@@ -72,7 +72,7 @@ describe("Gemini hook installer", () => {
   it("updates stale hook paths", () => {
     const settingsPath = makeTempSettingsFile({
       hooks: {
-        AfterTool: [{ type: "command", command: '"/old/node" "/old/path/gemini-hook.js"', name: "clawd" }],
+        AfterTool: [{ type: "command", command: '"/old/node" "/old/path/gemini-hook.js"', name: "wang-pet" }],
       },
     });
 
@@ -90,11 +90,11 @@ describe("Gemini hook installer", () => {
     assert.ok(settings.hooks.AfterTool[0].hooks[0].command.endsWith('"AfterTool"'));
   });
 
-  it("migrates stale flat Clawd entries into nested Gemini hook shape", () => {
+  it("migrates stale flat WangPet entries into nested Gemini hook shape", () => {
     const settingsPath = makeTempSettingsFile({
       hooks: {
         BeforeTool: [
-          { type: "command", command: '"/old/node" "/old/path/gemini-hook.js"', name: "clawd" },
+          { type: "command", command: '"/old/node" "/old/path/gemini-hook.js"', name: "wang-pet" },
         ],
       },
     });
@@ -110,7 +110,7 @@ describe("Gemini hook installer", () => {
     assert.strictEqual(settings.hooks.BeforeTool.length, 1);
     assert.deepStrictEqual(Object.keys(settings.hooks.BeforeTool[0]).sort(), ["hooks", "matcher"]);
     assert.strictEqual(settings.hooks.BeforeTool[0].matcher, "*");
-    assert.strictEqual(settings.hooks.BeforeTool[0].hooks[0].name, "clawd");
+    assert.strictEqual(settings.hooks.BeforeTool[0].hooks[0].name, "wang-pet");
     assert.ok(settings.hooks.BeforeTool[0].hooks[0].command.includes(MARKER));
     assert.ok(settings.hooks.BeforeTool[0].hooks[0].command.endsWith('"BeforeTool"'));
   });
@@ -118,7 +118,7 @@ describe("Gemini hook installer", () => {
   it("preserves existing node path when detection fails", () => {
     const settingsPath = makeTempSettingsFile({
       hooks: {
-        BeforeTool: [{ type: "command", command: '"/home/user/.nvm/versions/node/v20/bin/node" "/some/path/gemini-hook.js"', name: "clawd" }],
+        BeforeTool: [{ type: "command", command: '"/home/user/.nvm/versions/node/v20/bin/node" "/some/path/gemini-hook.js"', name: "wang-pet" }],
       },
     });
 
@@ -144,14 +144,14 @@ describe("Gemini hook installer", () => {
     assert.ok(settings.hooks.SessionStart[1].hooks[0].command.includes(MARKER));
   });
 
-  it("splits Clawd out of shared matcher entries instead of widening third-party hooks", () => {
+  it("splits WangPet out of shared matcher entries instead of widening third-party hooks", () => {
     const settingsPath = makeTempSettingsFile({
       hooks: {
         BeforeTool: [{
           matcher: "Edit",
           hooks: [
             { type: "command", command: "other-tool --flag", name: "other" },
-            { type: "command", command: '"/old/node" "/old/path/gemini-hook.js"', name: "clawd" },
+            { type: "command", command: '"/old/node" "/old/path/gemini-hook.js"', name: "wang-pet" },
           ],
         }],
       },
@@ -175,14 +175,14 @@ describe("Gemini hook installer", () => {
       hooks: [{
         type: "command",
         command: settings.hooks.BeforeTool[1].hooks[0].command,
-        name: "clawd",
+        name: "wang-pet",
       }],
     });
     assert.ok(settings.hooks.BeforeTool[1].hooks[0].command.includes(MARKER));
     assert.ok(settings.hooks.BeforeTool[1].hooks[0].command.endsWith('"BeforeTool"'));
   });
 
-  it("removes Clawd from shared matcher entries when a dedicated Clawd entry already exists", () => {
+  it("removes WangPet from shared matcher entries when a dedicated WangPet entry already exists", () => {
     const settingsPath = makeTempSettingsFile({
       hooks: {
         BeforeTool: [
@@ -190,12 +190,12 @@ describe("Gemini hook installer", () => {
             matcher: "Edit",
             hooks: [
               { type: "command", command: "other-tool --flag", name: "other" },
-              { type: "command", command: '"/old/node" "/old/path/gemini-hook.js"', name: "clawd" },
+              { type: "command", command: '"/old/node" "/old/path/gemini-hook.js"', name: "wang-pet" },
             ],
           },
           {
             matcher: "*",
-            hooks: [{ type: "command", command: '"/stale/node" "/stale/path/gemini-hook.js"', name: "clawd" }],
+            hooks: [{ type: "command", command: '"/stale/node" "/stale/path/gemini-hook.js"', name: "wang-pet" }],
           },
         ],
       },
@@ -219,7 +219,7 @@ describe("Gemini hook installer", () => {
       hooks: [{
         type: "command",
         command: settings.hooks.BeforeTool[1].hooks[0].command,
-        name: "clawd",
+        name: "wang-pet",
       }],
     });
     assert.ok(settings.hooks.BeforeTool[1].hooks[0].command.includes("/usr/local/bin/node"));
@@ -237,7 +237,7 @@ describe("Gemini hook installer", () => {
     assert.strictEqual(settings.hooksConfig.enabled, false);
   });
 
-  it("migrates legacy disabled Gemini hook command entries to clawd", () => {
+  it("migrates legacy disabled Gemini hook command entries to WangPet", () => {
     const legacyDisabled = '"/old/node" "/old/path/gemini-hook.js" BeforeTool';
     const settingsPath = makeTempSettingsFile({
       hooksConfig: {
@@ -248,33 +248,33 @@ describe("Gemini hook installer", () => {
     registerGeminiHooks({ silent: true, settingsPath, nodeBin: "/usr/local/bin/node" });
 
     const settings = readJson(settingsPath);
-    assert.deepStrictEqual(settings.hooksConfig.disabled, ["other-hook", "clawd"]);
+    assert.deepStrictEqual(settings.hooksConfig.disabled, ["other-hook", "wang-pet"]);
   });
 
   it("builds Windows PowerShell commands with the Gemini event argv", () => {
     const command = __test.buildGeminiHookCommand(
       "node",
-      "D:/clawd/hooks/gemini-hook.js",
+      "D:/wang-pet/hooks/gemini-hook.js",
       "BeforeTool",
       { platform: "win32" }
     );
 
-    assert.strictEqual(command, '& "node" "D:/clawd/hooks/gemini-hook.js" "BeforeTool"');
+    assert.strictEqual(command, '& "node" "D:/wang-pet/hooks/gemini-hook.js" "BeforeTool"');
   });
 
   it("builds Windows cmd-wrapped commands with the Gemini event argv", () => {
     const command = __test.buildGeminiHookCommand(
       "node",
-      "D:/clawd/hooks/gemini-hook.js",
+      "D:/wang-pet/hooks/gemini-hook.js",
       "BeforeTool",
       { platform: "win32", windowsWrapper: "cmd" }
     );
 
-    assert.strictEqual(command, 'cmd /d /s /c ""node" "D:/clawd/hooks/gemini-hook.js" "BeforeTool""');
+    assert.strictEqual(command, 'cmd /d /s /c ""node" "D:/wang-pet/hooks/gemini-hook.js" "BeforeTool""');
   });
 
   it("skips when ~/.gemini/ does not exist", () => {
-    const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-gemini-home-"));
+    const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-gemini-home-"));
     tempDirs.push(fakeHome);
     const result = registerGeminiHooks({
       silent: true,

@@ -29,13 +29,13 @@ describe("validateOpencodeEntry", () => {
 
   it("reports missing plugin directories", () => {
     assert.deepStrictEqual(
-      validateOpencodeEntry("/opt/clawd/hooks/opencode-plugin", { fs: fakeFs() }),
+      validateOpencodeEntry("/opt/wang-pet/hooks/opencode-plugin", { fs: fakeFs() }),
       { ok: false, reason: "directory-missing" }
     );
   });
 
   it("reports entries that are not directories", () => {
-    const entry = "/opt/clawd/hooks/opencode-plugin";
+    const entry = "/opt/wang-pet/hooks/opencode-plugin";
     assert.deepStrictEqual(
       validateOpencodeEntry(entry, { fs: fakeFs({ files: [entry] }) }),
       { ok: false, reason: "not-a-directory" }
@@ -43,7 +43,7 @@ describe("validateOpencodeEntry", () => {
   });
 
   it("reports missing index.mjs", () => {
-    const entry = "/opt/clawd/hooks/opencode-plugin";
+    const entry = "/opt/wang-pet/hooks/opencode-plugin";
     assert.deepStrictEqual(
       validateOpencodeEntry(entry, { fs: fakeFs({ dirs: [entry] }) }),
       { ok: false, reason: "index-mjs-missing" }
@@ -51,7 +51,7 @@ describe("validateOpencodeEntry", () => {
   });
 
   it("accepts absolute plugin directories with index.mjs", () => {
-    const entry = "/opt/clawd/hooks/opencode-plugin";
+    const entry = "/opt/wang-pet/hooks/opencode-plugin";
     assert.deepStrictEqual(
       validateOpencodeEntry(entry, {
         fs: fakeFs({
@@ -64,7 +64,7 @@ describe("validateOpencodeEntry", () => {
   });
 
   it("accepts Windows absolute paths", () => {
-    const entry = "C:\\clawd\\hooks\\opencode-plugin";
+    const entry = "C:\\wang-pet\\hooks\\opencode-plugin";
     assert.deepStrictEqual(
       validateOpencodeEntry(entry, {
         fs: fakeFs({

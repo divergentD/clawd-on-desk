@@ -139,7 +139,7 @@ function registerSettingsIpc(options = {}) {
   }));
   const now = options.now || (() => Date.now());
   const aboutHeroSvgPath = options.aboutHeroSvgPath
-    || path.join(__dirname, "..", "assets", "svg", "clawd-about-hero.svg");
+    || path.join(__dirname, "..", "assets", "svg", "wang-pet-about-hero.svg");
   const disposers = [];
 
   function handle(channel, listener) {
@@ -298,7 +298,7 @@ function registerSettingsIpc(options = {}) {
   handle("settings:list-themes", () => {
     try {
       const activeTheme = getActiveTheme();
-      const activeId = activeTheme ? activeTheme._id : "clawd";
+      const activeId = activeTheme ? activeTheme._id : "wang-pet";
       return themeLoader.listThemesWithMetadata().map((theme) =>
         codexPetMain.decorateThemeMetadata({
           ...theme,
@@ -306,7 +306,7 @@ function registerSettingsIpc(options = {}) {
         })
       );
     } catch (err) {
-      console.warn("Clawd: settings:list-themes failed:", err && err.message);
+      console.warn("WangPet: settings:list-themes failed:", err && err.message);
       return [];
     }
   });
@@ -326,7 +326,7 @@ function registerSettingsIpc(options = {}) {
     try {
       result = await dialog.showOpenDialog(getDialogParent(event), {
         properties: ["openFile"],
-        filters: [{ name: "Clawd theme zip", extensions: ["zip"] }],
+        filters: [{ name: "WangPet theme zip", extensions: ["zip"] }],
       });
     } catch (err) {
       return { status: "error", message: `theme zip picker failed: ${err && err.message}` };
@@ -372,7 +372,7 @@ function registerSettingsIpc(options = {}) {
       });
       return { confirmed: response === 0 };
     } catch (err) {
-      console.warn("Clawd: confirm-remove-theme dialog failed:", err && err.message);
+      console.warn("WangPet: confirm-remove-theme dialog failed:", err && err.message);
       return { confirmed: false };
     }
   });
@@ -381,7 +381,7 @@ function registerSettingsIpc(options = {}) {
     try {
       return getAllAgents().map(mapAgentMetadata);
     } catch (err) {
-      console.warn("Clawd: settings:list-agents failed:", err && err.message);
+      console.warn("WangPet: settings:list-agents failed:", err && err.message);
       return [];
     }
   });
@@ -391,7 +391,7 @@ function registerSettingsIpc(options = {}) {
     try {
       heroSvgContent = fs.readFileSync(aboutHeroSvgPath, "utf8");
     } catch (err) {
-      console.warn("Clawd: failed to read about hero SVG:", err && err.message);
+      console.warn("WangPet: failed to read about hero SVG:", err && err.message);
     }
     let pendingUpdateVersion = "";
     let autoUpdateCheck = true;
@@ -401,7 +401,7 @@ function registerSettingsIpc(options = {}) {
     } catch {}
     return {
       version: app.getVersion(),
-      repoUrl: "https://github.com/rullerzhou-afk/clawd-on-desk",
+      repoUrl: "https://github.com/rullerzhou-afk/wang-pet",
       license: "AGPL-3.0",
       copyright: "\u00a9 2026 Ruller_Lulu",
       authorName: "Ruller_Lulu / \u9e7f\u9e7f",

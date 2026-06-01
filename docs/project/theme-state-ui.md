@@ -21,14 +21,14 @@ This document holds the state machine, theme system, UI runtime, and platform ca
 - 一次性状态：`attention/error/sweeping/notification/carrying` 显示后自动回退（`AUTO_RETURN_MS`）
 - 睡眠序列：20s 鼠标静止 → idle-look → 60s → yawning(3s) → dozing → 10min → collapsing(0.8s) → sleeping；鼠标移动触发 waking(1.5s) → 恢复
 - DND 模式：跳过 dozing，直接 yawning → collapsing → sleeping；同时屏蔽 hook 事件
-- working 子动画：Clawd 主题为 1 个会话 → typing，2 个 → headphones groove，3+ → building；Calico / Cloudling 仍为 typing / juggling / building
+- working 子动画：WangPet 主题为 1 个会话 → typing，2 个 → headphones groove，3+ → building；Calico / Cloudling 仍为 typing / juggling / building
 - juggling 子动画：1 个 subagent → juggling，2+ → conducting
 
 ## Theme System
 
-Clawd 是主题化桌宠：动画资源、计时、hitbox、眼球追踪参数都来自主题配置。
+WangPet 是主题化桌宠：动画资源、计时、hitbox、眼球追踪参数都来自主题配置。
 
-- 内置主题目录：`themes/clawd/`、`themes/calico/`、`themes/cloudling/`；`themes/template/` 是脚手架模板
+- 内置主题目录：`themes/wang-pet/`、`themes/calico/`、`themes/cloudling/`；`themes/template/` 是脚手架模板
 - 用户主题目录：`<userData>/themes/<id>/theme.json`
 - `theme.json` 必需状态：`idle`、`working`、`thinking`
 - 若启用 `eyeTracking.enabled`，idle 资源必须是 SVG 且包含 `#eyes-js`
@@ -85,21 +85,21 @@ Mini 状态映射：
 
 | 状态 | SVG | 用途 |
 |------|-----|------|
-| `mini-idle` | `clawd-mini-idle.svg` | 待机：呼吸、眨眼、手臂晃动、眼球追踪 |
-| `mini-enter` | `clawd-mini-enter.svg` | 一次性滑入弹跳 |
-| `mini-peek` | `clawd-mini-peek.svg` | Hover 探头 |
-| `mini-alert` | `clawd-mini-alert.svg` | 通知 |
-| `mini-happy` | `clawd-mini-happy.svg` | 完成 |
-| `mini-crabwalk` | `clawd-mini-crabwalk.svg` | 右键进入时的螃蟹步 |
-| `mini-enter-sleep` | `clawd-mini-enter-sleep.svg` | DND 下入场 |
-| `mini-sleep` | `clawd-mini-sleep.svg` | DND 休眠 |
+| `mini-idle` | `wang-pet-mini-idle.svg` | 待机：呼吸、眨眼、手臂晃动、眼球追踪 |
+| `mini-enter` | `wang-pet-mini-enter.svg` | 一次性滑入弹跳 |
+| `mini-peek` | `wang-pet-mini-peek.svg` | Hover 探头 |
+| `mini-alert` | `wang-pet-mini-alert.svg` | 通知 |
+| `mini-happy` | `wang-pet-mini-happy.svg` | 完成 |
+| `mini-crabwalk` | `wang-pet-mini-crabwalk.svg` | 右键进入时的螃蟹步 |
+| `mini-enter-sleep` | `wang-pet-mini-enter-sleep.svg` | DND 下入场 |
+| `mini-sleep` | `wang-pet-mini-sleep.svg` | DND 休眠 |
 | `mini-working` | 主题可选 | 1 会话 mini typing；缺失则静默跳过 |
 
 ## State To Animation Mapping
 
 权威表格见 `docs/guides/state-mapping.md`。这里只保留实现层面的补充：
 
-- working 子动画：Clawd 主题为 1 会话 → typing，2 → headphones groove，3+ → building；Calico / Cloudling 仍为 typing / juggling / building
+- working 子动画：WangPet 主题为 1 会话 → typing，2 → headphones groove，3+ → building；Calico / Cloudling 仍为 typing / juggling / building
 - juggling 子动画：1 subagent → juggling，2+ → conducting
 - mini 状态有独立动画槽；`mini-working` 是可选能力
 - 睡眠序列和 DND 行为见上面的 State Machine
@@ -108,7 +108,7 @@ Mini 状态映射：
 ## Assets
 
 - 素材按主题组织：每个主题目录自带 `assets/`
-- `assets/svg/` 与 `assets/gif/` 是默认 Clawd 主题使用的公共根路径
+- `assets/svg/` 与 `assets/gif/` 是默认 WangPet 主题使用的公共根路径
 - 文档预览 GIF 放在 `assets/gif/`，运行时不直接读
 - 需要编辑的源素材先复制到 `assets/source/`
 - SVG 运行时用 `<object type="image/svg+xml">`，其他位图格式走 `<img>`
@@ -154,7 +154,7 @@ Mini 状态映射：
 - 路径统一用 `path.join(__dirname, ...)`
 - 透明无边框浮窗：`frame: false`, `transparent: true`, `alwaysOnTop: true`
 - 使用单实例锁：`app.requestSingleInstanceLock()`
-- 位置持久化到 `clawd-prefs.json`
+- 位置持久化到 `wang-pet-prefs.json`
 - 多显示器钳制走 `clampToScreen()` + `getNearestWorkArea()`
 
 ## Known Limits

@@ -1,5 +1,5 @@
 {
-  "name": "wangpet",
+  "name": "wang-pet",
   "version": "0.8.1",
   "description": "A desktop pet that reacts to your Claude Code sessions in real-time.",
   "main": "src/main.js",
@@ -46,7 +46,7 @@
     "register-protocol:dev": "node launch.js --register-protocol"
   },
   "keywords": [
-    "clawd",
+    "wang-pet",
     "desktop-pet",
     "electron",
     "claude-code"
@@ -55,13 +55,13 @@
   "license": "AGPL-3.0-only",
   "type": "commonjs",
   "build": {
-    "appId": "com.wangpet.app",
+    "appId": "com.wang-pet.app",
     "productName": "WangPet",
     "protocols": [
       {
         "name": "WangPet Import Protocol",
         "schemes": [
-          "clawd"
+          "wang-pet"
         ]
       }
     ],
@@ -151,20 +151,20 @@
         "to": "icon.ico"
       },
       {
-        "from": "bin/cc-connect-clawd",
-        "to": "sidecars/cc-connect-clawd"
+        "from": "bin/cc-connect-wang-pet",
+        "to": "sidecars/cc-connect-wang-pet"
       }
     ],
     "publish": [
       {
         "provider": "github",
         "owner": "rullerzhou-afk",
-        "repo": "clawd-on-desk"
+        "repo": "wang-pet"
       }
     ]
   },
   "devDependencies": {
-    "electron": "^41.0.2",
+    "electron": "^41.7.1",
     "electron-builder": "^26.8.1"
   },
   "dependencies": {

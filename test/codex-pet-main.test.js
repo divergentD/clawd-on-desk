@@ -24,7 +24,7 @@ function createQueueRuntime(overrides = {}) {
     },
     shell: {},
     settingsController: {
-      get: () => "clawd",
+      get: () => "wang-pet",
       async applyCommand() {
         return { status: "ok" };
       },
@@ -37,7 +37,7 @@ function createQueueRuntime(overrides = {}) {
       ...(overrides.codexPetAdapter || {}),
     },
     codexPetImporter: {
-      parseClawdImportUrl(rawUrl) {
+      parsewangpetImportUrl(rawUrl) {
         parseCalls.push(rawUrl);
         return {
           asciiHostname: "example.test",
@@ -84,18 +84,18 @@ test("Codex Pet main helpers merge sync summaries without dropping diagnostics",
   assert.strictEqual(summary.diagnostics.length, 2);
 });
 
-test("Codex Pet main helpers detect clawd protocol args case-insensitively", () => {
-  const { extractClawdProtocolUrls } = createCodexPetMain.__test;
+test("Codex Pet main helpers detect WangPet protocol args case-insensitively", () => {
+  const { extractwangpetProtocolUrls } = createCodexPetMain.__test;
   assert.deepStrictEqual(
-    extractClawdProtocolUrls([
-      "Clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json",
+    extractwangpetProtocolUrls([
+      "wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json",
       "--flag",
       "https://example.test",
-      "clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fother.json",
+      "wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fother.json",
     ]),
     [
-      "Clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json",
-      "clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fother.json",
+      "wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json",
+      "wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fother.json",
     ]
   );
 });
@@ -112,7 +112,7 @@ test("Codex Pet main runtime records sync summaries and normalizes adapter failu
     dialog: {},
     shell: {},
     settingsController: {
-      get: () => "clawd",
+      get: () => "wang-pet",
     },
     themeLoader: {},
     codexPetAdapter: {
@@ -139,7 +139,7 @@ test("Codex Pet main runtime records sync summaries and normalizes adapter failu
     dialog: {},
     shell: {},
     settingsController: {
-      get: () => "clawd",
+      get: () => "wang-pet",
     },
     themeLoader: {},
     codexPetAdapter: {
@@ -150,7 +150,7 @@ test("Codex Pet main runtime records sync summaries and normalizes adapter failu
     codexPetImporter: {},
   });
 
-  const failed = failingRuntime.syncThemes("clawd");
+  const failed = failingRuntime.syncThemes("wang-pet");
   assert.strictEqual(failed.error, "boom");
   assert.match(failed.diagnostics[0].errors[0], /failed to sync Codex Pet themes: boom/);
   assert.strictEqual(failingRuntime.getLastSyncSummary(), failed);
@@ -237,14 +237,14 @@ test("Codex Pet import URLs queued before app ready do not flush until explicitl
   };
   try {
     const { runtime, parseCalls, showMessageBoxCalls } = createQueueRuntime();
-    runtime.enqueueImportUrl("clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json");
+    runtime.enqueueImportUrl("wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json");
 
     assert.strictEqual(immediateCalls, 0);
     assert.deepStrictEqual(parseCalls, []);
     assert.deepStrictEqual(showMessageBoxCalls, []);
 
     await runtime.flushPendingImportUrls();
-    assert.deepStrictEqual(parseCalls, ["clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json"]);
+    assert.deepStrictEqual(parseCalls, ["wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json"]);
     assert.strictEqual(showMessageBoxCalls.length, 1);
     assert.strictEqual(showMessageBoxCalls[0].options.type, "question");
   } finally {
@@ -259,7 +259,7 @@ test("Codex Pet import dialog uses zh-TW strings", async () => {
     },
   });
 
-  runtime.enqueueImportUrl("clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json");
+  runtime.enqueueImportUrl("wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fpet.json");
   await runtime.flushPendingImportUrls();
 
   assert.strictEqual(showMessageBoxCalls.length, 1);
@@ -269,7 +269,7 @@ test("Codex Pet import dialog uses zh-TW strings", async () => {
 });
 
 test("Codex Pet removal confirmation uses zh-TW strings", async (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-codex-pet-main-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-codex-pet-main-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
 
   const petsRoot = path.join(root, "pets");
@@ -293,7 +293,7 @@ test("Codex Pet removal confirmation uses zh-TW strings", async (t) => {
     },
     shell: {},
     settingsController: {
-      get: () => "clawd",
+      get: () => "wang-pet",
     },
     themeLoader: {
       ensureUserThemesDir: () => themesRoot,
@@ -356,23 +356,23 @@ test("Codex Pet import queue ignores overlapping flush calls while the first dra
     },
   });
 
-  runtime.enqueueImportUrl("clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fone.json");
-  runtime.enqueueImportUrl("clawd://import-pet?url=https%3A%2F%2Fexample.test%2Ftwo.json");
+  runtime.enqueueImportUrl("wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fone.json");
+  runtime.enqueueImportUrl("wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Ftwo.json");
 
   const firstFlush = runtime.flushPendingImportUrls();
   await firstImportStartedPromise;
   const secondFlush = runtime.flushPendingImportUrls();
   await secondFlush;
 
-  assert.deepStrictEqual(parseCalls, ["clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fone.json"]);
+  assert.deepStrictEqual(parseCalls, ["wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fone.json"]);
   assert.strictEqual(importCalls.length, 1);
 
   releaseFirstImport();
   await firstFlush;
 
   assert.deepStrictEqual(parseCalls, [
-    "clawd://import-pet?url=https%3A%2F%2Fexample.test%2Fone.json",
-    "clawd://import-pet?url=https%3A%2F%2Fexample.test%2Ftwo.json",
+    "wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Fone.json",
+    "wang-pet://import-pet?url=https%3A%2F%2Fexample.test%2Ftwo.json",
   ]);
   assert.strictEqual(importCalls.length, 2);
 });

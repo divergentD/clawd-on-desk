@@ -139,7 +139,7 @@ describe("updateRegistry pure-data validators", () => {
     assert.strictEqual(typeof entry.validate, "function");
     assert.strictEqual(typeof entry.effect, "function");
     const deps = { snapshot: baseSnapshot };
-    assert.strictEqual(entry.validate("clawd", deps).status, "ok");
+    assert.strictEqual(entry.validate("wang-pet", deps).status, "ok");
     assert.strictEqual(entry.validate("", deps).status, "error");
     assert.strictEqual(entry.validate(null, deps).status, "error");
   });
@@ -150,20 +150,20 @@ describe("updateRegistry pure-data validators", () => {
     const overrideMap = {
       tiers: {
         workingTiers: {
-          "clawd-working-typing.svg": { file: "clawd-working-typing-old.svg" },
+          "wang-pet-working-typing.svg": { file: "wang-pet-working-typing-old.svg" },
         },
       },
     };
     const deps = {
-      snapshot: { ...baseSnapshot, themeOverrides: { clawd: overrideMap } },
+      snapshot: { ...baseSnapshot, themeOverrides: { "wang-pet": overrideMap } },
       activateTheme: (id, variantId, targetOverrideMap) => {
         calls.push({ id, variantId, targetOverrideMap });
         if (id === "bad") throw new Error("boom");
       },
     };
-    assert.deepStrictEqual(entry.effect("clawd", deps), { status: "ok" });
+    assert.deepStrictEqual(entry.effect("wang-pet", deps), { status: "ok" });
     assert.deepStrictEqual(calls, [{
-      id: "clawd",
+      id: "wang-pet",
       variantId: null,
       targetOverrideMap: overrideMap,
     }]);
@@ -175,7 +175,7 @@ describe("updateRegistry pure-data validators", () => {
 
   it("theme effect errors when activateTheme dep missing", () => {
     const entry = updateRegistry.theme;
-    const result = entry.effect("clawd", { snapshot: baseSnapshot });
+    const result = entry.effect("wang-pet", { snapshot: baseSnapshot });
     assert.strictEqual(result.status, "error");
     assert.match(result.message, /activateTheme/);
   });
@@ -185,7 +185,7 @@ describe("updateRegistry pure-data validators", () => {
     // double-activating theme alongside `theme` field effect.
     const deps = { snapshot: prefs.getDefaults() };
     assert.strictEqual(updateRegistry.themeVariant({}, deps).status, "ok");
-    assert.strictEqual(updateRegistry.themeVariant({ clawd: "chill" }, deps).status, "ok");
+    assert.strictEqual(updateRegistry.themeVariant({ "wang-pet": "chill" }, deps).status, "ok");
     assert.strictEqual(updateRegistry.themeVariant("nope", deps).status, "error");
     assert.strictEqual(updateRegistry.themeVariant(null, deps).status, "error");
     assert.strictEqual(updateRegistry.themeVariant([1, 2], deps).status, "error");
@@ -956,22 +956,22 @@ describe("doctor repair commands", () => {
     assert.strictEqual(r.commit.permissionBubblesEnabled, true);
   });
 
-  it("routes Doctor restart-clawd repair through deps.restartClawd", async () => {
+  it("routes Doctor restart-wangpet repair through deps.restartwangpet", async () => {
     const calls = [];
     const r = await commandRegistry.repairDoctorIssue(
-      { type: "restart-clawd", confirmed: true },
-      { restartClawd: () => calls.push("restart") }
+      { type: "restart-wangpet", confirmed: true },
+      { restartwangpet: () => calls.push("restart") }
     );
 
     assert.strictEqual(r.status, "ok");
     assert.deepStrictEqual(calls, ["restart"]);
   });
 
-  it("does not run Doctor restart-clawd repair without confirmation", async () => {
+  it("does not run Doctor restart-wangpet repair without confirmation", async () => {
     const calls = [];
     const r = await commandRegistry.repairDoctorIssue(
-      { type: "restart-clawd" },
-      { restartClawd: () => calls.push("restart") }
+      { type: "restart-wangpet" },
+      { restartwangpet: () => calls.push("restart") }
     );
 
     assert.strictEqual(r.status, "error");
@@ -979,11 +979,11 @@ describe("doctor repair commands", () => {
     assert.deepStrictEqual(calls, []);
   });
 
-  it("returns an error when restart-clawd is dispatched without deps.restartClawd", async () => {
-    const r = await commandRegistry.repairDoctorIssue({ type: "restart-clawd", confirmed: true }, {});
+  it("returns an error when restart-wangpet is dispatched without deps.restartwangpet", async () => {
+    const r = await commandRegistry.repairDoctorIssue({ type: "restart-wangpet", confirmed: true }, {});
 
     assert.strictEqual(r.status, "error");
-    assert.match(r.message, /restartClawd/);
+    assert.match(r.message, /restartwangpet/);
   });
 
   it("rejects Doctor theme repair so Doctor does not reset user themes", async () => {
@@ -1373,7 +1373,7 @@ describe("removeTheme command", () => {
       getThemeInfo: (id) => {
         calls.getThemeInfo.push(id);
         if (id === "cat") return { builtin: false, active: false };
-        if (id === "clawd") return { builtin: true, active: true };
+        if (id === "wang-pet") return { builtin: true, active: true };
         if (id === "activeUser") return { builtin: false, active: true };
         if (id === "missing") return null;
         return { builtin: false, active: false };
@@ -1394,7 +1394,7 @@ describe("removeTheme command", () => {
 
   it("rejects built-in themes", async () => {
     const { deps, calls } = makeDeps();
-    const r = await commandRegistry.removeTheme("clawd", deps);
+    const r = await commandRegistry.removeTheme("wang-pet", deps);
     assert.strictEqual(r.status, "error");
     assert.match(r.message, /built-in/);
     assert.deepStrictEqual(calls.removeThemeDir, []);
@@ -1456,13 +1456,13 @@ describe("removeTheme command", () => {
   it("strips themeVariant entry on success when one exists", async () => {
     const snapshotWithVariant = {
       ...baseSnapshot,
-      themeVariant: { cat: "chill", clawd: "default" },
+      themeVariant: { cat: "chill", "wang-pet": "default" },
     };
     const { deps } = makeDeps({ snapshot: snapshotWithVariant });
     const r = await commandRegistry.removeTheme("cat", deps);
     assert.strictEqual(r.status, "ok");
     assert.ok(r.commit, "commit field expected");
-    assert.deepStrictEqual(r.commit.themeVariant, { clawd: "default" });
+    assert.deepStrictEqual(r.commit.themeVariant, { "wang-pet": "default" });
     assert.strictEqual(r.commit.themeOverrides, undefined);  // wasn't set
   });
 
@@ -1522,24 +1522,24 @@ describe("setThemeSelection command", () => {
 
   it("rejects non-string variantId when provided", () => {
     const { deps } = makeDeps();
-    const r = commandRegistry.setThemeSelection({ themeId: "clawd", variantId: 42 }, deps);
+    const r = commandRegistry.setThemeSelection({ themeId: "wang-pet", variantId: 42 }, deps);
     assert.strictEqual(r.status, "error");
   });
 
   it("accepts string payload as themeId shorthand", () => {
     const { deps, calls } = makeDeps();
-    const r = commandRegistry.setThemeSelection("clawd", deps);
+    const r = commandRegistry.setThemeSelection("wang-pet", deps);
     assert.strictEqual(r.status, "ok");
     assert.strictEqual(calls.activateTheme.length, 1);
-    assert.strictEqual(calls.activateTheme[0].themeId, "clawd");
+    assert.strictEqual(calls.activateTheme[0].themeId, "wang-pet");
     assert.strictEqual(calls.activateTheme[0].variantId, "default");
     assert.strictEqual(calls.activateTheme[0].overrideMap, null);
   });
 
   it("uses snapshot.themeVariant when variantId not provided", () => {
-    const snapshotWithVariant = { ...baseSnapshot, themeVariant: { clawd: "chill" } };
+    const snapshotWithVariant = { ...baseSnapshot, themeVariant: { "wang-pet": "chill" } };
     const { deps, calls } = makeDeps({ snapshot: snapshotWithVariant });
-    const r = commandRegistry.setThemeSelection({ themeId: "clawd" }, deps);
+    const r = commandRegistry.setThemeSelection({ themeId: "wang-pet" }, deps);
     assert.strictEqual(r.status, "ok");
     assert.strictEqual(calls.activateTheme[0].variantId, "chill");
   });
@@ -1548,43 +1548,43 @@ describe("setThemeSelection command", () => {
     const overrideMap = {
       tiers: {
         workingTiers: {
-          "clawd-working-typing.svg": { file: "clawd-working-typing-old.svg" },
+          "wang-pet-working-typing.svg": { file: "wang-pet-working-typing-old.svg" },
         },
       },
     };
     const snapshotWithOverride = {
       ...baseSnapshot,
-      themeOverrides: { clawd: overrideMap },
+      themeOverrides: { "wang-pet": overrideMap },
     };
     const { deps, calls } = makeDeps({ snapshot: snapshotWithOverride });
-    const r = commandRegistry.setThemeSelection({ themeId: "clawd" }, deps);
+    const r = commandRegistry.setThemeSelection({ themeId: "wang-pet" }, deps);
     assert.strictEqual(r.status, "ok");
     assert.deepStrictEqual(calls.activateTheme[0].overrideMap, overrideMap);
   });
 
   it("explicit variantId overrides snapshot map", () => {
-    const snapshotWithVariant = { ...baseSnapshot, themeVariant: { clawd: "chill" } };
+    const snapshotWithVariant = { ...baseSnapshot, themeVariant: { "wang-pet": "chill" } };
     const { deps, calls } = makeDeps({ snapshot: snapshotWithVariant });
-    const r = commandRegistry.setThemeSelection({ themeId: "clawd", variantId: "hyper" }, deps);
+    const r = commandRegistry.setThemeSelection({ themeId: "wang-pet", variantId: "hyper" }, deps);
     assert.strictEqual(r.status, "ok");
     assert.strictEqual(calls.activateTheme[0].variantId, "hyper");
   });
 
   it("commits theme + themeVariant atomically", () => {
     const { deps } = makeDeps();
-    const r = commandRegistry.setThemeSelection({ themeId: "clawd", variantId: "chill" }, deps);
+    const r = commandRegistry.setThemeSelection({ themeId: "wang-pet", variantId: "chill" }, deps);
     assert.strictEqual(r.status, "ok");
     assert.ok(r.commit, "commit field expected");
-    assert.strictEqual(r.commit.theme, "clawd");
-    assert.deepStrictEqual(r.commit.themeVariant, { clawd: "chill" });
+    assert.strictEqual(r.commit.theme, "wang-pet");
+    assert.deepStrictEqual(r.commit.themeVariant, { "wang-pet": "chill" });
   });
 
   it("preserves other themes' variantIds when committing", () => {
     const snapshotWithVariant = { ...baseSnapshot, themeVariant: { calico: "hyper" } };
     const { deps } = makeDeps({ snapshot: snapshotWithVariant });
-    const r = commandRegistry.setThemeSelection({ themeId: "clawd", variantId: "chill" }, deps);
+    const r = commandRegistry.setThemeSelection({ themeId: "wang-pet", variantId: "chill" }, deps);
     assert.strictEqual(r.status, "ok");
-    assert.deepStrictEqual(r.commit.themeVariant, { calico: "hyper", clawd: "chill" });
+    assert.deepStrictEqual(r.commit.themeVariant, { calico: "hyper", "wang-pet": "chill" });
   });
 
   it("self-heals by committing the RESOLVED variantId on dead-variant fallback", () => {
@@ -1592,11 +1592,11 @@ describe("setThemeSelection command", () => {
     // still points to `chill`. setThemeSelection calls activateTheme which
     // lenient-falls back to `default` and returns resolved id. The committed
     // themeVariant records `default`, not the dead `chill` the user asked for.
-    const snapshotWithDead = { ...baseSnapshot, themeVariant: { clawd: "dead" } };
+    const snapshotWithDead = { ...baseSnapshot, themeVariant: { "wang-pet": "dead" } };
     const { deps } = makeDeps({ snapshot: snapshotWithDead });
-    const r = commandRegistry.setThemeSelection({ themeId: "clawd" }, deps);
+    const r = commandRegistry.setThemeSelection({ themeId: "wang-pet" }, deps);
     assert.strictEqual(r.status, "ok");
-    assert.deepStrictEqual(r.commit.themeVariant, { clawd: "default" });
+    assert.deepStrictEqual(r.commit.themeVariant, { "wang-pet": "default" });
   });
 
   it("surfaces activateTheme throws as error status (no commit)", () => {
@@ -1610,19 +1610,19 @@ describe("setThemeSelection command", () => {
   });
 
   it("errors when activateTheme dep is missing", () => {
-    const r = commandRegistry.setThemeSelection({ themeId: "clawd" }, { snapshot: baseSnapshot });
+    const r = commandRegistry.setThemeSelection({ themeId: "wang-pet" }, { snapshot: baseSnapshot });
     assert.strictEqual(r.status, "error");
     assert.match(r.message, /activateTheme/);
   });
 });
 
 describe("setAnimationOverride reaction slot", () => {
-  const baseSnapshot = { theme: "clawd", themeOverrides: {} };
+  const baseSnapshot = { theme: "wang-pet", themeOverrides: {} };
   const noopDeps = { snapshot: baseSnapshot, activateTheme: () => {} };
 
   it("rejects unknown reactionKey", () => {
     const r = commandRegistry.setAnimationOverride({
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "reaction",
       reactionKey: "explode",
       file: "x.svg",
@@ -1633,21 +1633,21 @@ describe("setAnimationOverride reaction slot", () => {
 
   it("accepts valid reactionKey and writes reactions.<key>.file", () => {
     const r = commandRegistry.setAnimationOverride({
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "reaction",
       reactionKey: "clickLeft",
       file: "my-poke.svg",
     }, noopDeps);
     assert.strictEqual(r.status, "ok");
     assert.deepStrictEqual(
-      r.commit.themeOverrides.clawd.reactions.clickLeft,
+      r.commit.themeOverrides["wang-pet"].reactions.clickLeft,
       { file: "my-poke.svg" }
     );
   });
 
   it("rejects durationMs for drag reaction (drag plays until pointer-up)", () => {
     const r = commandRegistry.setAnimationOverride({
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "reaction",
       reactionKey: "drag",
       durationMs: 2000,
@@ -1658,18 +1658,18 @@ describe("setAnimationOverride reaction slot", () => {
 
   it("accepts durationMs for clickLeft reaction", () => {
     const r = commandRegistry.setAnimationOverride({
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "reaction",
       reactionKey: "clickLeft",
       durationMs: 3000,
     }, noopDeps);
     assert.strictEqual(r.status, "ok");
-    assert.strictEqual(r.commit.themeOverrides.clawd.reactions.clickLeft.durationMs, 3000);
+    assert.strictEqual(r.commit.themeOverrides["wang-pet"].reactions.clickLeft.durationMs, 3000);
   });
 
   it("rejects autoReturnMs for reaction slots", () => {
     const r = commandRegistry.setAnimationOverride({
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "reaction",
       reactionKey: "clickLeft",
       autoReturnMs: 3000,
@@ -1680,13 +1680,13 @@ describe("setAnimationOverride reaction slot", () => {
 
   it("clears reaction override when file is set to null with no other fields", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: { reactions: { clickLeft: { file: "old.svg" } } },
+        "wang-pet": { reactions: { clickLeft: { file: "old.svg" } } },
       },
     };
     const r = commandRegistry.setAnimationOverride({
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "reaction",
       reactionKey: "clickLeft",
       file: null,
@@ -1694,48 +1694,48 @@ describe("setAnimationOverride reaction slot", () => {
     assert.strictEqual(r.status, "ok");
     // With reactions.clickLeft emptied to {}, buildThemeOverrideMap should drop
     // both `reactions` and the themeId if nothing else remains.
-    assert.strictEqual(r.commit.themeOverrides.clawd, undefined);
+    assert.strictEqual(r.commit.themeOverrides["wang-pet"], undefined);
   });
 
   it("preserves existing hitbox overrides when editing a reaction slot", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           reactions: { clickLeft: { file: "old.svg" } },
-          hitbox: { wide: { "clawd-error.svg": true } },
+          hitbox: { wide: { "wang-pet-error.svg": true } },
         },
       },
     };
     const r = commandRegistry.setAnimationOverride({
-      themeId: "clawd",
+      themeId: "wang-pet",
       slotType: "reaction",
       reactionKey: "clickLeft",
       file: "new.svg",
     }, { snapshot, activateTheme: () => {} });
     assert.strictEqual(r.status, "ok");
-    assert.deepStrictEqual(r.commit.themeOverrides.clawd.hitbox, {
-      wide: { "clawd-error.svg": true },
+    assert.deepStrictEqual(r.commit.themeOverrides["wang-pet"].hitbox, {
+      wide: { "wang-pet-error.svg": true },
     });
   });
 });
 
 describe("setSoundOverride command", () => {
-  const baseSnapshot = { theme: "clawd", themeOverrides: {} };
+  const baseSnapshot = { theme: "wang-pet", themeOverrides: {} };
   const noopDeps = { snapshot: baseSnapshot, activateTheme: () => {} };
 
   it("rejects missing themeId / soundName", () => {
     let r = commandRegistry.setSoundOverride({ soundName: "complete", file: "a.mp3" }, noopDeps);
     assert.strictEqual(r.status, "error");
     assert.match(r.message, /themeId/);
-    r = commandRegistry.setSoundOverride({ themeId: "clawd", file: "a.mp3" }, noopDeps);
+    r = commandRegistry.setSoundOverride({ themeId: "wang-pet", file: "a.mp3" }, noopDeps);
     assert.strictEqual(r.status, "error");
     assert.match(r.message, /soundName/);
   });
 
   it("rejects file when it is not null and not a non-empty string", () => {
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: "" },
+      { themeId: "wang-pet", soundName: "complete", file: "" },
       noopDeps
     );
     assert.strictEqual(r.status, "error");
@@ -1744,46 +1744,46 @@ describe("setSoundOverride command", () => {
 
   it("writes { sounds: { complete: { file } } } on first override", () => {
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: "my-complete.mp3" },
+      { themeId: "wang-pet", soundName: "complete", file: "my-complete.mp3" },
       noopDeps
     );
     assert.strictEqual(r.status, "ok");
-    assert.deepStrictEqual(r.commit.themeOverrides.clawd.sounds, {
+    assert.deepStrictEqual(r.commit.themeOverrides["wang-pet"].sounds, {
       complete: { file: "my-complete.mp3" },
     });
   });
 
   it("preserves originalName in the committed entry when provided", () => {
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: "complete.mp3", originalName: "cat-demo.mp3" },
+      { themeId: "wang-pet", soundName: "complete", file: "complete.mp3", originalName: "cat-demo.mp3" },
       noopDeps
     );
     assert.strictEqual(r.status, "ok");
-    assert.deepStrictEqual(r.commit.themeOverrides.clawd.sounds, {
+    assert.deepStrictEqual(r.commit.themeOverrides["wang-pet"].sounds, {
       complete: { file: "complete.mp3", originalName: "cat-demo.mp3" },
     });
   });
 
   it("null file clears the entry and removes the theme row when nothing else is overridden", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: { sounds: { complete: { file: "old.mp3" } } },
+        "wang-pet": { sounds: { complete: { file: "old.mp3" } } },
       },
     };
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: null },
+      { themeId: "wang-pet", soundName: "complete", file: null },
       { snapshot, activateTheme: () => {} }
     );
     assert.strictEqual(r.status, "ok");
-    assert.strictEqual(r.commit.themeOverrides.clawd, undefined);
+    assert.strictEqual(r.commit.themeOverrides["wang-pet"], undefined);
   });
 
   it("preserves unrelated soundName entries when editing one", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           sounds: {
             complete: { file: "c.mp3" },
             confirm: { file: "x.wav" },
@@ -1792,11 +1792,11 @@ describe("setSoundOverride command", () => {
       },
     };
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: "new-c.mp3" },
+      { themeId: "wang-pet", soundName: "complete", file: "new-c.mp3" },
       { snapshot, activateTheme: () => {} }
     );
     assert.strictEqual(r.status, "ok");
-    assert.deepStrictEqual(r.commit.themeOverrides.clawd.sounds, {
+    assert.deepStrictEqual(r.commit.themeOverrides["wang-pet"].sounds, {
       complete: { file: "new-c.mp3" },
       confirm: { file: "x.wav" },
     });
@@ -1804,24 +1804,24 @@ describe("setSoundOverride command", () => {
 
   it("preserves existing animation overrides when editing a sound slot", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           states: { attention: { file: "attn.svg" } },
-          hitbox: { wide: { "clawd-error.svg": true } },
+          hitbox: { wide: { "wang-pet-error.svg": true } },
           sounds: { confirm: { file: "c.wav" } },
         },
       },
     };
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: "done.mp3" },
+      { themeId: "wang-pet", soundName: "complete", file: "done.mp3" },
       { snapshot, activateTheme: () => {} }
     );
     assert.strictEqual(r.status, "ok");
-    const nextClawd = r.commit.themeOverrides.clawd;
-    assert.deepStrictEqual(nextClawd.states, { attention: { file: "attn.svg" } });
-    assert.deepStrictEqual(nextClawd.hitbox, { wide: { "clawd-error.svg": true } });
-    assert.deepStrictEqual(nextClawd.sounds, {
+    const nextwangpet = r.commit.themeOverrides["wang-pet"];
+    assert.deepStrictEqual(nextwangpet.states, { attention: { file: "attn.svg" } });
+    assert.deepStrictEqual(nextwangpet.hitbox, { wide: { "wang-pet-error.svg": true } });
+    assert.deepStrictEqual(nextwangpet.sounds, {
       confirm: { file: "c.wav" },
       complete: { file: "done.mp3" },
     });
@@ -1829,13 +1829,13 @@ describe("setSoundOverride command", () => {
 
   it("same value is a noop (no commit)", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: { sounds: { complete: { file: "same.mp3" } } },
+        "wang-pet": { sounds: { complete: { file: "same.mp3" } } },
       },
     };
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: "same.mp3" },
+      { themeId: "wang-pet", soundName: "complete", file: "same.mp3" },
       { snapshot, activateTheme: () => {} }
     );
     assert.strictEqual(r.status, "ok");
@@ -1843,10 +1843,10 @@ describe("setSoundOverride command", () => {
   });
 
   it("when active theme changes, calls activateTheme with the new override map", () => {
-    const snapshot = { theme: "clawd", themeOverrides: {} };
+    const snapshot = { theme: "wang-pet", themeOverrides: {} };
     const calls = [];
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: "a.mp3" },
+      { themeId: "wang-pet", soundName: "complete", file: "a.mp3" },
       {
         snapshot,
         activateTheme: (themeId, variantId, overrideMap) => calls.push({ themeId, variantId, overrideMap }),
@@ -1859,8 +1859,8 @@ describe("setSoundOverride command", () => {
 
   it("active theme edit without activateTheme dep returns error", () => {
     const r = commandRegistry.setSoundOverride(
-      { themeId: "clawd", soundName: "complete", file: "a.mp3" },
-      { snapshot: { theme: "clawd", themeOverrides: {} } }
+      { themeId: "wang-pet", soundName: "complete", file: "a.mp3" },
+      { snapshot: { theme: "wang-pet", themeOverrides: {} } }
     );
     assert.strictEqual(r.status, "error");
     assert.match(r.message, /activateTheme/);
@@ -1871,7 +1871,7 @@ describe("setSoundOverride command", () => {
     const r = commandRegistry.setSoundOverride(
       { themeId: "other", soundName: "complete", file: "a.mp3" },
       {
-        snapshot: { theme: "clawd", themeOverrides: {} },
+        snapshot: { theme: "wang-pet", themeOverrides: {} },
         activateTheme: () => calls.push("boom"),
       }
     );
@@ -1883,57 +1883,57 @@ describe("setSoundOverride command", () => {
 
 describe("setWideHitboxOverride command", () => {
   it("rejects missing file / themeId", () => {
-    const r = commandRegistry.setWideHitboxOverride({ themeId: "clawd", enabled: true }, { snapshot: {} });
+    const r = commandRegistry.setWideHitboxOverride({ themeId: "wang-pet", enabled: true }, { snapshot: {} });
     assert.strictEqual(r.status, "error");
     assert.match(r.message, /file/);
   });
 
   it("rejects non-boolean / non-null enabled", () => {
     const r = commandRegistry.setWideHitboxOverride({
-      themeId: "clawd", file: "x.svg", enabled: "yes",
+      themeId: "wang-pet", file: "x.svg", enabled: "yes",
     }, { snapshot: {} });
     assert.strictEqual(r.status, "error");
     assert.match(r.message, /boolean or null/);
   });
 
   it("writes hitbox.wide[file] = true when enabled", () => {
-    const snapshot = { theme: "clawd", themeOverrides: {} };
+    const snapshot = { theme: "wang-pet", themeOverrides: {} };
     const r = commandRegistry.setWideHitboxOverride(
-      { themeId: "clawd", file: "clawd-error.svg", enabled: true },
+      { themeId: "wang-pet", file: "wang-pet-error.svg", enabled: true },
       { snapshot, activateTheme: () => {} }
     );
     assert.strictEqual(r.status, "ok");
     assert.deepStrictEqual(
-      r.commit.themeOverrides.clawd.hitbox.wide,
-      { "clawd-error.svg": true }
+      r.commit.themeOverrides["wang-pet"].hitbox.wide,
+      { "wang-pet-error.svg": true }
     );
   });
 
   it("clears the entry when enabled=null (fall back to theme default)", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: { hitbox: { wide: { "clawd-error.svg": true } } },
+        "wang-pet": { hitbox: { wide: { "wang-pet-error.svg": true } } },
       },
     };
     const r = commandRegistry.setWideHitboxOverride(
-      { themeId: "clawd", file: "clawd-error.svg", enabled: null },
+      { themeId: "wang-pet", file: "wang-pet-error.svg", enabled: null },
       { snapshot, activateTheme: () => {} }
     );
     assert.strictEqual(r.status, "ok");
     // Entire hitbox + themeId entry drops when last toggle is cleared.
-    assert.strictEqual(r.commit.themeOverrides.clawd, undefined);
+    assert.strictEqual(r.commit.themeOverrides["wang-pet"], undefined);
   });
 
   it("noop when setting same value", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: { hitbox: { wide: { "clawd-error.svg": true } } },
+        "wang-pet": { hitbox: { wide: { "wang-pet-error.svg": true } } },
       },
     };
     const r = commandRegistry.setWideHitboxOverride(
-      { themeId: "clawd", file: "clawd-error.svg", enabled: true },
+      { themeId: "wang-pet", file: "wang-pet-error.svg", enabled: true },
       { snapshot }
     );
     assert.strictEqual(r.status, "ok");
@@ -1942,16 +1942,16 @@ describe("setWideHitboxOverride command", () => {
 
   it("triggers activateTheme with next override map when active theme changes", () => {
     let activatedWith = null;
-    const snapshot = { theme: "clawd", themeOverrides: {} };
+    const snapshot = { theme: "wang-pet", themeOverrides: {} };
     const r = commandRegistry.setWideHitboxOverride(
-      { themeId: "clawd", file: "foo.svg", enabled: true },
+      { themeId: "wang-pet", file: "foo.svg", enabled: true },
       {
         snapshot,
         activateTheme: (id, variantId, overrideMap) => { activatedWith = { id, overrideMap }; },
       }
     );
     assert.strictEqual(r.status, "ok");
-    assert.strictEqual(activatedWith.id, "clawd");
+    assert.strictEqual(activatedWith.id, "wang-pet");
     assert.deepStrictEqual(activatedWith.overrideMap, {
       hitbox: { wide: { "foo.svg": true } },
     });
@@ -1960,9 +1960,9 @@ describe("setWideHitboxOverride command", () => {
   it("prefers refreshActiveThemeHitboxOverrides over activateTheme for active theme changes", () => {
     let refreshedWith = null;
     let activated = false;
-    const snapshot = { theme: "clawd", themeOverrides: {} };
+    const snapshot = { theme: "wang-pet", themeOverrides: {} };
     const r = commandRegistry.setWideHitboxOverride(
-      { themeId: "clawd", file: "foo.svg", enabled: true },
+      { themeId: "wang-pet", file: "foo.svg", enabled: true },
       {
         snapshot,
         refreshActiveThemeHitboxOverrides: (id, overrideMap) => {
@@ -1975,7 +1975,7 @@ describe("setWideHitboxOverride command", () => {
     );
     assert.strictEqual(r.status, "ok");
     assert.deepStrictEqual(refreshedWith, {
-      id: "clawd",
+      id: "wang-pet",
       overrideMap: {
         hitbox: { wide: { "foo.svg": true } },
       },
@@ -1987,25 +1987,25 @@ describe("setWideHitboxOverride command", () => {
 describe("theme override subtree preservation", () => {
   it("setThemeOverrideDisabled keeps existing reactions and hitbox overrides", () => {
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           states: { attention: { file: "attention.svg" } },
           reactions: { clickLeft: { file: "click.svg" } },
-          hitbox: { wide: { "clawd-error.svg": true } },
+          hitbox: { wide: { "wang-pet-error.svg": true } },
         },
       },
     };
     const r = commandRegistry.setThemeOverrideDisabled(
-      { themeId: "clawd", stateKey: "attention", disabled: true },
+      { themeId: "wang-pet", stateKey: "attention", disabled: true },
       { snapshot }
     );
     assert.strictEqual(r.status, "ok");
-    assert.deepStrictEqual(r.commit.themeOverrides.clawd.reactions, {
+    assert.deepStrictEqual(r.commit.themeOverrides["wang-pet"].reactions, {
       clickLeft: { file: "click.svg" },
     });
-    assert.deepStrictEqual(r.commit.themeOverrides.clawd.hitbox, {
-      wide: { "clawd-error.svg": true },
+    assert.deepStrictEqual(r.commit.themeOverrides["wang-pet"].hitbox, {
+      wide: { "wang-pet-error.svg": true },
     });
   });
 });
@@ -2014,9 +2014,9 @@ describe("importAnimationOverrides command", () => {
   const validPayload = {
     version: 1,
     themes: {
-      clawd: {
+      "wang-pet": {
         states: {
-          error: { file: "clawd-error.svg" },
+          error: { file: "wang-pet-error.svg" },
           attention: { disabled: true },
         },
       },
@@ -2037,7 +2037,7 @@ describe("importAnimationOverrides command", () => {
 
   it("rejects payloads whose version is newer than supported", () => {
     const r = commandRegistry.importAnimationOverrides(
-      { version: 999, themes: { clawd: {} } },
+      { version: 999, themes: { "wang-pet": {} } },
       { snapshot: {} }
     );
     assert.strictEqual(r.status, "error");
@@ -2046,7 +2046,7 @@ describe("importAnimationOverrides command", () => {
 
   it("rejects when normalized payload has no valid entries", () => {
     const r = commandRegistry.importAnimationOverrides(
-      { version: 1, themes: { clawd: { not_a_real_field: 1 } } },
+      { version: 1, themes: { "wang-pet": { not_a_real_field: 1 } } },
       { snapshot: {} }
     );
     assert.strictEqual(r.status, "error");
@@ -2064,7 +2064,7 @@ describe("importAnimationOverrides command", () => {
     assert.strictEqual(r.status, "ok");
     assert.strictEqual(r.mode, "merge");
     assert.ok(r.commit.themeOverrides.calico, "calico overrides preserved on merge");
-    assert.ok(r.commit.themeOverrides.clawd, "clawd overrides added on merge");
+    assert.ok(r.commit.themeOverrides["wang-pet"], "WangPet overrides added on merge");
     assert.strictEqual(r.importedThemeCount, 1);
   });
 
@@ -2082,7 +2082,7 @@ describe("importAnimationOverrides command", () => {
     assert.strictEqual(r.status, "ok");
     assert.strictEqual(r.mode, "replace");
     assert.strictEqual(r.commit.themeOverrides.calico, undefined);
-    assert.ok(r.commit.themeOverrides.clawd);
+    assert.ok(r.commit.themeOverrides["wang-pet"]);
   });
 
   it("calls activateTheme with the new override map for the active theme", () => {
@@ -2091,7 +2091,7 @@ describe("importAnimationOverrides command", () => {
     // from the store would see the stale pre-import value and the imported
     // slots would never take effect.
     const calls = [];
-    const snapshot = { theme: "clawd", themeOverrides: {} };
+    const snapshot = { theme: "wang-pet", themeOverrides: {} };
     const r = commandRegistry.importAnimationOverrides(validPayload, {
       snapshot,
       activateTheme: (id, variantId, overrideMap) => {
@@ -2100,11 +2100,11 @@ describe("importAnimationOverrides command", () => {
     });
     assert.strictEqual(r.status, "ok");
     assert.strictEqual(calls.length, 1);
-    assert.strictEqual(calls[0].id, "clawd");
+    assert.strictEqual(calls[0].id, "wang-pet");
     assert.ok(calls[0].overrideMap, "overrideMap must not be null");
     assert.deepStrictEqual(
       calls[0].overrideMap,
-      r.commit.themeOverrides.clawd,
+      r.commit.themeOverrides["wang-pet"],
       "activateTheme must receive the same normalized override map that gets committed"
     );
   });
@@ -2112,11 +2112,11 @@ describe("importAnimationOverrides command", () => {
   it("skips activateTheme when active theme overrides are unchanged", () => {
     let activated = null;
     const snapshot = {
-      theme: "clawd",
+      theme: "wang-pet",
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           states: {
-            error: { file: "clawd-error.svg" },
+            error: { file: "wang-pet-error.svg" },
             attention: { disabled: true },
           },
         },
@@ -2131,7 +2131,7 @@ describe("importAnimationOverrides command", () => {
   });
 
   it("errors when activateTheme dep is missing and active theme needs reload", () => {
-    const snapshot = { theme: "clawd", themeOverrides: {} };
+    const snapshot = { theme: "wang-pet", themeOverrides: {} };
     const r = commandRegistry.importAnimationOverrides(validPayload, { snapshot });
     assert.strictEqual(r.status, "error");
     assert.match(r.message, /activateTheme/);
@@ -2141,7 +2141,7 @@ describe("importAnimationOverrides command", () => {
     const snapshot = { theme: "calico", themeOverrides: {} };
     const r = commandRegistry.importAnimationOverrides(validPayload, { snapshot });
     assert.strictEqual(r.status, "ok");
-    assert.ok(r.commit.themeOverrides.clawd);
+    assert.ok(r.commit.themeOverrides["wang-pet"]);
   });
 });
 

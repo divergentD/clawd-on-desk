@@ -644,5 +644,5 @@
     core.tabs["remote-ssh"] = { render };
   }
 
-  root.ClawdSettingsTabRemoteSsh = { init };
+  root.wangpetSettingsTabRemoteSsh = { init };
 })(globalThis);

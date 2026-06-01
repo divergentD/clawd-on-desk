@@ -4,7 +4,7 @@ const { unregisterHooks } = require("./install.js");
 
 try {
   const { removed, changed } = unregisterHooks();
-  console.log("Clawd Claude hooks uninstall complete");
+  console.log("WangPet Claude hooks uninstall complete");
   console.log(`  Removed: ${removed}`);
   console.log(`  Changed: ${changed}`);
 } catch (err) {

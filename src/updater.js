@@ -5,7 +5,7 @@ const fs = require("fs");
 const electron = require("electron");
 
 const isMac = process.platform === "darwin";
-const RELEASES_LATEST_URL = "https://github.com/rullerzhou-afk/clawd-on-desk/releases/latest";
+const RELEASES_LATEST_URL = "https://github.com/rullerzhou-afk/wang-pet/releases/latest";
 
 function makeTranslate(ctx) {
   return (key, fallback) => {
@@ -146,7 +146,7 @@ function initUpdater(ctx, deps = {}) {
   // ── #329 pending-update state (Phase 2) ──────────────────────────────
   // Prefs IO is delegated to ctx.getUpdatePref / setUpdatePref. main.js
   // wires these to settingsController so reads/writes go through the
-  // single-writer architecture and persist to clawd-prefs.json.
+  // single-writer architecture and persist to wang-pet-prefs.json.
   function readPref(key, fallback) {
     if (typeof ctx.getUpdatePref !== "function") return fallback;
     try {
@@ -379,7 +379,7 @@ function initUpdater(ctx, deps = {}) {
     return showInfoBubble(
       "up-to-date",
       t("updateNotAvailable", "You're Up to Date"),
-      t("updateNotAvailableMsg", "Clawd v{version} is the latest version.").replace("{version}", version),
+      t("updateNotAvailableMsg", "WangPet v{version} is the latest version.").replace("{version}", version),
       {
         version,
         actions: [{ id: "dismiss", label: t("dismiss", "Dismiss"), variant: "secondary" }],
@@ -438,11 +438,11 @@ function initUpdater(ctx, deps = {}) {
 
   function fetchLatestRelease() {
     return new Promise((resolve, reject) => {
-      const headers = { "User-Agent": "Clawd-on-Desk" };
+      const headers = { "User-Agent": "wang-pet" };
       if (lastReleaseEtag) headers["If-None-Match"] = lastReleaseEtag;
       const req = httpsGet({
         hostname: "api.github.com",
-        path: "/repos/rullerzhou-afk/clawd-on-desk/releases/latest",
+        path: "/repos/rullerzhou-afk/wang-pet/releases/latest",
         headers,
       }, (res) => {
         // 304 Not Modified — drain and serve the cached release.
@@ -694,7 +694,7 @@ function initUpdater(ctx, deps = {}) {
       title: t("nativeArm64Available", "Native ARM64 Build Available"),
       message: t(
         "nativeArm64AvailableMsg",
-        "Clawd v{version} has a native Windows ARM64 installer. Install it for better performance and battery life?"
+        "WangPet v{version} has a native Windows ARM64 installer. Install it for better performance and battery life?"
       ).replace("{version}", displayVersion),
       version,
       actions: [
@@ -774,7 +774,7 @@ function initUpdater(ctx, deps = {}) {
 
     await showSuccessBubble({
       title: t("updateReady", "Update Ready"),
-      message: t("gitUpdateRestarting", "Update complete. Restarting Clawd now..."),
+      message: t("gitUpdateRestarting", "Update complete. Restarting WangPet now..."),
     });
     await new Promise((resolve) => setTimeout(resolve, 1200));
     hideBubble();
@@ -1168,7 +1168,7 @@ function initUpdater(ctx, deps = {}) {
           failureType: "Updater Unavailable",
           operation: "Check for Updates",
           reason: "AutoUpdater not available",
-          nextStep: "Restart Clawd or reinstall the packaged app, then try again.",
+          nextStep: "Restart WangPet or reinstall the packaged app, then try again.",
           detail: "AutoUpdater not available",
         });
       }

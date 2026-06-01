@@ -79,7 +79,7 @@ function createThemeRuntime(options = {}) {
     return activeThemeContext;
   }
 
-  function getActiveThemeId(fallback = "clawd") {
+  function getActiveThemeId(fallback = "wang-pet") {
     return activeTheme ? activeTheme._id : fallback;
   }
 

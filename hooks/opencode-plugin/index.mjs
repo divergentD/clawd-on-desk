@@ -1,10 +1,10 @@
-// Clawd on Desk — opencode Plugin
+// WangPet — opencode Plugin
 // Runs inside the opencode process (Bun runtime) and forwards session/tool
-// events to the Clawd HTTP server (127.0.0.1:23333-23337).
+// events to the WangPet HTTP server (127.0.0.1:23333-23337).
 //
 // Design invariants:
 //   - Zero dependencies (Bun's built-in fetch + fs/os/path + Bun.serve + node:crypto)
-//   - fire-and-forget: event hook never awaits the fetch, so slow/broken Clawd
+//   - fire-and-forget: event hook never awaits the fetch, so slow/broken WangPet
 //     cannot stall opencode
 //   - same-state dedup — consecutive identical states skip POST
 //   - self-healing port discovery: cache hit skips I/O; on miss we read
@@ -13,9 +13,9 @@
 // Phase 2 bridge (permission replies):
 //   opencode TUI does NOT bind an external HTTP listener (verified via
 //   Phase 2 Spike — ctx.serverUrl is a phantom URL, ctx.client.fetch is
-//   bound to Server.Default().fetch() in-process). So Clawd cannot call
+//   bound to Server.Default().fetch() in-process). So WangPet cannot call
 //   opencode's REST API directly from outside the Bun process. Instead we
-//   start a tiny Bun.serve() bridge here: Clawd POSTs decisions to the
+//   start a tiny Bun.serve() bridge here: WangPet POSTs decisions to the
 //   bridge, and the bridge calls ctx.client._client.post() — the same
 //   in-process Hono router that `opencode serve` would expose externally.
 //   A random 32-byte hex token gates the bridge endpoint since localhost
@@ -28,19 +28,19 @@ import { randomBytes, timingSafeEqual } from "crypto";
 import { execFileSync, execSync } from "child_process";
 import { accumulateAssistantUsage } from "./token-usage.mjs";
 
-const CLAWD_DIR = join(homedir(), ".clawd");
-const RUNTIME_CONFIG_PATH = join(CLAWD_DIR, "runtime.json");
-const DEBUG_LOG_PATH = join(CLAWD_DIR, "opencode-plugin.log");
+const WANGPET_DIR = join(homedir(), ".wang-pet");
+const RUNTIME_CONFIG_PATH = join(WANGPET_DIR, "runtime.json");
+const DEBUG_LOG_PATH = join(WANGPET_DIR, "opencode-plugin.log");
 const SERVER_PORTS = [23333, 23334, 23335, 23336, 23337];
 const STATE_PATH = "/state";
 // Fire-and-forget: the IIFE never blocks the event hook's return value, so a
-// generous timeout is safe. 200ms was too tight when Clawd's IPC roundtrip
+// generous timeout is safe. 200ms was too tight when WangPet's IPC roundtrip
 // (main → renderer → main) ran under load and silently timed out.
 const POST_TIMEOUT_MS = 1000;
 const AGENT_ID = "opencode";
 const PLUGIN_REVISION = "token-message-v2";
 
-// Process tree walk config — mirrors hooks/clawd-hook.js exactly, minus the
+// Process tree walk config — mirrors hooks/wang-pet-hook.js exactly, minus the
 // Claude-specific detection. See docs/plans/plan-opencode-integration.md Phase 4.
 // Spike confirmed (2026-04-05): plugin runs in-process with opencode, so walk
 // starts at process.pid. Observed chains on Windows:
@@ -64,7 +64,7 @@ const TERMINAL_NAMES_LINUX = new Set([
 const SYSTEM_BOUNDARY_WIN = new Set(["explorer.exe", "services.exe", "winlogon.exe", "svchost.exe"]);
 const SYSTEM_BOUNDARY_MAC = new Set(["launchd", "init", "systemd"]);
 const SYSTEM_BOUNDARY_LINUX = new Set(["systemd", "init"]);
-// Editor detection drives URI-scheme tab focus (code://, cursor://) in Clawd.
+// Editor detection drives URI-scheme tab focus (code://, cursor://) in WangPet.
 // Antigravity is NOT listed here — it's treated as a plain terminal window.
 const EDITOR_MAP_WIN = { "code.exe": "code", "cursor.exe": "cursor" };
 const EDITOR_MAP_MAC = { "code": "code", "cursor": "cursor" };
@@ -74,7 +74,7 @@ const EDITOR_MAP_LINUX = { "code": "code", "cursor": "cursor", "code-insiders": 
 let _cachedPort = null;
 // Per-session last-state tracking. Keyed by sessionId so that subagent
 // sessions (spawned by the `task` tool) don't clobber the root session's
-// dedup state. Each value is the last Clawd state sent for that session.
+// dedup state. Each value is the last WangPet state sent for that session.
 const _lastStatePerSession = new Map();
 // message.updated carries per-assistant-message usage, not session totals.
 // Keep the latest snapshot for each message so streaming updates do not
@@ -87,7 +87,7 @@ let _lastSeenSessionId = null;
 let _reqCounter = 0;
 // Phase 3: opencode subtasks are full child sessions (not subtask parts). The
 // parent session's `task` tool spawns a `session.created` with a new sessionID
-// and agent="explore"/other. Clawd's multi-session fanout already handles this
+// and agent="explore"/other. WangPet's multi-session fanout already handles this
 // visually (1→typing, 2→juggling, 3+→building). The only fix needed is to
 // prevent subtask `session.idle` from firing the happy animation — only the
 // ROOT session (first seen) should do that. _rootSessionId captures the first
@@ -109,7 +109,7 @@ let _serverUrl = "";
 // Captured at plugin init — the opencode SDK client. Used by the reverse
 // bridge to call in-process Hono routes (e.g. /permission/:id/reply).
 let _ctxClient = null;
-// Reverse bridge state. Set by startBridge() at plugin init. Clawd receives
+// Reverse bridge state. Set by startBridge() at plugin init. WangPet receives
 // _bridgeUrl + _bridgeToken with every /permission forward and POSTs back.
 let _bridgeUrl = "";
 let _bridgeTokenHex = "";
@@ -143,7 +143,7 @@ function scheduleDebugFlush() {
 
 function resetDebugLog() {
   try {
-    mkdirSync(CLAWD_DIR, { recursive: true });
+    mkdirSync(WANGPET_DIR, { recursive: true });
     writeFileSync(DEBUG_LOG_PATH, "", "utf8");
   } catch {}
 }
@@ -207,7 +207,7 @@ function getWindowsProcessSnapshot() {
 
 // Walks past the first terminal match to pick the OUTERMOST terminal —
 // matters for Electron terminals like Antigravity where the chain shows
-// renderer→main and we want the main process so Clawd activates the right
+// renderer→main and we want the main process so WangPet activates the right
 // window. Cached after first call.
 function getStablePid() {
   if (_stablePid) return _stablePid;
@@ -266,11 +266,11 @@ function getStablePid() {
   return _stablePid;
 }
 
-// Fire-and-forget POST to any Clawd endpoint. Shared by /state and /permission
+// Fire-and-forget POST to any WangPet endpoint. Shared by /state and /permission
 // so both benefit from port caching + self-healing discovery. Tries cached port
 // first; on failure walks runtime.json + fallback range. Caches the winning
 // port. Never throws.
-function postToClawd(urlPath, body, logTag) {
+function postTowangpet(urlPath, body, logTag) {
   // Enrich every outbound body with process-tree fields. Cached after first
   // call so this is just a few object assignments per POST.
   if (_stablePid) {
@@ -299,11 +299,11 @@ function postToClawd(urlPath, body, logTag) {
         });
         clearTimeout(timer);
         const elapsed = Date.now() - t0;
-        const header = res.headers.get("x-clawd-server");
+        const header = res.headers.get("x-wang-pet-server");
         debugLog(`POST[${reqId}] ${logTag} port=${port} status=${res.status} header=${header} elapsed=${elapsed}ms`);
         // Port range is unprivileged so another app could answer — require the
-        // Clawd identity header before trusting the response.
-        if (header === "clawd-on-desk") {
+        // WangPet identity header before trusting the response.
+        if (header === "wang-pet") {
           _cachedPort = port;
           try { await res.text(); } catch {}
           debugLog(`POST[${reqId}] ${logTag} OK port=${port}`);
@@ -323,18 +323,18 @@ function postToClawd(urlPath, body, logTag) {
   });
 }
 
-function postStateToClawd(body) {
-  postToClawd(STATE_PATH, body, `STATE state=${body.state}`);
+function postStateTowangpet(body) {
+  postTowangpet(STATE_PATH, body, `STATE state=${body.state}`);
 }
 
-// Fire-and-forget permission forward. Clawd decides allow/deny/always in its
+// Fire-and-forget permission forward. WangPet decides allow/deny/always in its
 // bubble UI and — critically — replies to opencode's own REST API directly
 // (POST ${server_url}permission/:request_id/reply). The plugin never waits.
-function postPermissionToClawd(body) {
-  postToClawd("/permission", body, `PERM tool=${body.tool_name} req=${body.request_id}`);
+function postPermissionTowangpet(body) {
+  postTowangpet("/permission", body, `PERM tool=${body.tool_name} req=${body.request_id}`);
 }
 
-// Clawd uses PascalCase event names matching Claude Code's hook vocabulary so
+// WangPet uses PascalCase event names matching Claude Code's hook vocabulary so
 // state.js transition rules (e.g. SubagentStop → working whitelist) are
 // reusable across agents.
 function addTokenUsageFields(body, event) {
@@ -366,7 +366,7 @@ function sendAssistantUsage(event) {
   const usage = accumulateAssistantUsage(event, _usageMessagesPerSession);
   if (!usage) return;
   debugLog(`TOKENS session=${usage.sessionId} model=${usage.model || "unknown"} input=${usage.inputTokens} output=${usage.outputTokens}`);
-  postStateToClawd({
+  postStateTowangpet({
     state: "idle",
     session_id: usage.sessionId,
     event: "TokenUsage",
@@ -401,11 +401,11 @@ function sendState(state, eventName, sessionId, nativeEvent) {
     agent_id: AGENT_ID,
   };
   addTokenUsageFields(body, nativeEvent);
-  postStateToClawd(body);
+  postStateTowangpet(body);
 }
 
-// Translate an opencode event into a Clawd (state, eventName) pair, or null
-// if Clawd should ignore it. Event shape (from runtime dumps):
+// Translate an opencode event into a WangPet (state, eventName) pair, or null
+// if WangPet should ignore it. Event shape (from runtime dumps):
 //   { type: "session.status", properties: { sessionID, status: { type } } }
 //   { type: "message.part.updated", properties: { part: { type, tool, state: { status } } } }
 function translateEvent(event) {
@@ -453,7 +453,7 @@ function translateEvent(event) {
     case "session.idle": {
       // Phase 3 (plan A): only the root session's idle fires the happy
       // animation. Subtask sessions (spawned by the `task` tool) end with
-      // SessionEnd so Clawd removes them from its tracking map — no happy
+      // SessionEnd so WangPet removes them from its tracking map — no happy
       // flash, no menu pollution. If _rootSessionId is null (no session
       // seen yet, should never happen), fall through to old behavior.
       const sid = props.sessionID || event.sessionID || null;
@@ -477,7 +477,7 @@ function translateEvent(event) {
 
 // Normalize ctx.serverUrl into a string with a trailing slash. opencode passes
 // a URL object in practice but we coerce defensively in case future versions
-// hand us a plain string. Trailing slash lets Clawd concat cleanly:
+// hand us a plain string. Trailing slash lets WangPet concat cleanly:
 //   `${server_url}permission/${request_id}/reply`
 function normalizeServerUrl(raw) {
   if (!raw) return "";
@@ -490,7 +490,7 @@ function normalizeServerUrl(raw) {
 // properties (only `id` = requestID), so we use _lastSeenSessionId (the most
 // recently seen session from state events) as a fallback, then _rootSessionId.
 // Phase 1 dedup/state machine logic does not run for permission events — they
-// ride a parallel channel and never translate to a Clawd state transition.
+// ride a parallel channel and never translate to a WangPet state transition.
 function handlePermissionAsked(event) {
   const p = (event && event.properties) || {};
   const requestId = p.id;
@@ -498,7 +498,7 @@ function handlePermissionAsked(event) {
     debugLog(`PERM skip: no request id in permission.asked`);
     return;
   }
-  postPermissionToClawd({
+  postPermissionTowangpet({
     agent_id: AGENT_ID,
     tool_name: p.permission || "unknown",
     tool_input: p.metadata || {},
@@ -507,7 +507,7 @@ function handlePermissionAsked(event) {
     session_id: _lastSeenSessionId || _rootSessionId || "default",
     request_id: requestId,
     server_url: _serverUrl,         // debug only, not used for replies
-    bridge_url: _bridgeUrl,         // ← Clawd POSTs decisions here
+    bridge_url: _bridgeUrl,         // ← WangPet POSTs decisions here
     bridge_token: _bridgeTokenHex,  // ← and authenticates with this
   });
 }
@@ -525,7 +525,7 @@ function verifyBridgeToken(headerValue) {
   try { return timingSafeEqual(candidate, _bridgeTokenBuf); } catch { return false; }
 }
 
-// Handle POST /reply from Clawd. Reads { request_id, reply } and forwards to
+// Handle POST /reply from WangPet. Reads { request_id, reply } and forwards to
 // the opencode in-process Hono router via ctx.client._client.post(). Return
 // 200 on success (opencode's own route returned 2xx), 4xx on auth/shape
 // errors, 502 if the upstream call itself throws.
@@ -643,8 +643,8 @@ export default async (ctx) => {
         }
         if (sid) _lastSeenSessionId = sid;
 
-        // Phase 2: permission.asked rides a parallel channel — forward to Clawd
-        // and skip state translation. Clawd replies directly to opencode's own
+        // Phase 2: permission.asked rides a parallel channel — forward to WangPet
+        // and skip state translation. WangPet replies directly to opencode's own
         // REST API, so we don't need to watch permission.replied here.
         if (event.type === "permission.asked") {
           handlePermissionAsked(event);

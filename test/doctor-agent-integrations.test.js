@@ -16,7 +16,7 @@ const { QWEN_CODE_HOOK_EVENTS, buildQwenCodeHookCommand } = require("../hooks/qw
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-doctor-agent-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-doctor-agent-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -61,7 +61,7 @@ function geminiHooksConfig(commandForEvent = (event) => `"/node" "/app/hooks/gem
   for (const event of GEMINI_HOOK_EVENTS) {
     hooks[event] = [{
       matcher: "*",
-      hooks: [{ name: "clawd", type: "command", command: commandForEvent(event) }],
+      hooks: [{ name: "wang-pet", type: "command", command: commandForEvent(event) }],
     }];
   }
   return hooks;
@@ -84,7 +84,7 @@ function antigravityDescriptor() {
 function antigravityHooksConfig(commandForEvent = (event) => `"/node" "/app/hooks/antigravity-hook.js" ${event}`) {
   // D2: state-only — no PreToolUse.
   return {
-    clawd: {
+    "wang-pet": {
       PreInvocation: [{ type: "command", command: commandForEvent("PreInvocation") }],
       PostToolUse: [{
         matcher: "*",
@@ -120,7 +120,7 @@ function qwenHooksConfig(commandForEvent = (event) => `"/node" "/app/hooks/qwen-
   for (const event of QWEN_CODE_HOOK_EVENTS) {
     hooks[event] = [{
       matcher: "*",
-      hooks: [{ name: "clawd", type: "command", command: commandForEvent(event) }],
+      hooks: [{ name: "wang-pet", type: "command", command: commandForEvent(event) }],
     }];
   }
   return { hooks };
@@ -189,7 +189,7 @@ describe("checkAgentIntegrations", () => {
     });
     const hermesDescriptor = baseDescriptor({
       agentId: "hermes",
-      marker: "clawd-on-desk",
+      marker: "wang-pet",
       configMode: "plugin-dir",
     });
 
@@ -287,7 +287,7 @@ describe("checkAgentIntegrations", () => {
     assert.deepStrictEqual(detail.supplementary, {
       key: "gemini_hooks",
       value: "enabled",
-      detail: "hooksConfig allows Clawd Gemini hooks",
+      detail: "hooksConfig allows WangPet Gemini hooks",
     });
   });
 
@@ -301,7 +301,7 @@ describe("checkAgentIntegrations", () => {
       hooks: {
         BeforeTool: [{
           matcher: "*",
-          hooks: [{ name: "clawd", type: "command", command: '"/node" "/app/hooks/gemini-hook.js" BeforeTool' }],
+          hooks: [{ name: "wang-pet", type: "command", command: '"/node" "/app/hooks/gemini-hook.js" BeforeTool' }],
         }],
       },
     });
@@ -330,7 +330,7 @@ describe("checkAgentIntegrations", () => {
     const detail = runOne(descriptor);
     assert.strictEqual(detail.status, "not-connected");
     assert.strictEqual(detail.level, "warning");
-    assert.strictEqual(detail.detail, "Gemini hooks are disabled in settings.json; Clawd preserves this user setting and will not receive hook events");
+    assert.strictEqual(detail.detail, "Gemini hooks are disabled in settings.json; WangPet preserves this user setting and will not receive hook events");
     assert.deepStrictEqual(detail.supplementary, {
       key: "gemini_hooks",
       value: "disabled-global",
@@ -349,7 +349,7 @@ describe("checkAgentIntegrations", () => {
       hooks: {
         BeforeTool: [{
           matcher: "*",
-          hooks: [{ name: "clawd", type: "command", command: '"/node" "/app/hooks/gemini-hook.js" BeforeTool' }],
+          hooks: [{ name: "wang-pet", type: "command", command: '"/node" "/app/hooks/gemini-hook.js" BeforeTool' }],
         }],
       },
       hooksConfig: {
@@ -359,7 +359,7 @@ describe("checkAgentIntegrations", () => {
 
     const detail = runOne(descriptor);
     assert.strictEqual(detail.status, "not-connected");
-    assert.strictEqual(detail.detail, "Gemini hooks are disabled in settings.json; Clawd preserves this user setting and will not receive hook events");
+    assert.strictEqual(detail.detail, "Gemini hooks are disabled in settings.json; WangPet preserves this user setting and will not receive hook events");
     assert.deepStrictEqual(detail.supplementary, {
       key: "gemini_hooks",
       value: "disabled-global",
@@ -368,7 +368,7 @@ describe("checkAgentIntegrations", () => {
     assert.strictEqual(detail.fixAction, undefined);
   });
 
-  it("turns Gemini ok into warning when hooksConfig.disabled includes clawd", () => {
+  it("turns Gemini ok into warning when hooksConfig.disabled includes WangPet", () => {
     const descriptor = baseDescriptor({
       agentId: "gemini-cli",
       marker: "gemini-hook.js",
@@ -377,7 +377,7 @@ describe("checkAgentIntegrations", () => {
     writeJson(descriptor.configPath, {
       hooks: geminiHooksConfig(),
       hooksConfig: {
-        disabled: ["clawd"],
+        disabled: ["wang-pet"],
       },
     });
 
@@ -386,8 +386,8 @@ describe("checkAgentIntegrations", () => {
     assert.strictEqual(detail.level, "warning");
     assert.deepStrictEqual(detail.supplementary, {
       key: "gemini_hooks",
-      value: "disabled-clawd",
-      detail: 'hooksConfig.disabled includes "clawd"',
+      value: "disabled-wangpet",
+      detail: 'hooksConfig.disabled includes "wang-pet"',
     });
     assert.strictEqual(detail.fixAction, undefined);
   });
@@ -411,7 +411,7 @@ describe("checkAgentIntegrations", () => {
     assert.deepStrictEqual(detail.supplementary, {
       key: "gemini_hooks",
       value: "enabled",
-      detail: "hooksConfig allows Clawd Gemini hooks",
+      detail: "hooksConfig allows WangPet Gemini hooks",
     });
     assert.strictEqual(detail.fixAction, undefined);
   });
@@ -487,7 +487,7 @@ describe("checkAgentIntegrations", () => {
   it("warns when Antigravity hooks are missing any required event", () => {
     const descriptor = antigravityDescriptor();
     writeAntigravityHooks(descriptor, {
-      clawd: {
+      "wang-pet": {
         PreToolUse: [{
           matcher: "*",
           hooks: [{ type: "command", command: '"/node" "/app/hooks/antigravity-hook.js" PreToolUse' }],
@@ -546,7 +546,7 @@ describe("checkAgentIntegrations", () => {
     assert.deepStrictEqual(detail.supplementary, {
       key: "qwen_hooks",
       value: "enabled",
-      detail: "settings.json allows Clawd Qwen hooks",
+      detail: "settings.json allows WangPet Qwen hooks",
     });
   });
 
@@ -591,7 +591,7 @@ describe("checkAgentIntegrations", () => {
       hooks: {
         PreToolUse: [{
           matcher: "*",
-          hooks: [{ name: "clawd", type: "command", command: '"/node" "/app/hooks/qwen-code-hook.js" PreToolUse' }],
+          hooks: [{ name: "wang-pet", type: "command", command: '"/node" "/app/hooks/qwen-code-hook.js" PreToolUse' }],
         }],
       },
     });
@@ -616,7 +616,7 @@ describe("checkAgentIntegrations", () => {
 
     assert.strictEqual(detail.status, "not-connected");
     assert.strictEqual(detail.level, "warning");
-    assert.strictEqual(detail.detail, "Qwen Code hooks are disabled in settings.json; Clawd preserves this user setting and will not receive hook events");
+    assert.strictEqual(detail.detail, "Qwen Code hooks are disabled in settings.json; WangPet preserves this user setting and will not receive hook events");
     assert.deepStrictEqual(detail.supplementary, {
       key: "qwen_hooks",
       value: "disabled-global",
@@ -625,23 +625,23 @@ describe("checkAgentIntegrations", () => {
     assert.strictEqual(detail.fixAction, undefined);
   });
 
-  it("does not offer automatic repair when Antigravity Clawd hooks are disabled", () => {
+  it("does not offer automatic repair when Antigravity WangPet hooks are disabled", () => {
     const descriptor = antigravityDescriptor();
     writeAntigravityHooks(descriptor, {
-      clawd: {
+      "wang-pet": {
         enabled: false,
-        ...antigravityHooksConfig().clawd,
+        ...antigravityHooksConfig()["wang-pet"],
       },
     });
 
     const detail = runOne(descriptor);
 
     assert.strictEqual(detail.status, "not-connected");
-    assert.strictEqual(detail.detail, "Antigravity Clawd hooks are disabled in hooks.json; Clawd preserves this user setting and will not receive hook events");
+    assert.strictEqual(detail.detail, "Antigravity WangPet hooks are disabled in hooks.json; WangPet preserves this user setting and will not receive hook events");
     assert.deepStrictEqual(detail.supplementary, {
       key: "antigravity_hooks",
-      value: "disabled-clawd",
-      detail: "clawd.enabled is false",
+      value: "disabled-wangpet",
+      detail: "WangPet.enabled is false",
     });
     assert.strictEqual(detail.fixAction, undefined);
   });
@@ -759,7 +759,7 @@ describe("checkAgentIntegrations", () => {
       configMode: "dir",
       nested: true,
     });
-    writeJson(path.join(agentsDir, "clawd.json"), {
+    writeJson(path.join(agentsDir, "wang-pet.json"), {
       hooks: {
         stop: [{ hooks: [{ command: '"/node" "/app/hooks/kiro-hook.js"' }] }],
       },
@@ -767,7 +767,7 @@ describe("checkAgentIntegrations", () => {
 
     const detail = runOne(descriptor);
     assert.strictEqual(detail.status, "ok");
-    assert.deepStrictEqual(detail.kiroScan.fullyValidFiles, ["clawd.json"]);
+    assert.deepStrictEqual(detail.kiroScan.fullyValidFiles, ["wang-pet.json"]);
   });
 
   it("does not offer automatic repair when Kiro agent configs are corrupt", () => {
@@ -797,11 +797,11 @@ describe("checkAgentIntegrations", () => {
       agentName: "Pi",
       eventSource: "extension",
       parentDir,
-      configPath: path.join(parentDir, "extensions", "clawd-on-desk"),
+      configPath: path.join(parentDir, "extensions", "wang-pet"),
       configMode: "pi-extension",
       marker: "index.ts",
       coreFile: "pi-extension-core.js",
-      markerFile: ".clawd-managed.json",
+      markerFile: ".wang-pet-managed.json",
     });
   }
 
@@ -830,8 +830,8 @@ describe("checkAgentIntegrations", () => {
 
   it("reports managed Pi extension as ok", () => {
     const descriptor = piDescriptor();
-    writeJson(path.join(descriptor.configPath, ".clawd-managed.json"), {
-      app: "clawd-on-desk",
+    writeJson(path.join(descriptor.configPath, ".wang-pet-managed.json"), {
+      app: "wang-pet",
       integration: "pi",
       managed: true,
     });
@@ -847,8 +847,8 @@ describe("checkAgentIntegrations", () => {
 
   it("reports managed Pi extension with missing copied files as repairable broken-path", () => {
     const descriptor = piDescriptor();
-    writeJson(path.join(descriptor.configPath, ".clawd-managed.json"), {
-      app: "clawd-on-desk",
+    writeJson(path.join(descriptor.configPath, ".wang-pet-managed.json"), {
+      app: "wang-pet",
       integration: "pi",
       managed: true,
     });
@@ -891,17 +891,17 @@ describe("checkAgentIntegrations", () => {
       configPath: path.join(parentDir, "openclaw.json"),
       configMode: "openclaw-plugin",
       marker: "openclaw-plugin",
-      pluginId: "clawd-on-desk",
+      pluginId: "wang-pet",
     });
   }
 
   function makeOpenClawPluginDir(root) {
     const pluginDir = path.join(root, "hooks", "openclaw-plugin");
     fs.mkdirSync(pluginDir, { recursive: true });
-    fs.writeFileSync(path.join(pluginDir, "index.js"), "export default { id: 'clawd-on-desk', register() {} };\n", "utf8");
+    fs.writeFileSync(path.join(pluginDir, "index.js"), "export default { id: 'wang-pet', register() {} };\n", "utf8");
     writeJson(path.join(pluginDir, "openclaw.plugin.json"), {
-      id: "clawd-on-desk",
-      name: "Clawd on Desk",
+      id: "wang-pet",
+      name: "wang-pet",
       description: "test",
       activation: { onStartup: true },
       configSchema: { type: "object", additionalProperties: false, properties: {} },
@@ -939,7 +939,7 @@ describe("checkAgentIntegrations", () => {
       plugins: {
         load: { paths: [pluginDir] },
         entries: {
-          "clawd-on-desk": {
+          "wang-pet": {
             enabled: true,
             hooks: { allowConversationAccess: false },
           },
@@ -959,7 +959,7 @@ describe("checkAgentIntegrations", () => {
     writeJson(descriptor.configPath, {
       plugins: {
         load: { paths: [pluginDir] },
-        entries: { "clawd-on-desk": { enabled: true } },
+        entries: { "wang-pet": { enabled: true } },
       },
     });
 
@@ -973,10 +973,10 @@ describe("checkAgentIntegrations", () => {
   it("checks Hermes plugin directory files and enabled marker", () => {
     const root = makeTempDir();
     const parentDir = path.join(root, ".hermes");
-    const pluginDir = path.join(parentDir, "plugins", "clawd-on-desk");
+    const pluginDir = path.join(parentDir, "plugins", "wang-pet");
     const descriptor = baseDescriptor({
       agentId: "hermes",
-      marker: "clawd-on-desk",
+      marker: "wang-pet",
       parentDir,
       configPath: pluginDir,
       configMode: "plugin-dir",
@@ -984,9 +984,9 @@ describe("checkAgentIntegrations", () => {
       configFilePath: path.join(parentDir, "config.yaml"),
     });
     fs.mkdirSync(pluginDir, { recursive: true });
-    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: clawd-on-desk\n", "utf8");
+    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: WangPet\n", "utf8");
     fs.writeFileSync(path.join(pluginDir, "__init__.py"), "# plugin\n", "utf8");
-    fs.writeFileSync(descriptor.configFilePath, "plugins:\n  enabled:\n    - clawd-on-desk\n", "utf8");
+    fs.writeFileSync(descriptor.configFilePath, "plugins:\n  enabled:\n    - WangPet\n", "utf8");
 
     const detail = runOne(descriptor, {
       prefs: { agents: { hermes: { enabled: true } } },
@@ -999,10 +999,10 @@ describe("checkAgentIntegrations", () => {
   it("reports Hermes plugin directory missing managed files as repairable", () => {
     const root = makeTempDir();
     const parentDir = path.join(root, ".hermes");
-    const pluginDir = path.join(parentDir, "plugins", "clawd-on-desk");
+    const pluginDir = path.join(parentDir, "plugins", "wang-pet");
     const descriptor = baseDescriptor({
       agentId: "hermes",
-      marker: "clawd-on-desk",
+      marker: "wang-pet",
       parentDir,
       configPath: pluginDir,
       configMode: "plugin-dir",
@@ -1010,7 +1010,7 @@ describe("checkAgentIntegrations", () => {
       configFilePath: path.join(parentDir, "config.yaml"),
     });
     fs.mkdirSync(pluginDir, { recursive: true });
-    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: clawd-on-desk\n", "utf8");
+    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: WangPet\n", "utf8");
 
     const detail = runOne(descriptor, {
       prefs: { agents: { hermes: { enabled: true } } },
@@ -1021,13 +1021,13 @@ describe("checkAgentIntegrations", () => {
     assert.deepStrictEqual(detail.fixAction, { type: "agent-integration", agentId: "hermes" });
   });
 
-  it("does not report Hermes ok when clawd-on-desk appears only in disabled plugins", () => {
+  it("does not report Hermes ok when WangPet appears only in disabled plugins", () => {
     const root = makeTempDir();
     const parentDir = path.join(root, ".hermes");
-    const pluginDir = path.join(parentDir, "plugins", "clawd-on-desk");
+    const pluginDir = path.join(parentDir, "plugins", "wang-pet");
     const descriptor = baseDescriptor({
       agentId: "hermes",
-      marker: "clawd-on-desk",
+      marker: "wang-pet",
       parentDir,
       configPath: pluginDir,
       configMode: "plugin-dir",
@@ -1035,11 +1035,11 @@ describe("checkAgentIntegrations", () => {
       configFilePath: path.join(parentDir, "config.yaml"),
     });
     fs.mkdirSync(pluginDir, { recursive: true });
-    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: clawd-on-desk\n", "utf8");
+    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: WangPet\n", "utf8");
     fs.writeFileSync(path.join(pluginDir, "__init__.py"), "# plugin\n", "utf8");
     fs.writeFileSync(
       descriptor.configFilePath,
-      "plugins:\n  enabled: []\n  disabled:\n    - clawd-on-desk\n",
+      "plugins:\n  enabled: []\n  disabled:\n    - WangPet\n",
       "utf8"
     );
 
@@ -1055,10 +1055,10 @@ describe("checkAgentIntegrations", () => {
   it("accepts Hermes inline enabled plugin lists", () => {
     const root = makeTempDir();
     const parentDir = path.join(root, ".hermes");
-    const pluginDir = path.join(parentDir, "plugins", "clawd-on-desk");
+    const pluginDir = path.join(parentDir, "plugins", "wang-pet");
     const descriptor = baseDescriptor({
       agentId: "hermes",
-      marker: "clawd-on-desk",
+      marker: "wang-pet",
       parentDir,
       configPath: pluginDir,
       configMode: "plugin-dir",
@@ -1066,11 +1066,11 @@ describe("checkAgentIntegrations", () => {
       configFilePath: path.join(parentDir, "config.yaml"),
     });
     fs.mkdirSync(pluginDir, { recursive: true });
-    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: clawd-on-desk\n", "utf8");
+    fs.writeFileSync(path.join(pluginDir, "plugin.yaml"), "name: WangPet\n", "utf8");
     fs.writeFileSync(path.join(pluginDir, "__init__.py"), "# plugin\n", "utf8");
     fs.writeFileSync(
       descriptor.configFilePath,
-      "plugins:\n  enabled: [\"clawd-on-desk\"]\n  disabled: []\n",
+      "plugins:\n  enabled: [\"WangPet\"]\n  disabled: []\n",
       "utf8"
     );
 
@@ -1085,7 +1085,7 @@ describe("checkAgentIntegrations", () => {
   it("keeps Hermes disabled as info-only by default", () => {
     const descriptor = baseDescriptor({
       agentId: "hermes",
-      marker: "clawd-on-desk",
+      marker: "wang-pet",
       configMode: "plugin-dir",
     });
 
@@ -1158,7 +1158,7 @@ describe("checkAgentIntegrations", () => {
 
 describe("findOpencodePluginEntry", () => {
   it("matches only absolute plugin entries by basename", () => {
-    const absEntry = "C:\\clawd\\hooks\\opencode-plugin";
+    const absEntry = "C:\\wang-pet\\hooks\\opencode-plugin";
     assert.strictEqual(
       findOpencodePluginEntry(["vendor/opencode-plugin", absEntry], "opencode-plugin"),
       absEntry
@@ -1168,7 +1168,7 @@ describe("findOpencodePluginEntry", () => {
 
 describe("findOpenClawPluginEntry", () => {
   it("matches only absolute plugin entries by basename", () => {
-    const absEntry = "C:\\clawd\\hooks\\openclaw-plugin";
+    const absEntry = "C:\\wang-pet\\hooks\\openclaw-plugin";
     assert.strictEqual(
       findOpenClawPluginEntry(["vendor/openclaw-plugin", absEntry], "openclaw-plugin"),
       absEntry

@@ -1,5 +1,5 @@
 // OpenClaw agent configuration
-// Perception via OpenClaw plugin hooks -> HTTP POST to Clawd.
+// Perception via OpenClaw plugin hooks -> HTTP POST to WangPet.
 
 module.exports = {
   id: "openclaw",

@@ -17,7 +17,7 @@ const DEBUG_MARKER = "codex-debug-hook.js";
 const tempDirs = [];
 
 function makeTempCodexDir(initialHooks = null, configText = null) {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-codex-install-"));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-codex-install-"));
   const codexDir = path.join(tmpDir, ".codex");
   fs.mkdirSync(codexDir, { recursive: true });
   if (initialHooks !== null) {
@@ -166,7 +166,7 @@ describe("Codex official hook installer", () => {
     assert.strictEqual(command, '& "C:\\Program Files\\nodejs\\node.exe" "D:/animation/hooks/codex-hook.js"');
   });
 
-  it("registers remote hooks with CLAWD_REMOTE in the command environment", () => {
+  it("registers remote hooks with WANGPET_REMOTE in the command environment", () => {
     const codexDir = makeTempCodexDir({});
     const result = registerCodexHooks({
       silent: true,
@@ -181,7 +181,7 @@ describe("Codex official hook installer", () => {
     const command = settings.hooks.SessionStart[0].hooks[0].command;
     assert.strictEqual(
       command,
-      "CLAWD_REMOTE='1' \"/usr/local/bin/node\" \"" + path.resolve(__dirname, "..", "hooks", "codex-hook.js").replace(/\\/g, "/") + "\""
+      "WANGPET_REMOTE='1' \"/usr/local/bin/node\" \"" + path.resolve(__dirname, "..", "hooks", "codex-hook.js").replace(/\\/g, "/") + "\""
     );
   });
 
@@ -200,7 +200,7 @@ describe("Codex official hook installer", () => {
     const command = settings.hooks.SessionStart[0].hooks[0].command;
     assert.strictEqual(
       command,
-      "$env:CLAWD_REMOTE='1'; & \"C:\\node.exe\" \"" + path.resolve(__dirname, "..", "hooks", "codex-hook.js").replace(/\\/g, "/") + "\""
+      "$env:WANGPET_REMOTE='1'; & \"C:\\node.exe\" \"" + path.resolve(__dirname, "..", "hooks", "codex-hook.js").replace(/\\/g, "/") + "\""
     );
   });
 
@@ -266,7 +266,7 @@ describe("Codex official hook installer", () => {
   it("does NOT emit the reminder line on no-op re-install (summary lines still emit)", () => {
     // Semantics being asserted: "no-op re-install does not print the
     // /hooks-review reminder line". This is intentionally narrower than
-    // "no-op re-install is fully silent on stdout" — `Clawd Codex hooks ->`
+    // "no-op re-install is fully silent on stdout" — `WangPet Codex hooks ->`
     // and `Added: 0, updated: 0, skipped: N` summary lines are useful for
     // CLI users who re-run the installer (they confirm the install is
     // already in place). Only the reminder is gated on actual changes,
@@ -294,7 +294,7 @@ describe("Codex official hook installer", () => {
       "no-op re-install must NOT print the reminder line");
     // Confirm summary lines DO still emit (this is the contract — keep
     // CLI feedback for users who want to verify the install state).
-    assert.match(joined, /Clawd .* hooks/, "summary header should still print");
+    assert.match(joined, /wang-pet .* hooks/, "summary header should still print");
     assert.match(joined, /Added: 0/, "Added/updated/skipped count should still print");
   });
 });

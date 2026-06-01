@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Clawd Desktop Pet — Kimi CLI Hook Script
+// WangPet Desktop Pet — Kimi CLI Hook Script
 // Usage: node kimi-hook.js <event_name>
 // Reads stdin JSON from Kimi CLI for session_id, cwd, tool_name, etc.
 
@@ -28,7 +28,7 @@ const EVENT_TO_STATE = {
 };
 
 // Tools that typically trigger a user-approval prompt in Kimi CLI.
-// When these tools fire PreToolUse, we flash notification so Clawd
+// When these tools fire PreToolUse, we flash notification so WangPet
 // visually signals that Kimi is waiting for permission.
 // Kimi CLI uses snake_case tool names in hook payloads (e.g. "shell",
 // "write_file") while logs show PascalCase.  Normalize before checking.
@@ -52,7 +52,7 @@ function resolvePermissionTools() {
   // Kimi currently does not expose a canonical "requires approval" list in
   // hook payload metadata. Keep a sane default and allow env override for
   // quick compatibility updates across CLI releases.
-  const raw = process.env.CLAWD_KIMI_PERMISSION_TOOLS;
+  const raw = process.env.WANGPET_KIMI_PERMISSION_TOOLS;
   if (!raw) return new Set(DEFAULT_PERMISSION_TOOLS);
   const fromEnv = raw
     .split(",")
@@ -65,8 +65,8 @@ const PERMISSION_TOOLS = resolvePermissionTools();
 const DEFAULT_KIMI_SESSIONS_ROOT = path.join(os.homedir(), ".kimi", "sessions");
 
 function readPermissionMode() {
-  const raw = typeof process.env.CLAWD_KIMI_PERMISSION_MODE === "string"
-    ? process.env.CLAWD_KIMI_PERMISSION_MODE.trim().toLowerCase()
+  const raw = typeof process.env.WANGPET_KIMI_PERMISSION_MODE === "string"
+    ? process.env.WANGPET_KIMI_PERMISSION_MODE.trim().toLowerCase()
     : "";
   if (raw === MODE_EXPLICIT || raw === MODE_SUSPECT) return raw;
   return null;
@@ -126,7 +126,7 @@ function hasKeywordPermissionSignal(payload, depth = 0) {
 }
 
 function readHookDebugMaxBytes() {
-  const raw = process.env.CLAWD_KIMI_HOOK_DEBUG_MAX_BYTES;
+  const raw = process.env.WANGPET_KIMI_HOOK_DEBUG_MAX_BYTES;
   if (typeof raw !== "string" || !raw.trim()) return DEFAULT_HOOK_DEBUG_MAX_BYTES;
   const parsed = Number.parseInt(raw.trim(), 10);
   if (!Number.isFinite(parsed) || parsed < 0) return DEFAULT_HOOK_DEBUG_MAX_BYTES;
@@ -134,9 +134,9 @@ function readHookDebugMaxBytes() {
 }
 
 function appendHookDebug(entry) {
-  if (process.env.CLAWD_KIMI_HOOK_DEBUG !== "1") return;
-  const debugPath = process.env.CLAWD_KIMI_HOOK_DEBUG_PATH
-    || path.join(os.homedir(), ".clawd", "kimi-hook-debug.jsonl");
+  if (process.env.WANGPET_KIMI_HOOK_DEBUG !== "1") return;
+  const debugPath = process.env.WANGPET_KIMI_HOOK_DEBUG_PATH
+    || path.join(os.homedir(), ".wang-pet", "kimi-hook-debug.jsonl");
   try {
     const line = `${JSON.stringify(entry)}\n`;
     const maxBytes = readHookDebugMaxBytes();
@@ -279,7 +279,7 @@ function isExplicitPermissionSignal(payload) {
 
 // Classification of PreToolUse for a permission-gated tool:
 //   "immediate"  — flip to notification right now (explicit payload signal,
-//                  or CLAWD_KIMI_PERMISSION_IMMEDIATE=1 legacy behavior).
+//                  or WANGPET_KIMI_PERMISSION_IMMEDIATE=1 legacy behavior).
 //   "suspect"    — keep state=working, ask the state machine to delay-promote
 //                  (cancelled if PostToolUse arrives quickly → auto-approved).
 //                  Optional behavior enabled by env.
@@ -292,16 +292,16 @@ function classifyPreTool(event, payload) {
   if (isExplicitPermissionSignal(payload)) return "immediate";
   // Full opt-out: never treat PreToolUse as a permission request unless the
   // payload itself said so.
-  if (process.env.CLAWD_KIMI_DISABLE_PRETOOL_PERMISSION === "1") return "none";
+  if (process.env.WANGPET_KIMI_DISABLE_PRETOOL_PERMISSION === "1") return "none";
   // Legacy behavior: any permission-gated PreToolUse flips notification
   // instantly. Useful for folks who want the visual cue no matter what.
-  if (process.env.CLAWD_KIMI_PERMISSION_IMMEDIATE === "1") return "immediate";
+  if (process.env.WANGPET_KIMI_PERMISSION_IMMEDIATE === "1") return "immediate";
   // Persistent mode switch (written into ~/.kimi/config.toml hook command).
   const mode = readPermissionMode();
   if (mode === MODE_SUSPECT) return "suspect";
   if (mode === MODE_EXPLICIT) return "none";
   // Optional suspect mode: manual opt-in.
-  if (process.env.CLAWD_KIMI_PERMISSION_SUSPECT === "1") return "suspect";
+  if (process.env.WANGPET_KIMI_PERMISSION_SUSPECT === "1") return "suspect";
   // Default: explicit-only mode to avoid false positives for long-running
   // auto-approved tools (sleep/npm/network I/O).
   return "none";
@@ -346,7 +346,7 @@ function buildStateBody(event, payload, resolve) {
   if (permissionSuspect) body.permission_suspect = true;
   if (cwd) body.cwd = cwd;
 
-  if (process.env.CLAWD_REMOTE) {
+  if (process.env.WANGPET_REMOTE) {
     body.host = readHostPrefix();
   } else {
     const { stablePid, agentPid, detectedEditor, pidChain } = resolve();
@@ -384,7 +384,7 @@ function main() {
     if (!EVENT_TO_STATE[event]) process.exit(0);
 
     // Pre-resolve on SessionStart (runs during stdin buffering, not after)
-    if (event === "SessionStart" && !process.env.CLAWD_REMOTE) resolve();
+    if (event === "SessionStart" && !process.env.WANGPET_REMOTE) resolve();
 
     const safePayload = payload || {};
     const classification = classifyPreTool(event, safePayload);

@@ -69,8 +69,8 @@ const PROBE_CHILD_TIMEOUT_MS = 5000;
 const BACKOFF_SCHEDULE_MS = [5000, 15000, 45000, 120000, 300000];
 const UNKNOWN_STRIKES_LIMIT = 3;
 
-const CLAWD_SERVER_HEADER = "x-clawd-server";
-const CLAWD_SERVER_ID = "clawd-on-desk";
+const WANGPET_SERVER_HEADER = "x-wang-pet-server";
+const WANGPET_SERVER_ID = "wang-pet";
 
 // ── Detect ssh client ──
 //
@@ -243,7 +243,7 @@ function classifyStderr(stderr) {
 // The probe is a single ssh + node-e GET against the remote forward port.
 // Exit codes are defined by buildProbeCommand below:
 //   0   header match + status 200 (connected)
-//   1   header match + non-200    (local Clawd server unhealthy)
+//   1   header match + non-200    (local WangPet server unhealthy)
 //   2   http.get error event       (forward up but server unresponsive)
 //   3   header mismatch            (port hijacked by another HTTP service)
 //   4   req.setTimeout fired       (server accepted TCP but hung)
@@ -284,7 +284,7 @@ function buildProbeCommand(remoteForwardPort, nodeBin = "node") {
   const url = `http://127.0.0.1:${remoteForwardPort}/state`;
   const js =
     `const r=require('http').get(${JSON.stringify(url)},res=>{` +
-      `const m=res.headers[${JSON.stringify(CLAWD_SERVER_HEADER)}]===${JSON.stringify(CLAWD_SERVER_ID)};` +
+      `const m=res.headers[${JSON.stringify(WANGPET_SERVER_HEADER)}]===${JSON.stringify(WANGPET_SERVER_ID)};` +
       `if(!m)process.exit(3);` +
       `process.exit(res.statusCode===200?0:1);` +
     `});` +
@@ -1215,8 +1215,8 @@ module.exports = {
   // factory
   createRemoteSshRuntime,
   // constants
-  CLAWD_SERVER_HEADER,
-  CLAWD_SERVER_ID,
+  WANGPET_SERVER_HEADER,
+  WANGPET_SERVER_ID,
   PROBE_WINDOW_MS,
   PROBE_MIN_GAP_MS,
   PROBE_CHILD_TIMEOUT_MS,

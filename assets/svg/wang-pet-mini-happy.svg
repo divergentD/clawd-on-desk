@@ -62,7 +62,7 @@
       }
     </style>
 
-    <!-- Reusable Pixel Art Sparkle (from clawd-happy.svg) -->
+    <!-- Reusable Pixel Art Sparkle (from wang-pet-happy.svg) -->
     <g id="px-sparkle">
       <rect class="spark-center" x="-0.5" y="-0.5" width="1" height="1" />
       <path class="spark-outer" d="M -0.5,-1.5 h1 v1 h-1 z

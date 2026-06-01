@@ -4,7 +4,7 @@
   const {
     getAgentEventSourceBadgeKey,
     sortAgentMetadataForSettings,
-  } = root.ClawdSettingsAgentOrder || {};
+  } = root.wangpetSettingsAgentOrder || {};
   let state = null;
   let runtime = null;
   let readers = null;
@@ -354,5 +354,5 @@
     };
   }
 
-  root.ClawdSettingsTabAgents = { init };
+  root.wangpetSettingsTabAgents = { init };
 })(globalThis);

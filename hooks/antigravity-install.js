@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Merge Clawd Antigravity hooks into ~/.gemini/config/hooks.json.
+// Merge WangPet Antigravity hooks into ~/.gemini/config/hooks.json.
 
 const fs = require("fs");
 const path = require("path");
@@ -17,7 +17,7 @@ const {
   windowsPowerShellBin,
 } = require("./json-utils");
 
-const HOOK_GROUP_ID = "clawd";
+const HOOK_GROUP_ID = "wang-pet";
 const MARKER = "antigravity-hook.js";
 const DEFAULT_PARENT_DIR = path.join(os.homedir(), ".gemini", "config");
 const DEFAULT_CONFIG_PATH = path.join(DEFAULT_PARENT_DIR, "hooks.json");
@@ -25,7 +25,7 @@ const DEFAULT_CONFIG_PATH = path.join(DEFAULT_PARENT_DIR, "hooks.json");
 // PreToolUse intentionally NOT registered. Antigravity 1.0.1 LLMs proactively
 // call the built-in `ask_permission` tool before sensitive actions, which then
 // triggers agy's native 5-option menu — there's no way for a hook to suppress
-// that menu. Layering a Clawd bubble on top of (or in front of) the native
+// that menu. Layering a WangPet bubble on top of (or in front of) the native
 // menu yields 8-10 confirmations for a single user task.
 // Antigravity stays a state-only integration; agy native menu owns permission.
 const ANTIGRAVITY_HOOK_EVENTS = [
@@ -103,7 +103,7 @@ function buildHookHandler(command, timeout = DEFAULT_HOOK_TIMEOUT_SECONDS) {
 
 function buildAntigravityHooks(commandForEvent) {
   return {
-    clawd: {
+    "wang-pet": {
       PreInvocation: [buildHookHandler(commandForEvent("PreInvocation"))],
       PostToolUse: [{
         matcher: "*",
@@ -138,7 +138,7 @@ function registerAntigravityHooks(options = {}) {
   const configPath = options.configPath || path.join(homeDir, ".gemini", "config", "hooks.json");
 
   if (!options.configPath && !hasAntigravityConfig(homeDir)) {
-    if (!options.silent) console.log("Clawd: Antigravity config not found - skipping Antigravity hook registration");
+    if (!options.silent) console.log("WangPet: Antigravity config not found - skipping Antigravity hook registration");
     return { installed: false, added: 0, updated: 0, skipped: 0, configPath };
   }
 
@@ -179,14 +179,14 @@ function registerAntigravityHooks(options = {}) {
   }
 
   if (!options.silent) {
-    console.log(`Clawd Antigravity hooks -> ${configPath}`);
+    console.log(`WangPet Antigravity hooks -> ${configPath}`);
     console.log(`  Added: ${added}, updated: ${updated}, skipped: ${skipped}`);
   }
 
   return { installed: true, added, updated, skipped, configPath };
 }
 
-function groupHasClawdMarker(group) {
+function groupHaswangpetMarker(group) {
   if (!group || typeof group !== "object" || Array.isArray(group)) return false;
   return ANTIGRAVITY_HOOK_EVENTS.some((event) =>
     collectHookCommandsFromEntries(group[event]).length > 0
@@ -199,13 +199,13 @@ function unregisterAntigravityHooks(options = {}) {
   const settings = normalizeSettings(readJsonIfExists(configPath));
   const group = settings[HOOK_GROUP_ID];
 
-  if (!groupHasClawdMarker(group)) {
+  if (!groupHaswangpetMarker(group)) {
     return { installed: !!group, removed: 0, changed: false, configPath };
   }
 
   delete settings[HOOK_GROUP_ID];
   const backupPath = writeJsonAtomicWithBackup(configPath, settings, options);
-  if (!options.silent) console.log(`Clawd Antigravity hook group removed -> ${configPath}`);
+  if (!options.silent) console.log(`WangPet Antigravity hook group removed -> ${configPath}`);
   const result = { installed: true, removed: 1, changed: true, configPath };
   if (options.backup === true) result.backupPath = backupPath;
   return result;
@@ -226,7 +226,7 @@ module.exports = {
     decodeWindowsEncodedCommand,
     extractExistingAntigravityNodeBin,
     extractNodeBinFromCommand,
-    groupHasClawdMarker,
+    groupHaswangpetMarker,
     hasAntigravityConfig,
     normalizeSettings,
     resolveAntigravityNodeBin,

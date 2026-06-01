@@ -25,19 +25,19 @@ const {
   fetchSidecarBinaries,
 } = require("../scripts/fetch-sidecar-binaries");
 
-test("release source is pinned to the public Clawd fork tag", () => {
+test("release source is pinned to the public WangPet fork tag", () => {
   assert.deepEqual(DEFAULT_RELEASE, {
     owner: "rullerzhou-afk",
-    repo: "cc-connect-clawd",
-    tag: "clawd-sidecar-v0.1.1",
+    repo: "cc-connect-wang-pet",
+    tag: "wang-pet-sidecar-v0.1.1",
   });
   assert.equal(
-    checksumFor("cc-connect-clawd-windows-x64.zip"),
+    checksumFor("cc-connect-wang-pet-windows-x64.zip"),
     "afb79e68f1cc12f33c74500c2596ec3eeb6b92d9ccf86afbe741d0cf41b12c1e"
   );
   assert.equal(
-    releaseAssetUrl("cc-connect-clawd-windows-x64.zip"),
-    "https://github.com/rullerzhou-afk/cc-connect-clawd/releases/download/clawd-sidecar-v0.1.1/cc-connect-clawd-windows-x64.zip"
+    releaseAssetUrl("cc-connect-wang-pet-windows-x64.zip"),
+    "https://github.com/rullerzhou-afk/cc-connect-wang-pet/releases/download/wang-pet-sidecar-v0.1.1/cc-connect-wang-pet-windows-x64.zip"
   );
 });
 
@@ -46,17 +46,17 @@ test("package exposes the sidecar fetch command", () => {
   assert.equal(pkg.scripts["fetch:sidecars"], FETCH_COMMAND);
 });
 
-test("manifest maps archives and install paths to Clawd sidecar layout", () => {
+test("manifest maps archives and install paths to WangPet sidecar layout", () => {
   const rootDir = "D:\\repo";
   const manifest = buildReleaseManifest({ rootDir, target: "windows-x64,linux-x64" });
   assert.deepEqual(manifest.targets.map((target) => target.dir), ["windows-x64", "linux-x64"]);
-  assert.equal(manifest.targets[0].archive, "cc-connect-clawd-windows-x64.zip");
-  assert.equal(manifest.targets[0].archiveSha256, PINNED_CHECKSUMS["cc-connect-clawd-windows-x64.zip"]);
-  assert.equal(manifest.targets[0].binaryChecksumName, "windows-x64/cc-connect-clawd.exe");
-  assert.equal(manifest.targets[0].binarySha256, PINNED_CHECKSUMS["windows-x64/cc-connect-clawd.exe"]);
+  assert.equal(manifest.targets[0].archive, "cc-connect-wang-pet-windows-x64.zip");
+  assert.equal(manifest.targets[0].archiveSha256, PINNED_CHECKSUMS["cc-connect-wang-pet-windows-x64.zip"]);
+  assert.equal(manifest.targets[0].binaryChecksumName, "windows-x64/cc-connect-wang-pet.exe");
+  assert.equal(manifest.targets[0].binarySha256, PINNED_CHECKSUMS["windows-x64/cc-connect-wang-pet.exe"]);
   assert.equal(
     manifest.targets[0].binaryPath,
-    path.join(rootDir, "bin", "cc-connect-clawd", "windows-x64", "cc-connect-clawd.exe")
+    path.join(rootDir, "bin", "cc-connect-wang-pet", "windows-x64", "cc-connect-wang-pet.exe")
   );
 });
 
@@ -75,27 +75,27 @@ test("selectTargets dedupes and rejects Go arch directory names", () => {
 });
 
 test("parseChecksums accepts release checksum format and rejects unsafe names", () => {
-  const checksums = parseChecksums(`${"a".repeat(64)}  windows-x64/cc-connect-clawd.exe\n`);
-  assert.equal(checksums.get("windows-x64/cc-connect-clawd.exe"), "a".repeat(64));
+  const checksums = parseChecksums(`${"a".repeat(64)}  windows-x64/cc-connect-wang-pet.exe\n`);
+  assert.equal(checksums.get("windows-x64/cc-connect-wang-pet.exe"), "a".repeat(64));
   assert.throws(() => parseChecksums(`${"b".repeat(64)}  ../secret\n`), /Unsafe checksum path/);
 });
 
 test("extractZipEntry reads the single sidecar executable", () => {
   const data = Buffer.from("windows binary");
-  const archive = makeZip("cc-connect-clawd.exe", data);
-  assert.deepEqual(extractZipEntry(archive, "cc-connect-clawd.exe"), data);
+  const archive = makeZip("cc-connect-wang-pet.exe", data);
+  assert.deepEqual(extractZipEntry(archive, "cc-connect-wang-pet.exe"), data);
   assert.throws(() => extractZipEntry(archive, "missing.exe"), /missing/);
 });
 
 test("extractTarGzEntry reads the single sidecar executable", () => {
   const data = Buffer.from("linux binary");
-  const archive = makeTarGz("cc-connect-clawd", data);
-  assert.deepEqual(extractTarGzEntry(archive, "cc-connect-clawd"), data);
+  const archive = makeTarGz("cc-connect-wang-pet", data);
+  assert.deepEqual(extractTarGzEntry(archive, "cc-connect-wang-pet"), data);
   assert.throws(() => extractTarGzEntry(archive, "missing"), /missing/);
 });
 
 test("fetchSidecarBinaries downloads, verifies, extracts, and installs selected target", async () => {
-  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-sidecars-"));
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-sidecars-"));
   const release = { owner: "owner", repo: "repo", tag: "tag" };
   const target = selectTargets("windows-x64")[0];
   const binary = Buffer.from("verified windows binary");
@@ -127,7 +127,7 @@ test("fetchSidecarBinaries downloads, verifies, extracts, and installs selected 
 });
 
 test("fetchSidecarBinaries fails closed on checksum mismatch", async () => {
-  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-sidecars-"));
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-sidecars-"));
   const release = { owner: "owner", repo: "repo", tag: "tag" };
   const target = selectTargets("windows-x64")[0];
   const binary = Buffer.from("verified windows binary");

@@ -319,7 +319,7 @@ function registerCodexCommandHooks(options = {}) {
 
   const { codexDir, hooksPath, configPath } = getCodexPaths(options);
   if (!options.hooksPath && !options.codexDir && !fs.existsSync(codexDir)) {
-    if (!options.silent) console.log("Clawd: ~/.codex/ not found - skipping Codex hook registration");
+    if (!options.silent) console.log("WangPet: ~/.codex/ not found - skipping Codex hook registration");
     return { added: 0, skipped: 0, updated: 0, configChanged: false, warnings: [] };
   }
 
@@ -342,7 +342,7 @@ function registerCodexCommandHooks(options = {}) {
   );
   const commandEnv = {
     ...(options.env || {}),
-    ...(options.remote ? { CLAWD_REMOTE: "1" } : {}),
+    ...(options.remote ? { WANGPET_REMOTE: "1" } : {}),
   };
   const desiredCommand = withCommandEnv(
     baseCommand,
@@ -408,7 +408,7 @@ function registerCodexCommandHooks(options = {}) {
 
   if (!options.silent) {
     const label = options.label || "Codex hooks";
-    console.log(`Clawd ${label} -> ${hooksPath}`);
+    console.log(`WangPet ${label} -> ${hooksPath}`);
     console.log(`  Added: ${added}, updated: ${updated}, skipped: ${skipped}`);
     if (feature.changed) console.log(`  Updated [features].hooks in ${configPath}`);
     for (const warning of warnings) console.warn(`  Warning: ${warning}`);
@@ -462,7 +462,7 @@ function unregisterCodexCommandHooks(options = {}) {
 
   let backupPath = null;
   if (changed) backupPath = writeJsonAtomicWithBackup(hooksPath, settings, options);
-  if (!options.silent) console.log(`Clawd Codex hooks removed: ${removed}`);
+  if (!options.silent) console.log(`WangPet Codex hooks removed: ${removed}`);
   const result = { removed, changed };
   if (options.backup === true) result.backupPath = backupPath;
   return result;

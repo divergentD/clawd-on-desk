@@ -75,7 +75,7 @@ class FakeElement {
   querySelectorAll() {
     return this.children.filter((child) => (
       child.tagName === "OBJECT"
-      || (child.tagName === "IMG" && String(child.className).split(/\s+/).includes("clawd-img"))
+      || (child.tagName === "IMG" && String(child.className).split(/\s+/).includes("wang-pet-img"))
     ));
   }
 }
@@ -87,16 +87,16 @@ function createRendererHarness() {
   const container = new FakeElement("div");
   container.id = "pet-container";
   container.isConnected = true;
-  const clawd = new FakeElement("object");
-  clawd.id = "clawd";
-  clawd.data = "../assets/svg/current.svg";
-  clawd.style.opacity = "0";
-  container.appendChild(clawd);
+  const WangPet = new FakeElement("object");
+  WangPet.id = "wang-pet";
+  WangPet.data = "../assets/svg/current.svg";
+  WangPet.style.opacity = "0";
+  container.appendChild(WangPet);
 
   const document = {
     getElementById(id) {
       if (id === "pet-container") return container;
-      if (id === "clawd") return clawd;
+      if (id === "wang-pet") return WangPet;
       return null;
     },
     createElement(tagName) {
@@ -159,14 +159,14 @@ globalThis.__rendererTest = {
   get pendingNext() { return pendingNext; },
   get pendingSvgFile() { return pendingSvgFile; },
   get activeSwapToken() { return activeSwapToken; },
-  get clawdEl() { return clawdEl; },
+  get wangpetEl() { return wangpetEl; },
 };`;
   vm.runInNewContext(source, context);
 
   return {
     context,
     container,
-    clawd,
+    WangPet,
     timers,
     audioInstances,
     electronHandlers,
@@ -295,7 +295,7 @@ describe("renderer object-channel selection", () => {
     assert.strictEqual(harness.api.pendingNext.tagName, "IMG");
     assert.strictEqual(harness.api.pendingSvgFile, "next.svg");
     assert.strictEqual(
-      harness.container.querySelectorAll().some((el) => el.tagName === "OBJECT" && el !== harness.clawd),
+      harness.container.querySelectorAll().some((el) => el.tagName === "OBJECT" && el !== harness.api.wangpetEl),
       false
     );
   });
@@ -314,7 +314,7 @@ describe("renderer object-channel selection", () => {
 
   it("does not rescue over an already visible pet element", () => {
     const harness = createRendererHarness();
-    harness.clawd.style.opacity = "1";
+    harness.api.wangpetEl.style.opacity = "1";
 
     harness.api.swapToFile("next.svg", "idle", true);
     const rescue = harness.activeTimers().find((timer) => timer.ms === 3750);
@@ -382,8 +382,8 @@ describe("renderer glyph flip compensation", () => {
   it("notifies object-channel SVGs when mini-left glyph compensation changes", () => {
     const source = fs.readFileSync(RENDERER, "utf8");
 
-    assert.ok(source.includes("typeof svgWindow.__clawdSetGlyphFlipCompensation === \"function\""));
-    assert.ok(source.includes("svgWindow.__clawdSetGlyphFlipCompensation(true);"));
-    assert.ok(source.includes("svgWindow.__clawdSetGlyphFlipCompensation(false);"));
+    assert.ok(source.includes("typeof svgWindow.__wangpetSetGlyphFlipCompensation === \"function\""));
+    assert.ok(source.includes("svgWindow.__wangpetSetGlyphFlipCompensation(true);"));
+    assert.ok(source.includes("svgWindow.__wangpetSetGlyphFlipCompensation(false);"));
   });
 });

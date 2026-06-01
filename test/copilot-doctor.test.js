@@ -18,7 +18,7 @@ const { COPILOT_HOOK_EVENTS, MARKER } = require("../hooks/copilot-install");
 const tempDirs = [];
 
 function makeTempCopilotHome() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-copilot-doctor-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-copilot-doctor-"));
   const parentDir = path.join(root, ".copilot");
   fs.mkdirSync(path.join(parentDir, "hooks"), { recursive: true });
   tempDirs.push(root);
@@ -81,7 +81,7 @@ afterEach(() => {
 });
 
 describe("Copilot doctor — happy path", () => {
-  it("ok when all 10 events register Clawd hook in bash field", () => {
+  it("ok when all 10 events register WangPet hook in bash field", () => {
     const parentDir = makeTempCopilotHome();
     const descriptor = copilotDescriptor(parentDir);
     writeJson(descriptor.configPath, copilotHooksConfig(COPILOT_HOOK_EVENTS));
@@ -120,7 +120,7 @@ describe("Copilot doctor — happy path", () => {
 
 describe("Copilot doctor — missing / broken paths", () => {
   it("not-installed when parent dir is absent", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-copilot-doctor-empty-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-copilot-doctor-empty-"));
     tempDirs.push(root);
     const descriptor = copilotDescriptor(path.join(root, "absent"));
 

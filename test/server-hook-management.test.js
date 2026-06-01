@@ -79,7 +79,7 @@ function makeServer(overrides = {}) {
       Stop: [
         {
           matcher: "",
-          hooks: [{ type: "command", command: 'node "/tmp/clawd-hook.js" Stop' }],
+          hooks: [{ type: "command", command: 'node "/tmp/wang-pet-hook.js" Stop' }],
         },
       ],
       PermissionRequest: [
@@ -111,7 +111,7 @@ function makeServer(overrides = {}) {
         return settingsRaw;
       },
     },
-    syncClawdHooksImpl: () => syncCalls.push("claude"),
+    syncwangpetHooksImpl: () => syncCalls.push("claude"),
     syncGeminiHooksImpl: () => syncCalls.push("gemini"),
     syncAntigravityHooksImpl: () => syncCalls.push("antigravity"),
     syncCursorHooksImpl: () => syncCalls.push("cursor"),
@@ -243,7 +243,7 @@ describe("server Claude hook management", () => {
         Stop: [
           {
             matcher: "",
-            hooks: [{ type: "command", command: 'node "/tmp/clawd-hook.js" Stop' }],
+            hooks: [{ type: "command", command: 'node "/tmp/wang-pet-hook.js" Stop' }],
           },
         ],
       },
@@ -263,7 +263,7 @@ describe("server Claude hook management", () => {
         Stop: [
           {
             matcher: "",
-            hooks: [{ type: "command", command: 'node "/tmp/clawd-hook.js" Stop' }],
+            hooks: [{ type: "command", command: 'node "/tmp/wang-pet-hook.js" Stop' }],
           },
         ],
         PermissionRequest: [

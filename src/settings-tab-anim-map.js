@@ -89,7 +89,7 @@
     note.textContent = t("animMapSemanticsNote");
     parent.appendChild(note);
 
-    const themeId = (state.snapshot && state.snapshot.theme) || "clawd";
+    const themeId = (state.snapshot && state.snapshot.theme) || "wang-pet";
     const rows = ANIM_MAP_ROWS.map((spec) => buildAnimMapRow(spec, themeId));
     parent.appendChild(helpers.buildSection("", rows));
 
@@ -150,5 +150,5 @@
     };
   }
 
-  root.ClawdSettingsTabAnimMap = { init };
+  root.wangpetSettingsTabAnimMap = { init };
 })(globalThis);

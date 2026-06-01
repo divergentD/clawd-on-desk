@@ -555,5 +555,5 @@
     };
   }
 
-  root.ClawdSettingsTabTheme = { init };
+  root.wangpetSettingsTabTheme = { init };
 })(globalThis);

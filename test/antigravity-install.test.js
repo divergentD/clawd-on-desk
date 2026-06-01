@@ -15,7 +15,7 @@ const {
 const tempDirs = [];
 
 function makeTempHome({ withConfig = true } = {}) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-antigravity-home-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-antigravity-home-"));
   tempDirs.push(home);
   if (withConfig) fs.mkdirSync(path.join(home, ".gemini", "config"), { recursive: true });
   return home;
@@ -28,7 +28,7 @@ function readJson(filePath) {
 function listCleanupBackups(filePath) {
   const dir = path.dirname(filePath);
   const base = path.basename(filePath);
-  return fs.readdirSync(dir).filter((name) => name.startsWith(`${base}.clawd-cleanup-`));
+  return fs.readdirSync(dir).filter((name) => name.startsWith(`${base}.wang-pet-cleanup-`));
 }
 
 function decodeEncodedCommand(command) {
@@ -114,7 +114,7 @@ describe("Antigravity hook installer", () => {
     assert.ok(hooks[HOOK_GROUP_ID]);
   });
 
-  it("preserves a manually disabled Clawd hook group (enabled:false carries over)", () => {
+  it("preserves a manually disabled WangPet hook group (enabled:false carries over)", () => {
     const homeDir = makeTempHome();
     const configPath = path.join(homeDir, ".gemini", "config", "hooks.json");
     fs.writeFileSync(configPath, JSON.stringify({ [HOOK_GROUP_ID]: { enabled: false } }));
@@ -165,9 +165,9 @@ describe("Antigravity hook installer", () => {
   });
 
   it("strips a legacy PreToolUse entry on auto-sync (D2 migration)", () => {
-    // Simulates a user who installed Clawd before the D2 decision. Their
-    // hooks.json has a Clawd-owned PreToolUse entry. Next startup sync
-    // must rewrite the clawd group to the new 4-event shape, removing
+    // Simulates a user who installed WangPet before the D2 decision. Their
+    // hooks.json has a wang-pet-owned PreToolUse entry. Next startup sync
+    // must rewrite the WangPet group to the new 4-event shape, removing
     // the orphan PreToolUse without manual action.
     const homeDir = makeTempHome();
     const configPath = path.join(homeDir, ".gemini", "config", "hooks.json");
@@ -200,7 +200,7 @@ describe("Antigravity hook installer", () => {
   it("builds Windows PowerShell bridge commands with the event argv", () => {
     const command = __test.buildAntigravityHookCommand(
       "C:\\Program Files\\nodejs\\node.exe",
-      "D:/clawd/hooks/antigravity-hook.js",
+      "D:/wang-pet/hooks/antigravity-hook.js",
       "PreToolUse",
       { platform: "win32", powerShellBin: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" }
     );
@@ -208,7 +208,7 @@ describe("Antigravity hook installer", () => {
     assert.ok(command.startsWith("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "));
     assert.strictEqual(
       decodeEncodedCommand(command),
-      "& 'C:\\Program Files\\nodejs\\node.exe' 'D:/clawd/hooks/antigravity-hook.js' 'PreToolUse'"
+      "& 'C:\\Program Files\\nodejs\\node.exe' 'D:/wang-pet/hooks/antigravity-hook.js' 'PreToolUse'"
     );
   });
 
@@ -238,7 +238,7 @@ describe("Antigravity hook installer", () => {
     const nodeBin = "C:\\Program Files\\nodejs\\node.exe";
     const resolved = __test.resolveAntigravityNodeBin({
       platform: "win32",
-      execPath: "C:\\Program Files\\Clawd\\Clawd.exe",
+      execPath: "C:\\Program Files\\wang-pet\\wang-pet.exe",
       execFileSync: () => `${nodeBin}\r\n`,
       accessSync: (candidate) => {
         if (candidate !== nodeBin) throw new Error(`unexpected access: ${candidate}`);
@@ -251,7 +251,7 @@ describe("Antigravity hook installer", () => {
   it("ignores Windows scoop shims through the shared node resolver", () => {
     const resolved = __test.resolveAntigravityNodeBin({
       platform: "win32",
-      execPath: "C:\\Program Files\\Clawd\\Clawd.exe",
+      execPath: "C:\\Program Files\\wang-pet\\wang-pet.exe",
       execFileSync: () => "C:\\Users\\me\\scoop\\shims\\node.exe\r\n",
       accessSync: () => {},
       env: {
@@ -278,7 +278,7 @@ describe("Antigravity hook installer", () => {
       silent: true,
       homeDir,
       platform: "win32",
-      execPath: "C:\\Program Files\\Clawd\\Clawd.exe",
+      execPath: "C:\\Program Files\\wang-pet\\wang-pet.exe",
       execFileSync: () => { throw new Error("where failed"); },
       accessSync: () => { throw new Error("missing"); },
       powerShellBin: options.powerShellBin,
@@ -290,7 +290,7 @@ describe("Antigravity hook installer", () => {
     assert.match(decodeEncodedCommand(hooks[HOOK_GROUP_ID].PreInvocation[0].command), /C:\\Tools\\node\.exe/);
   });
 
-  it("unregister removes the clawd group only when it contains a Clawd marker", () => {
+  it("unregister removes the WangPet group only when it contains a WangPet marker", () => {
     const homeDir = makeTempHome();
     const configPath = path.join(homeDir, ".gemini", "config", "hooks.json");
     fs.writeFileSync(configPath, JSON.stringify({
@@ -317,12 +317,12 @@ describe("Antigravity hook installer", () => {
     assert.strictEqual(listCleanupBackups(configPath).length, 1);
   });
 
-  it("unregister preserves a same-name clawd group without a Clawd marker", () => {
+  it("unregister preserves a same-name WangPet group without a WangPet marker", () => {
     const homeDir = makeTempHome();
     const configPath = path.join(homeDir, ".gemini", "config", "hooks.json");
     const original = {
       [HOOK_GROUP_ID]: {
-        Stop: [{ type: "command", command: "echo user-owned clawd group" }],
+        Stop: [{ type: "command", command: "echo user-owned WangPet group" }],
       },
     };
     fs.writeFileSync(configPath, JSON.stringify(original, null, 2), "utf8");

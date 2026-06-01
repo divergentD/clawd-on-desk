@@ -146,7 +146,7 @@ describe("doctor agent descriptors", () => {
     const os = require("node:os");
     const fs = require("node:fs");
 
-    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-copilot-env-desc-"));
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-copilot-env-desc-"));
     const prevEnv = process.env.COPILOT_HOME;
     process.env.COPILOT_HOME = tempHome;
 

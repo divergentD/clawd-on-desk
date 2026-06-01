@@ -7,8 +7,8 @@ const { keepOutOfTaskbar } = require("./taskbar");
 const path = require("path");
 const http = require("http");
 const {
-  CLAWD_SERVER_HEADER,
-  CLAWD_SERVER_ID,
+  WANGPET_SERVER_HEADER,
+  WANGPET_SERVER_ID,
 } = require("../hooks/server-config");
 
 const isMac = process.platform === "darwin";
@@ -86,11 +86,11 @@ function clampBubbleHeight(naturalHeight, workAreaHeight, reserve = BUBBLE_HEIGH
 function deferMacFloatingVisibility(ctx, win) {
   if (!isMac || !win || win.isDestroyed()) return;
   const deferUntil = Date.now() + MAC_FLOATING_TOPMOST_DELAY_MS;
-  win.__clawdMacDeferredVisibilityUntil = deferUntil;
+  win.__wangpetMacDeferredVisibilityUntil = deferUntil;
   setTimeout(() => {
     if (!win || win.isDestroyed()) return;
-    if (win.__clawdMacDeferredVisibilityUntil === deferUntil) {
-      delete win.__clawdMacDeferredVisibilityUntil;
+    if (win.__wangpetMacDeferredVisibilityUntil === deferUntil) {
+      delete win.__wangpetMacDeferredVisibilityUntil;
     }
     if (typeof ctx.reapplyMacVisibility === "function") ctx.reapplyMacVisibility();
   }, MAC_FLOATING_TOPMOST_DELAY_MS);
@@ -213,7 +213,7 @@ function computePassiveNotifyRemainingMs(createdAt, autoCloseMs, now = Date.now(
 //   3. corner fallback — only when neither side has bw of clearance, fall
 //                         back to the work area's bottom-right corner
 //
-// followPet=false → bottom-right of the work area (default Clawd behavior).
+// followPet=false → bottom-right of the work area (default WangPet behavior).
 //
 // Visual invariant across ALL branches: bubbles[0] (oldest) ends up at the
 // highest y, bubbles[N-1] (newest) at the lowest y. Crossing a layout
@@ -602,7 +602,7 @@ function showPermissionBubble(permEntry) {
   repositionDependentBubbles();
   keepOutOfTaskbar(bub);
   // macOS: constructing/raising a topmost panel too early can still activate
-  // Clawd on some setups. Defer topmost restoration until after showInactive.
+  // WangPet on some setups. Defer topmost restoration until after showInactive.
   if (isMac) deferMacFloatingVisibility(ctx, bub);
   else ctx.reapplyMacVisibility();
 
@@ -772,7 +772,7 @@ function isRemoteApprovalActionable(permEntry) {
 // Returns a redacted summary string, or null when no agent-supplied description
 // is available. We refuse to send a Telegram approval card without something
 // describing the action — the local bubble shows the full tool input, so a
-// Telegram-only "Tool input hidden by Clawd." card would let the user approve
+// Telegram-only "Tool input hidden by WangPet." card would let the user approve
 // a black box.
 function buildRemoteApprovalSummary(permEntry) {
   const input = permEntry && permEntry.toolInput && typeof permEntry.toolInput === "object"
@@ -837,7 +837,7 @@ function buildRemoteApprovalPayload(permEntry) {
     basenameForDisplay((session && session.cwd) || permEntry.cwd || ""),
     80
   );
-  // Label is "Folder" (not "Session") on purpose: the pinned cc-connect-clawd
+  // Label is "Folder" (not "Session") on purpose: the pinned cc-connect-wang-pet
   // sidecar redacts any "<sensitive_key>: <value>" pair it recognises, and
   // "session" is in its keyword set — even though the value here is just the
   // cwd basename, not a session id. "Folder" is plain and avoids the redact.
@@ -1227,7 +1227,7 @@ function sendPermissionResponse(res, decisionOrBehavior, message, hookEventName 
   permLog(`response: ${responseBody}`);
   res.writeHead(200, {
     "Content-Type": "application/json",
-    [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID,
+    [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID,
   });
   res.end(responseBody);
 }
@@ -1235,7 +1235,7 @@ function sendPermissionResponse(res, decisionOrBehavior, message, hookEventName 
 function sendNoDecisionResponse(res, reason = "", label = "permission") {
   if (!res || res.writableEnded || res.destroyed || res.headersSent) return false;
   if (reason) permLog(`${label} no-decision: ${reason}`);
-  res.writeHead(204, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
+  res.writeHead(204, { [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID });
   res.end();
   return true;
 }
@@ -1253,7 +1253,7 @@ function sendCodexPermissionResponse(res, decisionOrBehavior, message) {
   permLog(`codex response: ${responseBody}`);
   res.writeHead(200, {
     "Content-Type": "application/json",
-    [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID,
+    [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID,
   });
   res.end(responseBody);
   return true;
@@ -1272,7 +1272,7 @@ function sendQwenCodePermissionResponse(res, decisionOrBehavior, message) {
   permLog(`qwen-code response: ${responseBody}`);
   res.writeHead(200, {
     "Content-Type": "application/json",
-    [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID,
+    [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID,
   });
   res.end(responseBody);
   return true;
@@ -1291,7 +1291,7 @@ function sendAntigravityPermissionResponse(res, decisionOrBehavior, message) {
   permLog(`antigravity response: ${responseBody}`);
   res.writeHead(200, {
     "Content-Type": "application/json",
-    [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID,
+    [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID,
   });
   res.end(responseBody);
   return true;
@@ -1613,8 +1613,8 @@ function cleanup() {
   for (const perm of [...pendingPermissions]) {
     if (perm._delayTimer) clearTimeout(perm._delayTimer);
     if (perm.autoExpireTimer) clearTimeout(perm.autoExpireTimer);
-    if (perm.isCodex || perm.isQwenCode || perm.isAntigravity) resolvePermissionEntry(perm, "no-decision", "Clawd is quitting");
-    else resolvePermissionEntry(perm, "deny", "Clawd is quitting");
+    if (perm.isCodex || perm.isQwenCode || perm.isAntigravity) resolvePermissionEntry(perm, "no-decision", "WangPet is quitting");
+    else resolvePermissionEntry(perm, "deny", "WangPet is quitting");
   }
 }
 

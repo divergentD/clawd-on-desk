@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 function makeTempRoot() {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-theme-metadata-"));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-theme-metadata-"));
   tempDirs.push(tmp);
   const builtinThemesDir = path.join(tmp, "themes");
   const userThemesDir = path.join(tmp, "userThemes");
@@ -188,9 +188,9 @@ describe("theme metadata facade helpers", () => {
 
   it("scans built-in and user metadata while skipping scaffold, malformed, and duplicate user themes", () => {
     const { builtinThemesDir, userThemesDir } = makeTempRoot();
-    writeTheme(builtinThemesDir, "clawd", validThemeJson({ name: "Builtin Clawd" }));
+    writeTheme(builtinThemesDir, "wang-pet", validThemeJson({ name: "Builtin WangPet" }));
     writeTheme(builtinThemesDir, "template", validThemeJson({ name: "Template", _scaffoldOnly: true }));
-    writeTheme(userThemesDir, "clawd", validThemeJson({ name: "User Clawd" }));
+    writeTheme(userThemesDir, "wang-pet", validThemeJson({ name: "User WangPet" }));
     writeTheme(userThemesDir, "user-cat", validThemeJson({ name: "User Cat" }));
     const malformedDir = path.join(userThemesDir, "broken");
     fs.mkdirSync(malformedDir, { recursive: true });
@@ -198,7 +198,7 @@ describe("theme metadata facade helpers", () => {
 
     const themes = listThemesWithMetadata({ builtinThemesDir, userThemesDir });
 
-    assert.deepStrictEqual(themes.map((theme) => theme.id), ["clawd", "user-cat"]);
-    assert.strictEqual(themes.find((theme) => theme.id === "clawd").name, "Builtin Clawd");
+    assert.deepStrictEqual(themes.map((theme) => theme.id), ["wang-pet", "user-cat"]);
+    assert.strictEqual(themes.find((theme) => theme.id === "wang-pet").name, "Builtin WangPet");
   });
 });

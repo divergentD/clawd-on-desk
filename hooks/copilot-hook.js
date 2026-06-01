@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Clawd Desktop Pet — Copilot CLI Hook Script
+// WangPet Desktop Pet — Copilot CLI Hook Script
 // Usage: node copilot-hook.js <event_name>
 // Reads stdin JSON from Copilot CLI for sessionId (camelCase)
 
@@ -146,14 +146,14 @@ function buildStateBody(event, payload, resolve, options = {}) {
 
   // Session title: prefer payload field if present, otherwise read the
   // renamed name from ~/.copilot/session-state/<sid>/workspace.yaml so
-  // /rename in Copilot CLI propagates to Clawd on the next hook event.
+  // /rename in Copilot CLI propagates to WangPet on the next hook event.
   const sessionTitle =
     normalizeTitle(payload.session_title) ||
     normalizeTitle(payload.sessionTitle) ||
     readCopilotSessionTitle(sessionId);
   if (sessionTitle) body.session_title = sessionTitle;
 
-  if (process.env.CLAWD_REMOTE) {
+  if (process.env.WANGPET_REMOTE) {
     const readHost = options.readHostPrefix || readHostPrefix;
     body.host = readHost();
   } else {
@@ -180,7 +180,7 @@ function main() {
 
   // Pre-resolve on sessionStart. Remote mode skips PID collection because
   // remote PIDs are meaningless on the local machine.
-  if (event === "sessionStart" && !process.env.CLAWD_REMOTE) resolve();
+  if (event === "sessionStart" && !process.env.WANGPET_REMOTE) resolve();
 
   readStdinJson().then((payload) => {
     const body = buildStateBody(event, payload || {}, resolve);

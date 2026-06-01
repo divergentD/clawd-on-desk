@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const SIDECAR_ROOT = path.join("bin", "cc-connect-clawd");
+const SIDECAR_ROOT = path.join("bin", "cc-connect-wang-pet");
 const VERIFY_COMMAND = "node scripts/verify-sidecar-binaries.js";
 
 const BUILD_REQUIREMENTS = Object.freeze({
@@ -44,7 +44,7 @@ function normalizeLifecycleEvent(value) {
 }
 
 function executableName(platform) {
-  return platform === "windows" ? "cc-connect-clawd.exe" : "cc-connect-clawd";
+  return platform === "windows" ? "cc-connect-wang-pet.exe" : "cc-connect-wang-pet";
 }
 
 function sidecarBinaryPath(rootDir, platform, arch) {
@@ -90,15 +90,15 @@ function main() {
   const result = verifySidecarBinaries({ lifecycleEvent });
   if (result.required.length === 0) return;
   if (result.ok) {
-    console.log(`Verified ${result.required.length} cc-connect-clawd sidecar binary/binaries.`);
+    console.log(`Verified ${result.required.length} cc-connect-wang-pet sidecar binary/binaries.`);
     return;
   }
-  console.error("Missing cc-connect-clawd sidecar binary/binaries for this build:");
+  console.error("Missing cc-connect-wang-pet sidecar binary/binaries for this build:");
   for (const item of result.missing) {
     console.error(`- ${item.platform}-${item.arch}: ${item.path}`);
   }
   console.error("");
-  console.error("Build the Go sidecar first, or set CLAWD_CC_CONNECT_CLAWD_PATH for development runs.");
+  console.error("Build the Go sidecar first, or set WANGPET_CC_CONNECT_WANGPET_PATH for development runs.");
   process.exitCode = 1;
 }
 

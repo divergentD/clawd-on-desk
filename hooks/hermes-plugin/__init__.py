@@ -1,7 +1,7 @@
-"""Clawd on Desk plugin for Hermes Agent.
+"""WangPet plugin for Hermes Agent.
 
 This is intentionally stdlib-only. It forwards conservative Hermes state events
-to Clawd's local /state endpoint when Clawd is running and never raises out of
+to WangPet's local /state endpoint when WangPet is running and never raises out of
 a Hermes hook callback.
 """
 
@@ -21,8 +21,8 @@ from urllib import request
 from urllib.error import URLError
 
 AGENT_ID = "hermes"
-CLAWD_SERVER_HEADER = "x-clawd-server"
-CLAWD_SERVER_ID = "clawd-on-desk"
+WANGPET_SERVER_HEADER = "x-wang-pet-server"
+WANGPET_SERVER_ID = "wang-pet"
 SERVER_PORTS = (23333, 23334, 23335, 23336, 23337)
 POST_TIMEOUT_SECONDS = 0.25
 NO_SERVER_COOLDOWN_SECONDS = 2.0
@@ -40,7 +40,7 @@ HOOK_TO_STATE: Dict[str, Tuple[str, str]] = {
     "pre_tool_call": ("working", "PreToolUse"),
     "post_tool_call": ("working", "PostToolUse"),
     # Hermes on_session_end fires at the end of every run_conversation turn,
-    # not only when the CLI exits, so Clawd should treat it like turn stop.
+    # not only when the CLI exits, so WangPet should treat it like turn stop.
     "on_session_end": ("attention", "Stop"),
     # Hermes on_session_finalize is the real boundary for session rotation and
     # gateway eviction; one-shot `hermes -z` did not emit it in local QA.
@@ -94,7 +94,7 @@ _process_meta: Dict[str, Any] = {}
 
 
 def _debug_enabled() -> bool:
-    value = os.environ.get("CLAWD_HERMES_DEBUG", "").strip().lower()
+    value = os.environ.get("WANGPET_HERMES_DEBUG", "").strip().lower()
     return value in ("1", "true", "yes", "on")
 
 
@@ -113,11 +113,11 @@ def _hermes_home() -> Path:
 
 
 def _log_path() -> Path:
-    return _hermes_home() / "logs" / "clawd-hermes-plugin.jsonl"
+    return _hermes_home() / "logs" / "wang-pet-hermes-plugin.jsonl"
 
 
 def _runtime_path() -> Path:
-    return Path.home() / ".clawd" / "runtime.json"
+    return Path.home() / ".wang-pet" / "runtime.json"
 
 
 def _utc_now() -> str:
@@ -226,7 +226,7 @@ def _post_state(body: Dict[str, Any]) -> None:
         )
         try:
             with request.urlopen(req, timeout=POST_TIMEOUT_SECONDS) as response:
-                if response.headers.get(CLAWD_SERVER_HEADER) == CLAWD_SERVER_ID:
+                if response.headers.get(WANGPET_SERVER_HEADER) == WANGPET_SERVER_ID:
                     _cached_port = port
                     _no_server_until = 0.0
                     try:
@@ -238,7 +238,7 @@ def _post_state(body: Dict[str, Any]) -> None:
                     "ts": _utc_now(),
                     "event": "post_state_header_mismatch",
                     "port": port,
-                    "header": response.headers.get(CLAWD_SERVER_HEADER),
+                    "header": response.headers.get(WANGPET_SERVER_HEADER),
                 })
         except (OSError, URLError) as exc:
             _append_log({
@@ -538,7 +538,7 @@ def _ensure_process_meta_resolver_started() -> None:
             return
         _process_meta_started = True
     try:
-        thread = threading.Thread(target=_resolve_process_meta_background, name="clawd-hermes-process-meta", daemon=True)
+        thread = threading.Thread(target=_resolve_process_meta_background, name="wang-pet-hermes-process-meta", daemon=True)
         thread.start()
     except Exception as exc:
         with _process_meta_lock:
@@ -814,14 +814,14 @@ def _event_extra(event_name: str, kwargs: Dict[str, Any], session_id: str = "") 
 
 
 def _state_payload(event_name: str, kwargs: Dict[str, Any]) -> Dict[str, Any]:
-    state, clawd_event = HOOK_TO_STATE[event_name]
+    state, wangpet_event = HOOK_TO_STATE[event_name]
     if event_name == "post_tool_call" and _tool_result_has_error(kwargs.get("result")):
-        state, clawd_event = "error", "PostToolUseFailure"
+        state, wangpet_event = "error", "PostToolUseFailure"
     if event_name == "on_session_end":
         completed = kwargs.get("completed")
         interrupted = kwargs.get("interrupted")
         if completed is False and interrupted is not True:
-            state, clawd_event = "error", "StopFailure"
+            state, wangpet_event = "error", "StopFailure"
 
     session_id = _session_id(event_name, kwargs)
     platform = _session_platform(session_id, kwargs)
@@ -829,7 +829,7 @@ def _state_payload(event_name: str, kwargs: Dict[str, Any]) -> Dict[str, Any]:
         "agent_id": AGENT_ID,
         "hook_source": "hermes-plugin",
         "state": state,
-        "event": clawd_event,
+        "event": wangpet_event,
         "session_id": session_id,
         "cwd": _runtime_cwd(),
         "agent_pid": os.getpid(),
@@ -904,7 +904,7 @@ def _make_callback(event_name: str):
         _handle_hook(event_name, **kwargs)
         return None
 
-    callback.__name__ = f"clawd_{event_name}"
+    callback.__name__ = f"wangpet_{event_name}"
     return callback
 
 

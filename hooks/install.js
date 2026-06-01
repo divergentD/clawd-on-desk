@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Clawd Desktop Pet — Hook Installer
+// WangPet Desktop Pet — Hook Installer
 // Safely merges hook commands into ~/.claude/settings.json
 // Does NOT overwrite existing hooks — appends to arrays
 
@@ -439,7 +439,7 @@ async function getClaudeVersionAsync(options = {}) {
   return cachedClaudeVersionPromise;
 }
 
-const MARKER = "clawd-hook.js";
+const MARKER = "wang-pet-hook.js";
 const AUTO_START_MARKER = "auto-start.js";
 const LEGACY_AUTO_START_MARKER = "auto-start.sh";
 const HTTP_MARKER = PERMISSION_PATH;
@@ -462,12 +462,12 @@ function buildCommandHookSpec(nodeBin, scriptPath, args = "", options = {}) {
   };
 
   // Remote hook deployment targets POSIX shells over SSH and relies on bash-style
-  // env-prefix syntax (`CLAWD_REMOTE=1 cmd`). Keep that legacy form even if tests
+  // env-prefix syntax (`WANGPET_REMOTE=1 cmd`). Keep that legacy form even if tests
   // force win32 here; Windows + remote is not a supported deployment target.
   if (options.remote) {
     return withHookOptions({
       type: "command",
-      command: `CLAWD_REMOTE=1 ${quotedCommand}`,
+      command: `WANGPET_REMOTE=1 ${quotedCommand}`,
     });
   }
 
@@ -533,7 +533,7 @@ function syncCommandHook(entries, marker, expectedHook) {
   return { found, changed };
 }
 
-function isClawdPermissionUrl(url) {
+function iswangpetPermissionUrl(url) {
   if (typeof url !== "string" || !url) return false;
   try {
     const parsed = new URL(url);
@@ -552,12 +552,12 @@ function isClawdPermissionUrl(url) {
   }
 }
 
-function isClawdPermissionHook(entry) {
+function iswangpetPermissionHook(entry) {
   return !!entry
     && typeof entry === "object"
     && entry.type === "http"
     && typeof entry.url === "string"
-    && isClawdPermissionUrl(entry.url);
+    && iswangpetPermissionUrl(entry.url);
 }
 
 function removeMatchingCommandHooks(entries, predicate) {
@@ -620,7 +620,7 @@ function removeMatchingHttpHooks(entries, predicate) {
       continue;
     }
 
-    if (isClawdPermissionHook(entry) && predicate(entry)) {
+    if (iswangpetPermissionHook(entry) && predicate(entry)) {
       removed++;
       changed = true;
       continue;
@@ -632,7 +632,7 @@ function removeMatchingHttpHooks(entries, predicate) {
     }
 
     const nextHooks = entry.hooks.filter((hook) => {
-      if (!isClawdPermissionHook(hook)) return true;
+      if (!iswangpetPermissionHook(hook)) return true;
       if (!predicate(hook)) return true;
       removed++;
       changed = true;
@@ -660,7 +660,7 @@ function syncHttpHook(entries, expectedUrl) {
   if (!Array.isArray(entries)) return { found, changed };
   for (const entry of entries) {
     if (!entry || typeof entry !== "object") continue;
-    if (isClawdPermissionHook(entry)) {
+    if (iswangpetPermissionHook(entry)) {
       found = true;
       if (entry.url !== expectedUrl) {
         entry.url = expectedUrl;
@@ -669,7 +669,7 @@ function syncHttpHook(entries, expectedUrl) {
     }
     if (!Array.isArray(entry.hooks)) continue;
     for (const hook of entry.hooks) {
-      if (!isClawdPermissionHook(hook)) continue;
+      if (!iswangpetPermissionHook(hook)) continue;
       found = true;
       if (hook.url !== expectedUrl) {
         hook.url = expectedUrl;
@@ -751,7 +751,7 @@ function reconcileVersionedHooks(settings, supportedEvents, versionInfo) {
 }
 
 /**
- * Register Clawd hooks into ~/.claude/settings.json.
+ * Register WangPet hooks into ~/.claude/settings.json.
  * Safe to call multiple times — skips already-registered hooks.
  * @param {object} [options]
  * @param {boolean} [options.silent] - suppress console output (for auto-registration)
@@ -763,7 +763,7 @@ function reconcileVersionedHooks(settings, supportedEvents, versionInfo) {
 function registerHooks(options = {}) {
   const settingsPath = options.settingsPath || path.join(os.homedir(), ".claude", "settings.json");
   const hookPort = getHookServerPort(options.port);
-  const hookScript = asarUnpackedPath(path.resolve(__dirname, "clawd-hook.js").replace(/\\/g, "/"));
+  const hookScript = asarUnpackedPath(path.resolve(__dirname, "wang-pet-hook.js").replace(/\\/g, "/"));
   const platform = options.platform || process.platform;
 
   // Read existing settings
@@ -955,7 +955,7 @@ function registerHooks(options = {}) {
   if (!options.silent) {
     const versionLabel = versionInfo.status === "known" ? versionInfo.version : "unknown";
     const versionSource = versionInfo.source || "unavailable";
-    console.log(`Clawd hooks installed to ${settingsPath}`);
+    console.log(`WangPet hooks installed to ${settingsPath}`);
     console.log(`  Claude Code version: ${versionLabel}`);
     console.log(`  Detection source: ${versionSource}`);
     if (versionInfo.status === "unknown") {
@@ -991,7 +991,7 @@ function registerHooks(options = {}) {
 async function registerHooksAsync(options = {}) {
   const settingsPath = options.settingsPath || path.join(os.homedir(), ".claude", "settings.json");
   const hookPort = getHookServerPort(options.port);
-  const hookScript = asarUnpackedPath(path.resolve(__dirname, "clawd-hook.js").replace(/\\/g, "/"));
+  const hookScript = asarUnpackedPath(path.resolve(__dirname, "wang-pet-hook.js").replace(/\\/g, "/"));
   const platform = options.platform || process.platform;
 
   let settings = {};
@@ -1162,7 +1162,7 @@ async function registerHooksAsync(options = {}) {
   if (!options.silent) {
     const versionLabel = versionInfo.status === "known" ? versionInfo.version : "unknown";
     const versionSource = versionInfo.source || "unavailable";
-    console.log(`Clawd hooks installed to ${settingsPath}`);
+    console.log(`WangPet hooks installed to ${settingsPath}`);
     console.log(`  Claude Code version: ${versionLabel}`);
     console.log(`  Detection source: ${versionSource}`);
     if (versionInfo.status === "unknown") {
@@ -1222,7 +1222,7 @@ function unregisterHooks(options = {}) {
     );
     const httpResult = removeMatchingHttpHooks(
       commandResult.entries,
-      (hook) => isClawdPermissionHook(hook)
+      (hook) => iswangpetPermissionHook(hook)
     );
 
     if (!commandResult.changed && !httpResult.changed) continue;
@@ -1270,7 +1270,7 @@ async function unregisterHooksAsync(options = {}) {
     );
     const httpResult = removeMatchingHttpHooks(
       commandResult.entries,
-      (hook) => isClawdPermissionHook(hook)
+      (hook) => iswangpetPermissionHook(hook)
     );
 
     if (!commandResult.changed && !httpResult.changed) continue;
@@ -1377,8 +1377,8 @@ module.exports = {
     readClaudeVersionFallbackAsync,
     getClaudeVersion,
     getClaudeVersionAsync,
-    isClawdPermissionHook,
-    isClawdPermissionUrl,
+    iswangpetPermissionHook,
+    iswangpetPermissionUrl,
     removeMatchingHttpHooks,
     versionLessThan,
     removeMatchingCommandHooks,

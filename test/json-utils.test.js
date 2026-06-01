@@ -122,7 +122,7 @@ describe("extractExistingNodeBin", () => {
   it("extracts node path from a UNC share", () => {
     const settings = {
       hooks: {
-        stop: [{ command: '"\\\\fileserver\\tools\\nodejs\\node.exe" "C:\\Clawd\\cursor-hook.js"' }],
+        stop: [{ command: '"\\\\fileserver\\tools\\nodejs\\node.exe" "C:\\wang-pet\\cursor-hook.js"' }],
       },
     };
     assert.strictEqual(
@@ -212,7 +212,7 @@ describe("formatNodeHookCommand", () => {
 
 describe("writeJsonAtomicAsync", () => {
   it("writes pretty JSON atomically and cleans up tmp files", async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-json-utils-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-json-utils-"));
     const filePath = path.join(tmpDir, "settings.json");
     try {
       await writeJsonAtomicAsync(filePath, { hooks: { Stop: [] } });

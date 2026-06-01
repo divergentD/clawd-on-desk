@@ -14,7 +14,7 @@ TARGET_MODE="${TARGET_MODE:-auto}"
 
 if [[ "$SUITE" != "quick" && "$SUITE" != "steady" && "$SUITE" != "spike" && "$SUITE" != "soak" ]]; then
   echo "Invalid suite: $SUITE"
-  echo "Usage: bash scripts/run-clawdbot-stress.sh [quick|steady|spike|soak] [base_url]"
+  echo "Usage: bash scripts/run-wang-petbot-stress.sh [quick|steady|spike|soak] [base_url]"
   exit 1
 fi
 
@@ -39,7 +39,7 @@ echo "Output directory: $OUT_DIR"
 echo ""
 
 k6 run \
-  perf/k6/clawdbot-stress.js \
+  perf/k6/wang-petbot-stress.js \
   --env SUITE="$SUITE" \
   --env BASE_URL="$BASE_URL" \
   --env API_PATH="$API_PATH" \

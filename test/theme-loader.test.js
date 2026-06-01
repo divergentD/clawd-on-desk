@@ -19,7 +19,7 @@ afterEach(() => {
 //   <tmp>/assets/svg/    (referenced by init for built-in svgs)
 //   <tmp>/userData/themes/<id>/theme.json   (user-installed)
 function makeFixture(themes) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-theme-"));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-theme-"));
   const appDir = path.join(tmp, "src");
   fs.mkdirSync(appDir, { recursive: true });
   fs.mkdirSync(path.join(tmp, "assets", "svg"), { recursive: true });
@@ -95,7 +95,7 @@ describe("theme-loader strict mode", () => {
   let fixture;
   before(() => {
     fixture = makeFixture([
-      { id: "clawd", builtin: true, json: validThemeJson({ name: "Clawd" }) },
+      { id: "wang-pet", builtin: true, json: validThemeJson({ name: "wang-pet" }) },
       { id: "good", builtin: true, json: validThemeJson({ name: "Good" }) },
       {
         id: "updatevisuals",
@@ -143,14 +143,14 @@ describe("theme-loader strict mode", () => {
   });
   after(() => fixture && fixture.cleanup());
 
-  it("lenient load falls back to clawd when theme missing", () => {
+  it("lenient load falls back to WangPet when theme missing", () => {
     const theme = themeLoader.loadTheme("doesNotExist");
-    assert.strictEqual(theme._id, "clawd");
+    assert.strictEqual(theme._id, "wang-pet");
   });
 
   it("lenient load falls back when theme validation fails", () => {
     const theme = themeLoader.loadTheme("broken");
-    assert.strictEqual(theme._id, "clawd");
+    assert.strictEqual(theme._id, "wang-pet");
   });
 
   it("strict load throws when theme is missing", () => {
@@ -208,7 +208,7 @@ describe("theme-loader trusted runtime and schema v1 defaults", () => {
   let fixture;
   before(() => {
     fixture = makeFixture([
-      { id: "clawd", builtin: true, json: validThemeJson({ name: "Clawd" }) },
+      { id: "wang-pet", builtin: true, json: validThemeJson({ name: "wang-pet" }) },
       { id: "old-schema", builtin: true, json: validThemeJson({ name: "Old Schema" }) },
       {
         id: "trusted",
@@ -366,9 +366,9 @@ describe("theme-loader getThemeMetadata", () => {
   before(() => {
     fixture = makeFixture([
       {
-        id: "clawd",
+        id: "wang-pet",
         builtin: true,
-        json: validThemeJson({ name: "Clawd", preview: "clawd-preview.svg" }),
+        json: validThemeJson({ name: "wang-pet", preview: "wang-pet-preview.svg" }),
       },
       {
         id: "noPreview",
@@ -411,7 +411,7 @@ describe("theme-loader getThemeMetadata", () => {
     // selector chose `preview`, not `states.idle[0]`. A precise end-to-end
     // URL test would need writing a real asset, which is over-kill for the
     // contract under test.
-    const meta = themeLoader.getThemeMetadata("clawd");
+    const meta = themeLoader.getThemeMetadata("wang-pet");
     assert.ok(meta);
     // Internal contract: when the preview file isn't found, URL is null.
     // (Exercising the positive path requires writing assets; we trust
@@ -431,7 +431,7 @@ describe("theme-loader preview sound selection", () => {
   let fixture;
   before(() => {
     fixture = makeFixture([
-      { id: "clawd", builtin: true, json: validThemeJson({ name: "Clawd" }) },
+      { id: "wang-pet", builtin: true, json: validThemeJson({ name: "wang-pet" }) },
       {
         id: "preview-theme",
         builtin: false,
@@ -501,7 +501,7 @@ describe("theme-loader fileHitBoxes", () => {
   let fixture;
   before(() => {
     fixture = makeFixture([
-      { id: "clawd", builtin: true, json: validThemeJson({ name: "Clawd" }) },
+      { id: "wang-pet", builtin: true, json: validThemeJson({ name: "wang-pet" }) },
       {
         id: "filehit",
         builtin: true,
@@ -579,9 +579,9 @@ describe("theme-loader discovery", () => {
   before(() => {
     fixture = makeFixture([
       {
-        id: "clawd",
+        id: "wang-pet",
         builtin: true,
-        json: validThemeJson({ name: "Clawd" }),
+        json: validThemeJson({ name: "wang-pet" }),
       },
       {
         id: "template",
@@ -599,10 +599,10 @@ describe("theme-loader discovery", () => {
 
   it("skips the built-in template from discoverThemes and metadata scans", () => {
     const discovered = themeLoader.discoverThemes().map((theme) => theme.id);
-    assert.deepStrictEqual(discovered.sort(), ["clawd", "user-cat"]);
+    assert.deepStrictEqual(discovered.sort(), ["user-cat", "wang-pet"]);
 
     const listed = themeLoader.listThemesWithMetadata().map((theme) => theme.id);
-    assert.deepStrictEqual(listed.sort(), ["clawd", "user-cat"]);
+    assert.deepStrictEqual(listed.sort(), ["user-cat", "wang-pet"]);
   });
 });
 
@@ -611,9 +611,9 @@ describe("theme-loader external SVG sanitization", () => {
   before(() => {
     fixture = makeFixture([
       {
-        id: "clawd",
+        id: "wang-pet",
         builtin: true,
-        json: validThemeJson({ name: "Clawd" }),
+        json: validThemeJson({ name: "wang-pet" }),
       },
       {
         id: "unsafe-inline-style",
@@ -830,7 +830,7 @@ describe("theme-loader capability metadata", () => {
   let fixture;
   before(() => {
     fixture = makeFixture([
-      { id: "clawd", builtin: true, json: validThemeJson({ name: "Clawd" }) },
+      { id: "wang-pet", builtin: true, json: validThemeJson({ name: "wang-pet" }) },
       {
         id: "capTheme",
         builtin: true,
@@ -927,7 +927,7 @@ describe("theme-loader fallback + sleepSequence", () => {
       sleeping: { fallbackTo: "idle" },
     };
     fixture = makeFixture([
-      { id: "clawd", builtin: true, json: validThemeJson({ name: "Clawd" }) },
+      { id: "wang-pet", builtin: true, json: validThemeJson({ name: "wang-pet" }) },
       {
         id: "directSleep",
         builtin: true,
@@ -1114,7 +1114,7 @@ describe("theme-loader variant loading", () => {
       },
     });
     fixture = makeFixture([
-      { id: "clawd", builtin: true, json: validThemeJson({ name: "Clawd" }) },
+      { id: "wang-pet", builtin: true, json: validThemeJson({ name: "wang-pet" }) },
       { id: "host", builtin: true, json: variantTheme },
       {
         id: "novariants",

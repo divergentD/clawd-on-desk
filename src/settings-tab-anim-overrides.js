@@ -1,7 +1,7 @@
 "use strict";
 
 (function initSettingsTabAnimOverrides(root) {
-  const animMergeApi = root.ClawdSettingsAnimOverridesMerge || {};
+  const animMergeApi = root.wangpetSettingsAnimOverridesMerge || {};
   const getAssetPreviewUrl = animMergeApi.getAssetPreviewUrl || ((asset) => {
     if (!asset) return null;
     if (asset.previewImageUrl) return asset.previewImageUrl;
@@ -1138,7 +1138,7 @@
     themeMeta.className = "anim-override-meta";
     const themeLabel = document.createElement("div");
     themeLabel.className = "anim-override-meta-label";
-    themeLabel.textContent = `${t("animOverridesCurrentTheme")}: ${(data.theme && data.theme.name) || "clawd"}`;
+    themeLabel.textContent = `${t("animOverridesCurrentTheme")}: ${(data.theme && data.theme.name) || "wang-pet"}`;
     themeMeta.appendChild(themeLabel);
 
     const primaryActions = document.createElement("div");
@@ -2062,5 +2062,5 @@
     };
   }
 
-  root.ClawdSettingsTabAnimOverrides = { init };
+  root.wangpetSettingsTabAnimOverrides = { init };
 })(globalThis);

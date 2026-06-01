@@ -7,7 +7,7 @@ const path = require("path");
 const childProcess = require("child_process");
 const { asarUnpackedPath, writeJsonAtomic, writeJsonAtomicWithBackup } = require("./json-utils");
 
-const PLUGIN_ID = "clawd-on-desk";
+const PLUGIN_ID = "wang-pet";
 const PLUGIN_DIR_NAME = "openclaw-plugin";
 const DEFAULT_STATE_DIR = path.join(os.homedir(), ".openclaw");
 const DEFAULT_CONFIG_PATH = path.join(DEFAULT_STATE_DIR, "openclaw.json");
@@ -229,7 +229,7 @@ function registerOpenClawPlugin(options = {}) {
   };
 
   if (!stateDirExists && !configFileExists && !getCommandAvailable()) {
-    if (!options.silent) console.log("Clawd: OpenClaw not found - skipping OpenClaw plugin registration");
+    if (!options.silent) console.log("WangPet: OpenClaw not found - skipping OpenClaw plugin registration");
     return {
       installed: false,
       skipped: true,
@@ -245,7 +245,7 @@ function registerOpenClawPlugin(options = {}) {
       return withCliStatus(installViaCli({ ...options, pluginDir }), configPath);
     }
     if (!options.silent) {
-      console.log(`Clawd: ${configPath} missing - skipping OpenClaw plugin registration`);
+      console.log(`WangPet: ${configPath} missing - skipping OpenClaw plugin registration`);
     }
     return {
       installed: false,
@@ -292,7 +292,7 @@ function registerOpenClawPlugin(options = {}) {
 
   if (linked.updated) writeJsonAtomic(configPath, config);
   if (!options.silent) {
-    console.log(`Clawd OpenClaw plugin -> ${configPath}`);
+    console.log(`WangPet OpenClaw plugin -> ${configPath}`);
     console.log(linked.updated ? `  Registered: ${pluginDir}` : `  Already registered: ${pluginDir}`);
   }
   return {

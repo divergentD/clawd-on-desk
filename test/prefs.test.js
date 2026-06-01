@@ -10,8 +10,8 @@ const prefs = require("../src/prefs");
 
 const tempDirs = [];
 
-function makeTempPath(name = "clawd-prefs.json") {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-prefs-"));
+function makeTempPath(name = "wang-pet-prefs.json") {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-prefs-"));
   tempDirs.push(dir);
   return path.join(dir, name);
 }
@@ -503,14 +503,14 @@ describe("prefs.validate", () => {
   it("themeVariant drops malformed entries but keeps string/string pairs", () => {
     const v = prefs.validate({
       themeVariant: {
-        clawd: "chill",
+        "wang-pet": "chill",
         calico: "default",
         bogus: 42,           // wrong value type
         "": "chill",         // empty themeId
         nullVal: "",         // empty variantId
       },
     });
-    assert.deepStrictEqual(v.themeVariant, { clawd: "chill", calico: "default" });
+    assert.deepStrictEqual(v.themeVariant, { "wang-pet": "chill", calico: "default" });
   });
 
   it("themeVariant falls back to defaults when not an object", () => {
@@ -545,7 +545,7 @@ describe("prefs.validate", () => {
   it("drops legacy workspaceAliases because they are no longer in the schema", () => {
     const v = prefs.validate({
       workspaceAliases: {
-        "local|d:/animation": "Clawd main repo",
+        "local|d:/animation": "WangPet main repo",
       },
     });
     assert.strictEqual(Object.prototype.hasOwnProperty.call(v, "workspaceAliases"), false);
@@ -961,7 +961,7 @@ describe("prefs.save", () => {
     const p = makeTempPath();
     const snap = prefs.getDefaults();
     snap.themeOverrides = {
-      clawd: {
+      "wang-pet": {
         states: {
           sweeping: { disabled: true },
         },
@@ -969,19 +969,19 @@ describe("prefs.save", () => {
     };
     prefs.save(p, snap);
     const { snapshot } = prefs.load(p);
-    assert.deepStrictEqual(snapshot.themeOverrides.clawd.states.sweeping, { disabled: true });
+    assert.deepStrictEqual(snapshot.themeOverrides["wang-pet"].states.sweeping, { disabled: true });
   });
 
   it("themeOverrides: nested state entry preserves file + transition while keeping disabled", () => {
     const p = makeTempPath();
     const snap = prefs.getDefaults();
     snap.themeOverrides = {
-      clawd: {
+      "wang-pet": {
         states: {
           attention: {
             disabled: true,
-            sourceThemeId: "clawd",
-            file: "clawd-happy.svg",
+            sourceThemeId: "wang-pet",
+            file: "wang-pet-happy.svg",
             transition: { in: 100, out: 220 },
           },
         },
@@ -989,10 +989,10 @@ describe("prefs.save", () => {
     };
     prefs.save(p, snap);
     const { snapshot } = prefs.load(p);
-    assert.deepStrictEqual(snapshot.themeOverrides.clawd.states.attention, {
+    assert.deepStrictEqual(snapshot.themeOverrides["wang-pet"].states.attention, {
       disabled: true,
-      sourceThemeId: "clawd",
-      file: "clawd-happy.svg",
+      sourceThemeId: "wang-pet",
+      file: "wang-pet-happy.svg",
       transition: { in: 100, out: 220 },
     });
   });
@@ -1001,16 +1001,16 @@ describe("prefs.save", () => {
     const p = makeTempPath();
     const snap = prefs.getDefaults();
     snap.themeOverrides = {
-      clawd: {
+      "wang-pet": {
         states: {
           attention: {
-            file: "clawd-happy.svg",
+            file: "wang-pet-happy.svg",
             transition: { in: 80, out: 140 },
           },
         },
         tiers: {
           workingTiers: {
-            "clawd-working-typing.svg": {
+            "wang-pet-working-typing.svg": {
               file: "custom-working.svg",
               transition: { in: 0, out: 90 },
             },
@@ -1023,16 +1023,16 @@ describe("prefs.save", () => {
     };
     prefs.save(p, snap);
     const { snapshot } = prefs.load(p);
-    assert.deepStrictEqual(snapshot.themeOverrides.clawd, {
+    assert.deepStrictEqual(snapshot.themeOverrides["wang-pet"], {
       states: {
         attention: {
-          file: "clawd-happy.svg",
+          file: "wang-pet-happy.svg",
           transition: { in: 80, out: 140 },
         },
       },
       tiers: {
         workingTiers: {
-          "clawd-working-typing.svg": {
+          "wang-pet-working-typing.svg": {
             file: "custom-working.svg",
             transition: { in: 0, out: 90 },
           },
@@ -1048,7 +1048,7 @@ describe("prefs.save", () => {
     const p = makeTempPath();
     const snap = prefs.getDefaults();
     snap.themeOverrides = {
-      clawd: {
+      "wang-pet": {
         sounds: {
           complete: { file: "my-done.mp3" },
           confirm: { file: "nope.wav" },
@@ -1057,7 +1057,7 @@ describe("prefs.save", () => {
     };
     prefs.save(p, snap);
     const { snapshot } = prefs.load(p);
-    assert.deepStrictEqual(snapshot.themeOverrides.clawd.sounds, {
+    assert.deepStrictEqual(snapshot.themeOverrides["wang-pet"].sounds, {
       complete: { file: "my-done.mp3" },
       confirm: { file: "nope.wav" },
     });
@@ -1067,7 +1067,7 @@ describe("prefs.save", () => {
     const validated = prefs.validate({
       ...prefs.getDefaults(),
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           sounds: {
             complete: { file: "ok.mp3" },
             confirm: { file: "" },    // empty
@@ -1077,7 +1077,7 @@ describe("prefs.save", () => {
         },
       },
     });
-    assert.deepStrictEqual(validated.themeOverrides.clawd.sounds, {
+    assert.deepStrictEqual(validated.themeOverrides["wang-pet"].sounds, {
       complete: { file: "ok.mp3" },
     });
   });
@@ -1086,14 +1086,14 @@ describe("prefs.save", () => {
     const validated = prefs.validate({
       ...prefs.getDefaults(),
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           sounds: {
             complete: { file: "ok.mp3", durationMs: 1000, transition: { in: 50 }, sourceThemeId: "x" },
           },
         },
       },
     });
-    assert.deepStrictEqual(validated.themeOverrides.clawd.sounds, {
+    assert.deepStrictEqual(validated.themeOverrides["wang-pet"].sounds, {
       complete: { file: "ok.mp3" },
     });
   });
@@ -1106,7 +1106,7 @@ describe("prefs.save", () => {
     const validated = prefs.validate({
       ...prefs.getDefaults(),
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           sounds: {
             complete: { file: "complete.mp3", originalName: "cat-demo.mp3" },
             confirm:  { file: "confirm.wav", originalName: "../../etc/passwd.wav" }, // basenamed
@@ -1117,11 +1117,11 @@ describe("prefs.save", () => {
         },
       },
     });
-    assert.strictEqual(validated.themeOverrides.clawd.sounds.complete.originalName, "cat-demo.mp3");
-    assert.strictEqual(validated.themeOverrides.clawd.sounds.confirm.originalName, "passwd.wav");
-    assert.strictEqual(validated.themeOverrides.clawd.sounds.hiss.originalName, undefined);
-    assert.strictEqual(validated.themeOverrides.clawd.sounds.purr.originalName, undefined);
-    assert.strictEqual(validated.themeOverrides.clawd.sounds.growl.originalName.length, 256);
+    assert.strictEqual(validated.themeOverrides["wang-pet"].sounds.complete.originalName, "cat-demo.mp3");
+    assert.strictEqual(validated.themeOverrides["wang-pet"].sounds.confirm.originalName, "passwd.wav");
+    assert.strictEqual(validated.themeOverrides["wang-pet"].sounds.hiss.originalName, undefined);
+    assert.strictEqual(validated.themeOverrides["wang-pet"].sounds.purr.originalName, undefined);
+    assert.strictEqual(validated.themeOverrides["wang-pet"].sounds.growl.originalName.length, 256);
   });
 
   it("themeOverrides.sounds: rejects path-unsafe soundName keys and basename-sanitises file", () => {
@@ -1131,7 +1131,7 @@ describe("prefs.save", () => {
     const validated = prefs.validate({
       ...prefs.getDefaults(),
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           sounds: {
             complete:      { file: "ok.mp3" },
             "../../evil":  { file: "x.mp3" },           // unsafe key → dropped
@@ -1143,7 +1143,7 @@ describe("prefs.save", () => {
         },
       },
     });
-    assert.deepStrictEqual(validated.themeOverrides.clawd.sounds, {
+    assert.deepStrictEqual(validated.themeOverrides["wang-pet"].sounds, {
       complete: { file: "ok.mp3" },
       confirm:  { file: "passwd" },
     });
@@ -1153,13 +1153,13 @@ describe("prefs.save", () => {
     const validated = prefs.validate({
       ...prefs.getDefaults(),
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           attention: { disabled: true },
         },
       },
     });
     assert.deepStrictEqual(validated.themeOverrides, {
-      clawd: {
+      "wang-pet": {
         states: {
           attention: { disabled: true },
         },
@@ -1171,7 +1171,7 @@ describe("prefs.save", () => {
     const p = makeTempPath();
     const snap = prefs.getDefaults();
     snap.themeOverrides = {
-      clawd: {
+      "wang-pet": {
         reactions: {
           clickLeft: {
             file: "my-poke.svg",
@@ -1184,7 +1184,7 @@ describe("prefs.save", () => {
     };
     prefs.save(p, snap);
     const { snapshot } = prefs.load(p);
-    assert.deepStrictEqual(snapshot.themeOverrides.clawd.reactions, {
+    assert.deepStrictEqual(snapshot.themeOverrides["wang-pet"].reactions, {
       clickLeft: {
         file: "my-poke.svg",
         durationMs: 2200,
@@ -1198,21 +1198,21 @@ describe("prefs.save", () => {
     const p = makeTempPath();
     const snap = prefs.getDefaults();
     snap.themeOverrides = {
-      clawd: {
+      "wang-pet": {
         hitbox: {
           wide: {
-            "clawd-error.svg": true,
-            "clawd-idle.svg": false,
+            "wang-pet-error.svg": true,
+            "wang-pet-idle.svg": false,
           },
         },
       },
     };
     prefs.save(p, snap);
     const { snapshot } = prefs.load(p);
-    assert.deepStrictEqual(snapshot.themeOverrides.clawd.hitbox, {
+    assert.deepStrictEqual(snapshot.themeOverrides["wang-pet"].hitbox, {
       wide: {
-        "clawd-error.svg": true,
-        "clawd-idle.svg": false,
+        "wang-pet-error.svg": true,
+        "wang-pet-idle.svg": false,
       },
     });
   });
@@ -1221,7 +1221,7 @@ describe("prefs.save", () => {
     const validated = prefs.validate({
       ...prefs.getDefaults(),
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           hitbox: {
             wide: {
               "ok.svg": true,
@@ -1232,7 +1232,7 @@ describe("prefs.save", () => {
         },
       },
     });
-    assert.deepStrictEqual(validated.themeOverrides.clawd.hitbox, {
+    assert.deepStrictEqual(validated.themeOverrides["wang-pet"].hitbox, {
       wide: { "ok.svg": true },
     });
   });
@@ -1241,7 +1241,7 @@ describe("prefs.save", () => {
     const validated = prefs.validate({
       ...prefs.getDefaults(),
       themeOverrides: {
-        clawd: {
+        "wang-pet": {
           reactions: {
             explode: { file: "bogus.svg" },           // invalid key
             drag: { file: "my-drag.svg", durationMs: 9999 },  // drag can't have duration
@@ -1250,7 +1250,7 @@ describe("prefs.save", () => {
         },
       },
     });
-    assert.deepStrictEqual(validated.themeOverrides.clawd.reactions, {
+    assert.deepStrictEqual(validated.themeOverrides["wang-pet"].reactions, {
       drag: { file: "my-drag.svg" },     // durationMs stripped
       clickLeft: { file: "p.svg" },
       // explode: absent

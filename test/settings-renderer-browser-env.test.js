@@ -46,7 +46,7 @@ function loadSettingsI18nForTest() {
   context.globalThis = context;
   vm.createContext(context);
   vm.runInContext(fs.readFileSync(SETTINGS_I18N, "utf8"), context);
-  return context.ClawdSettingsI18n.STRINGS;
+  return context.wangpetSettingsI18n.STRINGS;
 }
 
 function loadSettingsCoreForTest(settingsAPI) {
@@ -68,7 +68,7 @@ function loadSettingsCoreForTest(settingsAPI) {
     window: null,
     globalThis: null,
     settingsAPI,
-    ClawdSettingsSizeSlider: {
+    wangpetSettingsSizeSlider: {
       SIZE_UI_MIN: 1,
       SIZE_UI_MAX: 100,
       SIZE_TICK_VALUES: [25, 50, 75, 100],
@@ -79,7 +79,7 @@ function loadSettingsCoreForTest(settingsAPI) {
       getSizeSliderAnchorPx: () => 0,
       createSizeSliderController: () => ({}),
     },
-    ClawdSettingsI18n: {
+    wangpetSettingsI18n: {
       STRINGS: { en: {} },
       CONTRIBUTORS: [],
       MAINTAINERS: [],
@@ -90,7 +90,7 @@ function loadSettingsCoreForTest(settingsAPI) {
   vm.createContext(context);
   vm.runInContext(fs.readFileSync(SETTINGS_ANIM_OVERRIDES_MERGE, "utf8"), context);
   vm.runInContext(fs.readFileSync(SETTINGS_UI_CORE, "utf8"), context);
-  return context.ClawdSettingsCore;
+  return context.wangpetSettingsCore;
 }
 
 function createQueuedRaf() {
@@ -392,7 +392,7 @@ function loadGeneralLanguageRowForTest({
     window: null,
     globalThis: null,
     settingsAPI,
-    ClawdSettingsSizeSlider: {
+    wangpetSettingsSizeSlider: {
       SIZE_UI_MIN: 1,
       SIZE_UI_MAX: 100,
       SIZE_TICK_VALUES: [25, 50, 75, 100],
@@ -403,7 +403,7 @@ function loadGeneralLanguageRowForTest({
       getSizeSliderAnchorPx: () => 0,
       createSizeSliderController: () => ({}),
     },
-    ClawdSettingsI18n: {
+    wangpetSettingsI18n: {
       STRINGS: {
         en: {
           rowLanguage: "Language",
@@ -435,22 +435,22 @@ function loadGeneralLanguageRowForTest({
   vm.runInContext(fs.readFileSync(SETTINGS_UI_CORE, "utf8"), context);
   const generalSource = fs.readFileSync(path.join(SRC_DIR, "settings-tab-general.js"), "utf8")
     .replace(
-      "root.ClawdSettingsTabGeneral = { init };",
-      "root.ClawdSettingsTabGeneral = { init, __test: { buildLanguageRow } };"
+      "root.wangpetSettingsTabGeneral = { init };",
+      "root.wangpetSettingsTabGeneral = { init, __test: { buildLanguageRow } };"
     );
   vm.runInContext(generalSource, context);
 
-  const core = context.ClawdSettingsCore;
+  const core = context.wangpetSettingsCore;
   core.state.snapshot = snapshot || { lang: "en" };
   core.state.activeTab = "general";
-  context.ClawdSettingsTabGeneral.init(core);
+  context.wangpetSettingsTabGeneral.init(core);
 
   let contentRenderCount = 0;
   function renderLanguageOnly() {
     contentRenderCount++;
     core.ops.clearMountedControls();
     content.innerHTML = "";
-    content.appendChild(context.ClawdSettingsTabGeneral.__test.buildLanguageRow());
+    content.appendChild(context.wangpetSettingsTabGeneral.__test.buildLanguageRow());
   }
   core.ops.installRenderHooks({ content: renderLanguageOnly });
 
@@ -521,7 +521,7 @@ function loadGeneralTabForTest({
       openDashboard: () => {},
       ...settingsAPI,
     },
-    ClawdSettingsSizeSlider: {
+    wangpetSettingsSizeSlider: {
       SIZE_UI_MIN: 1,
       SIZE_UI_MAX: 100,
       SIZE_TICK_VALUES: [25, 50, 75, 100],
@@ -541,7 +541,7 @@ function loadGeneralTabForTest({
         change: () => {},
       }),
     },
-    ClawdSettingsI18n: {
+    wangpetSettingsI18n: {
       STRINGS: loadSettingsI18nForTest(),
       CONTRIBUTORS: [],
       MAINTAINERS: [],
@@ -554,10 +554,10 @@ function loadGeneralTabForTest({
   vm.runInContext(fs.readFileSync(SETTINGS_UI_CORE, "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(SRC_DIR, "settings-tab-general.js"), "utf8"), context);
 
-  const core = context.ClawdSettingsCore;
+  const core = context.wangpetSettingsCore;
   core.state.snapshot = snapshot || {};
   core.state.activeTab = "general";
-  context.ClawdSettingsTabGeneral.init(core);
+  context.wangpetSettingsTabGeneral.init(core);
 
   let contentRenderCount = 0;
   function renderContent() {
@@ -674,7 +674,7 @@ function loadThemeTabForTest({
     window: null,
     globalThis: null,
     settingsAPI: api,
-    ClawdSettingsSizeSlider: {
+    wangpetSettingsSizeSlider: {
       SIZE_UI_MIN: 1,
       SIZE_UI_MAX: 100,
       SIZE_TICK_VALUES: [25, 50, 75, 100],
@@ -685,7 +685,7 @@ function loadThemeTabForTest({
       getSizeSliderAnchorPx: () => 0,
       createSizeSliderController: () => ({}),
     },
-    ClawdSettingsI18n: {
+    wangpetSettingsI18n: {
       STRINGS: loadSettingsI18nForTest(),
       CONTRIBUTORS: [],
       MAINTAINERS: [],
@@ -698,11 +698,11 @@ function loadThemeTabForTest({
   vm.runInContext(fs.readFileSync(SETTINGS_UI_CORE, "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(SRC_DIR, "settings-tab-theme.js"), "utf8"), context);
 
-  const core = context.ClawdSettingsCore;
+  const core = context.wangpetSettingsCore;
   core.state.snapshot = { lang: "en" };
   core.state.activeTab = "theme";
   core.runtime.themeList = Array.isArray(themes) ? themes : [];
-  context.ClawdSettingsTabTheme.init(core);
+  context.wangpetSettingsTabTheme.init(core);
   core.tabs.theme.render(content, core);
 
   return { content, commands };
@@ -720,7 +720,7 @@ function loadAgentsTabForTest({
   body.appendChild(content);
 
   const localStorageData = {
-    "clawd.settings.collapsedGroups.v1": JSON.stringify(collapsedGroups),
+    "WangPet.settings.collapsedGroups.v1": JSON.stringify(collapsedGroups),
   };
 
   const document = {
@@ -748,7 +748,7 @@ function loadAgentsTabForTest({
     settingsAPI: {
       command: () => Promise.resolve({ status: "ok" }),
     },
-    ClawdSettingsSizeSlider: {
+    wangpetSettingsSizeSlider: {
       SIZE_UI_MIN: 1,
       SIZE_UI_MAX: 100,
       SIZE_TICK_VALUES: [25, 50, 75, 100],
@@ -759,7 +759,7 @@ function loadAgentsTabForTest({
       getSizeSliderAnchorPx: () => 0,
       createSizeSliderController: () => ({}),
     },
-    ClawdSettingsI18n: {
+    wangpetSettingsI18n: {
       STRINGS: {
         en: {
           agentsTitle: "Agents",
@@ -797,11 +797,11 @@ function loadAgentsTabForTest({
   vm.runInContext(fs.readFileSync(path.join(SRC_DIR, "settings-agent-order.js"), "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(SRC_DIR, "settings-tab-agents.js"), "utf8"), context);
 
-  const core = context.ClawdSettingsCore;
+  const core = context.wangpetSettingsCore;
   core.state.snapshot = snapshot || { agents: {} };
   core.state.activeTab = "agents";
   core.runtime.agentMetadata = Array.isArray(agentMetadata) ? agentMetadata : [];
-  context.ClawdSettingsTabAgents.init(core);
+  context.wangpetSettingsTabAgents.init(core);
 
   let contentRenderCount = 0;
   function renderContent() {
@@ -853,7 +853,7 @@ function loadAnimMapTabForTest({
     settingsAPI: {
       command: () => Promise.resolve({ status: "ok" }),
     },
-    ClawdSettingsSizeSlider: {
+    wangpetSettingsSizeSlider: {
       SIZE_UI_MIN: 1,
       SIZE_UI_MAX: 100,
       SIZE_TICK_VALUES: [25, 50, 75, 100],
@@ -864,7 +864,7 @@ function loadAnimMapTabForTest({
       getSizeSliderAnchorPx: () => 0,
       createSizeSliderController: () => ({}),
     },
-    ClawdSettingsI18n: {
+    wangpetSettingsI18n: {
       STRINGS: { en: {} },
       CONTRIBUTORS: [],
       MAINTAINERS: [],
@@ -877,10 +877,10 @@ function loadAnimMapTabForTest({
   vm.runInContext(fs.readFileSync(SETTINGS_UI_CORE, "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(SRC_DIR, "settings-tab-anim-map.js"), "utf8"), context);
 
-  const core = context.ClawdSettingsCore;
-  core.state.snapshot = snapshot || { theme: "clawd", themeOverrides: {} };
+  const core = context.wangpetSettingsCore;
+  core.state.snapshot = snapshot || { theme: "wang-pet", themeOverrides: {} };
   core.state.activeTab = "animMap";
-  context.ClawdSettingsTabAnimMap.init(core);
+  context.wangpetSettingsTabAnimMap.init(core);
 
   let contentRenderCount = 0;
   core.ops.installRenderHooks({
@@ -1025,7 +1025,7 @@ function loadTelegramApprovalTabForTest({
     },
     tabs: {},
   };
-  context.ClawdSettingsTabTelegramApproval.init(core);
+  context.wangpetSettingsTabTelegramApproval.init(core);
   function render() {
     content.innerHTML = "";
     core.tabs["telegram-approval"].render(content, core);
@@ -1071,7 +1071,7 @@ function loadAnimOverridesTabForTest({
       },
     },
     globalThis: null,
-    ClawdSettingsAnimOverridesMerge: require(SETTINGS_ANIM_OVERRIDES_MERGE),
+    wangpetSettingsAnimOverridesMerge: require(SETTINGS_ANIM_OVERRIDES_MERGE),
   };
   context.globalThis = context;
   vm.createContext(context);
@@ -1117,7 +1117,7 @@ function loadAnimOverridesTabForTest({
     renderHooks: {},
     tabs: {},
   };
-  context.ClawdSettingsTabAnimOverrides.init(core);
+  context.wangpetSettingsTabAnimOverrides.init(core);
   return { core, document };
 }
 
@@ -1218,11 +1218,11 @@ describe("settings renderer browser environment", () => {
     const doctorModalSource = fs.readFileSync(SETTINGS_DOCTOR_MODAL, "utf8");
     const agentOrderSource = fs.readFileSync(path.join(SRC_DIR, "settings-agent-order.js"), "utf8");
 
-    assert.ok(rendererSource.includes("globalThis.ClawdSettingsCore"));
-    assert.ok(coreSource.includes("ClawdSettingsSizeSlider"));
+    assert.ok(rendererSource.includes("globalThis.wangpetSettingsCore"));
+    assert.ok(coreSource.includes("wangpetSettingsSizeSlider"));
     assert.ok(i18nSource.includes("globalThis"));
     assert.ok(doctorModalSource.includes("globalThis"));
-    assert.ok(doctorModalSource.includes("ClawdSettingsDoctorModal"));
+    assert.ok(doctorModalSource.includes("wangpetSettingsDoctorModal"));
     assert.ok(agentOrderSource.includes("globalThis"));
     assert.ok(agentOrderSource.includes("module.exports"));
 
@@ -1988,7 +1988,7 @@ describe("settings renderer browser environment", () => {
     );
   });
 
-  it("wires Clawd Doctor through Settings with Step 2 connection actions", () => {
+  it("wires WangPet Doctor through Settings with Step 2 connection actions", () => {
     const html = fs.readFileSync(SETTINGS_HTML, "utf8");
     const css = fs.readFileSync(SETTINGS_CSS, "utf8");
     const rendererSource = fs.readFileSync(SETTINGS_RENDERER, "utf8");
@@ -2001,20 +2001,20 @@ describe("settings renderer browser environment", () => {
     assert.ok(html.includes('<script src="settings-doctor-modal.js"></script>'));
     assert.ok(css.includes(".doctor-indicator"));
     assert.ok(css.includes(".doctor-modal"));
-    assert.ok(rendererSource.includes("ClawdSettingsDoctorModal.renderSidebarIndicator"));
+    assert.ok(rendererSource.includes("wangpetSettingsDoctorModal.renderSidebarIndicator"));
     assert.ok(doctorModalSource.includes("initialRunStarted"));
     assert.ok(doctorModalSource.includes("runningPromise"));
     assert.ok(doctorModalSource.includes("root.doctor.runChecks"));
     assert.ok(doctorModalSource.includes("root.doctor.getReport"));
     assert.ok(doctorModalSource.includes("root.doctor.testConnection"));
-    assert.ok(doctorModalSource.includes("root.doctor.openClawdLog"));
+    assert.ok(doctorModalSource.includes("root.doctor.openwangpetLog"));
     assert.ok(doctorModalSource.includes('root.settingsAPI.command("repairDoctorIssue"'));
     assert.ok(doctorModalSource.includes("requiresFixConfirmation"));
     assert.ok(doctorModalSource.includes("renderFixConfirm"));
     assert.ok(doctorModalSource.includes("doctorFixConfirmCodexDetail"));
     assert.ok(doctorModalSource.includes("doctorRestartConfirmDetail"));
     assert.ok(doctorModalSource.includes("doctorRestartButton"));
-    assert.ok(doctorModalSource.includes('commandAction.type !== "restart-clawd"'));
+    assert.ok(doctorModalSource.includes('commandAction.type !== "restart-wangpet"'));
     assert.ok(doctorModalSource.includes("repairFeedback"));
     assert.ok(doctorModalSource.includes("lastRepairFeedback"));
     assert.ok(doctorModalSource.includes("actionNotice"));
@@ -2161,12 +2161,12 @@ describe("settings renderer browser environment", () => {
     assert.ok(preloadSource.includes('ipcRenderer.invoke("doctor:run-checks")'));
     assert.ok(preloadSource.includes('ipcRenderer.invoke("doctor:get-report")'));
     assert.ok(preloadSource.includes('ipcRenderer.invoke("doctor:test-connection"'));
-    assert.ok(preloadSource.includes('ipcRenderer.invoke("doctor:open-clawd-log"'));
+    assert.ok(preloadSource.includes('ipcRenderer.invoke("doctor:open-wang-pet-log"'));
     assert.ok(mainSource.includes("registerDoctorIpc"));
     assert.ok(doctorIpcSource.includes('ipcMain.handle("doctor:run-checks"'));
     assert.ok(doctorIpcSource.includes('ipcMain.handle("doctor:get-report"'));
     assert.ok(doctorIpcSource.includes('ipcMain.handle("doctor:test-connection"'));
-    assert.ok(doctorIpcSource.includes('ipcMain.handle("doctor:open-clawd-log"'));
+    assert.ok(doctorIpcSource.includes('ipcMain.handle("doctor:open-wang-pet-log"'));
     assert.ok(doctorIpcSource.includes("createConnectionTestDeduper"));
     assert.ok(doctorIpcSource.includes("createDoctorRunChecksDeduper"));
     assert.ok(doctorIpcSource.includes("runDedupedDoctorChecks"));
@@ -2174,7 +2174,7 @@ describe("settings renderer browser environment", () => {
     assert.ok(doctorIpcSource.includes("normalizeDoctorConnectionTestPayload"));
     assert.ok(doctorIpcSource.includes("normalizeDoctorOpenLogPayload"));
     assert.ok(doctorIpcSource.includes("runConnectionTest"));
-    assert.ok(doctorIpcSource.includes("openClawdLog"));
+    assert.ok(doctorIpcSource.includes("openwangpetLog"));
     assert.ok(doctorIpcSource.includes("formatDiagnosticReport"));
     assert.ok(doctorIpcSource.includes("getDoctorRedactionOptions"));
     assert.ok(doctorIpcSource.includes("redactDoctorResult(await runDedupedDoctorChecks(), getDoctorRedactionOptions(app))"));
@@ -3533,13 +3533,13 @@ describe("settings renderer browser environment", () => {
     assert.strictEqual(strings.en.themeActionGroupCodexPets, "Codex Pets");
     assert.strictEqual(strings.en.themeActionGroupUserThemes, "User themes");
     assert.strictEqual(strings.en.themeImportPetZip, "Import Codex Pet package (.zip)");
-    assert.strictEqual(strings.en.themeImportUserThemeZip, "Import Clawd theme package (.zip)");
+    assert.strictEqual(strings.en.themeImportUserThemeZip, "Import WangPet theme package (.zip)");
     assert.ok(strings.en.themeImportUserThemeZipHint.includes("theme.json"));
     assert.strictEqual(strings.en.themeOpenUserThemesFolder, "Open themes folder");
     assert.strictEqual(strings.en.themeRefreshThemes, "Refresh themes");
     assert.strictEqual(strings.zh.themeImportPetZip, "导入 Codex Pet 包（.zip）");
     assert.strictEqual(strings.zh.themeActionGroupCodexPets, "Codex Pets");
-    assert.strictEqual(strings.zh.themeImportUserThemeZip, "导入 Clawd 主题包（.zip）");
+    assert.strictEqual(strings.zh.themeImportUserThemeZip, "导入 望仔 主题包（.zip）");
     assert.ok(strings.zh.themeImportUserThemeZipHint.includes("theme.json"));
     assert.strictEqual(strings.zh.themeOpenUserThemesFolder, "打开主题文件夹");
   });
@@ -3547,7 +3547,7 @@ describe("settings renderer browser environment", () => {
   it("keeps Theme card footers reserved without leaking button keyboard events to card activation", async () => {
     const { content, commands } = loadThemeTabForTest({
       themes: [
-        { id: "clawd", name: "Clawd", builtin: true, active: true },
+        { id: "wang-pet", name: "wang-pet", builtin: true, active: true },
         { id: "calico", name: "Calico", builtin: true, active: false },
         { id: "pet-active", name: "Pet Active", managedCodexPet: true, active: true },
         { id: "pet-inactive", name: "Pet Inactive", managedCodexPet: true, active: false },
@@ -3684,7 +3684,7 @@ describe("settings renderer browser environment", () => {
     assert.ok(agentOrderSource.includes("function sortAgentMetadataForSettings("));
     assert.ok(agentOrderSource.includes("COLLAPSIBLE_AGENT_PRIORITY"));
     assert.ok(agentOrderSource.includes("NON_COLLAPSIBLE_AGENT_PRIORITY"));
-    assert.ok(agentsSource.includes("ClawdSettingsAgentOrder"));
+    assert.ok(agentsSource.includes("wangpetSettingsAgentOrder"));
     assert.ok(agentsSource.includes("sortAgentMetadataForSettings(runtime.agentMetadata"));
   });
 
@@ -4036,9 +4036,9 @@ describe("settings renderer browser environment", () => {
   it("keeps Animation Map theme override broadcasts in place and syncs the mounted switch", () => {
     const harness = loadAnimMapTabForTest({
       snapshot: {
-        theme: "clawd",
+        theme: "wang-pet",
         themeOverrides: {
-          clawd: {
+          "wang-pet": {
             states: {
               error: { disabled: false },
             },
@@ -4049,9 +4049,9 @@ describe("settings renderer browser environment", () => {
     const sw = new FakeElement("div");
     sw.className = "switch on";
     harness.content.appendChild(sw);
-    harness.core.state.mountedControls.animMapSwitches.set("clawd:error", {
+    harness.core.state.mountedControls.animMapSwitches.set("WangPet:error", {
       element: sw,
-      themeId: "clawd",
+      themeId: "wang-pet",
       stateKey: "error",
     });
     const before = harness.getContentRenderCount();
@@ -4059,7 +4059,7 @@ describe("settings renderer browser environment", () => {
     harness.core.ops.applyChanges({
       changes: {
         themeOverrides: {
-          clawd: {
+          "wang-pet": {
             states: {
               error: { disabled: true },
             },
@@ -4067,9 +4067,9 @@ describe("settings renderer browser environment", () => {
         },
       },
       snapshot: {
-        theme: "clawd",
+        theme: "wang-pet",
         themeOverrides: {
-          clawd: {
+          "wang-pet": {
             states: {
               error: { disabled: true },
             },
@@ -4086,16 +4086,16 @@ describe("settings renderer browser environment", () => {
   it("rebuilds Animation Map instead of patching with stale theme ids when the theme changes", () => {
     const harness = loadAnimMapTabForTest({
       snapshot: {
-        theme: "clawd",
+        theme: "wang-pet",
         themeOverrides: {},
       },
     });
     const sw = new FakeElement("div");
     sw.className = "switch on";
     harness.content.appendChild(sw);
-    harness.core.state.mountedControls.animMapSwitches.set("clawd:error", {
+    harness.core.state.mountedControls.animMapSwitches.set("WangPet:error", {
       element: sw,
-      themeId: "clawd",
+      themeId: "wang-pet",
       stateKey: "error",
     });
     const before = harness.getContentRenderCount();

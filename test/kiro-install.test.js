@@ -8,7 +8,7 @@ const { registerKiroHooks, KIRO_HOOK_EVENTS } = require("../hooks/kiro-install")
 const tempDirs = [];
 
 function makeTempKiroHome() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-kiro-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-kiro-"));
   const agentsDir = path.join(root, ".kiro", "agents");
   const settingsPath = path.join(root, ".kiro", "settings", "cli.json");
   fs.mkdirSync(agentsDir, { recursive: true });
@@ -28,18 +28,18 @@ afterEach(() => {
 });
 
 describe("Kiro hook installer", () => {
-  it("creates clawd.json from kiro_default template without changing cli settings", () => {
+  it("creates wang-pet.json from kiro_default template without changing cli settings", () => {
     const { agentsDir, settingsPath } = makeTempKiroHome();
 
     const result = registerKiroHooks({
       silent: true,
       agentsDir,
       nodeBin: "/usr/local/bin/node",
-      syncClawdAgent(filePath) {
+      syncwangpetAgent(filePath) {
         fs.writeFileSync(
           filePath,
           JSON.stringify({
-            name: "clawd",
+            name: "wang-pet",
             description: "Default agent",
             prompt: "# Kiro CLI Default Agent",
             mcpServers: {},
@@ -61,26 +61,26 @@ describe("Kiro hook installer", () => {
       },
     });
 
-    const clawdPath = path.join(agentsDir, "clawd.json");
-    assert.ok(fs.existsSync(clawdPath));
+    const wangpetPath = path.join(agentsDir, "wang-pet.json");
+    assert.ok(fs.existsSync(wangpetPath));
 
-    const clawdAgent = readJson(clawdPath);
-    assert.strictEqual(clawdAgent.name, "clawd");
-    assert.strictEqual(clawdAgent.description, "Default agent");
-    assert.strictEqual(clawdAgent.prompt, "# Kiro CLI Default Agent");
-    assert.deepStrictEqual(clawdAgent.tools, ["*"]);
-    assert.deepStrictEqual(clawdAgent.resources, [
+    const wangpetAgent = readJson(wangpetPath);
+    assert.strictEqual(wangpetAgent.name, "wang-pet");
+    assert.strictEqual(wangpetAgent.description, "Default agent");
+    assert.strictEqual(wangpetAgent.prompt, "# Kiro CLI Default Agent");
+    assert.deepStrictEqual(wangpetAgent.tools, ["*"]);
+    assert.deepStrictEqual(wangpetAgent.resources, [
       "file://AmazonQ.md",
       "file://AGENTS.md",
       "file://README.md",
     ]);
-    assert.strictEqual(clawdAgent.includeMcpJson, true);
-    assert.strictEqual(clawdAgent.model, null);
+    assert.strictEqual(wangpetAgent.includeMcpJson, true);
+    assert.strictEqual(wangpetAgent.model, null);
     for (const event of KIRO_HOOK_EVENTS) {
-      assert.ok(Array.isArray(clawdAgent.hooks[event]), `missing hooks for ${event}`);
-      assert.strictEqual(clawdAgent.hooks[event].length, 1);
-      assert.ok(clawdAgent.hooks[event][0].command.includes("kiro-hook.js"));
-      assert.ok(clawdAgent.hooks[event][0].command.includes("/usr/local/bin/node"));
+      assert.ok(Array.isArray(wangpetAgent.hooks[event]), `missing hooks for ${event}`);
+      assert.strictEqual(wangpetAgent.hooks[event].length, 1);
+      assert.ok(wangpetAgent.hooks[event][0].command.includes("kiro-hook.js"));
+      assert.ok(wangpetAgent.hooks[event][0].command.includes("/usr/local/bin/node"));
     }
 
     assert.strictEqual(fs.existsSync(settingsPath), false);
@@ -117,14 +117,14 @@ describe("Kiro hook installer", () => {
     }
   });
 
-  it("reseeds legacy hook-only clawd agent from kiro_default template", () => {
+  it("reseeds legacy hook-only WangPet agent from kiro_default template", () => {
     const { agentsDir } = makeTempKiroHome();
-    const clawdPath = path.join(agentsDir, "clawd.json");
+    const wangpetPath = path.join(agentsDir, "wang-pet.json");
     fs.writeFileSync(
-      clawdPath,
+      wangpetPath,
       JSON.stringify({
-        name: "clawd",
-        description: "Clawd desktop pet hook integration",
+        name: "wang-pet",
+        description: "WangPet desktop pet hook integration",
         hooks: {
           stop: [{ command: "\"/old/node\" \"/old/path/kiro-hook.js\"" }],
         },
@@ -136,11 +136,11 @@ describe("Kiro hook installer", () => {
       silent: true,
       agentsDir,
       nodeBin: "/usr/local/bin/node",
-      syncClawdAgent(filePath) {
+      syncwangpetAgent(filePath) {
         fs.writeFileSync(
           filePath,
           JSON.stringify({
-            name: "clawd",
+            name: "wang-pet",
             description: "Default agent",
             prompt: "# Kiro CLI Default Agent",
             tools: ["*"],
@@ -154,24 +154,24 @@ describe("Kiro hook installer", () => {
       },
     });
 
-    const clawdAgent = readJson(clawdPath);
-    assert.strictEqual(clawdAgent.description, "Default agent");
-    assert.strictEqual(clawdAgent.prompt, "# Kiro CLI Default Agent");
-    assert.deepStrictEqual(clawdAgent.tools, ["*"]);
-    assert.deepStrictEqual(clawdAgent.resources, ["file://README.md"]);
-    assert.strictEqual(clawdAgent.hooks.stop.length, 1);
-    assert.ok(clawdAgent.hooks.stop[0].command.includes("kiro-hook.js"));
-    assert.ok(!clawdAgent.hooks.stop[0].command.includes("/old/path/"));
+    const wangpetAgent = readJson(wangpetPath);
+    assert.strictEqual(wangpetAgent.description, "Default agent");
+    assert.strictEqual(wangpetAgent.prompt, "# Kiro CLI Default Agent");
+    assert.deepStrictEqual(wangpetAgent.tools, ["*"]);
+    assert.deepStrictEqual(wangpetAgent.resources, ["file://README.md"]);
+    assert.strictEqual(wangpetAgent.hooks.stop.length, 1);
+    assert.ok(wangpetAgent.hooks.stop[0].command.includes("kiro-hook.js"));
+    assert.ok(!wangpetAgent.hooks.stop[0].command.includes("/old/path/"));
   });
 
   it("updates stale hook paths without duplicating entries", () => {
     const { agentsDir, settingsPath } = makeTempKiroHome();
-    const clawdPath = path.join(agentsDir, "clawd.json");
+    const wangpetPath = path.join(agentsDir, "wang-pet.json");
     fs.writeFileSync(
-      clawdPath,
+      wangpetPath,
       JSON.stringify({
-        name: "clawd",
-        description: "Clawd desktop pet hook integration",
+        name: "wang-pet",
+        description: "WangPet desktop pet hook integration",
         hooks: {
           stop: [{ command: "\"/old/node\" \"/old/path/kiro-hook.js\"" }],
           preToolUse: [
@@ -187,28 +187,28 @@ describe("Kiro hook installer", () => {
       agentsDir,
       settingsPath,
       nodeBin: "/usr/local/bin/node",
-      syncClawdAgent(filePath) {
+      syncwangpetAgent(filePath) {
         // Preserve existing content — sync is not the focus of this test
         const current = readJson(filePath);
         return { synced: true, changed: false };
       },
     });
 
-    const clawdAgent = readJson(clawdPath);
+    const wangpetAgent = readJson(wangpetPath);
     assert.strictEqual(result.updated, 2);
-    assert.strictEqual(clawdAgent.hooks.stop.length, 1);
-    assert.ok(clawdAgent.hooks.stop[0].command.includes("/usr/local/bin/node"));
-    assert.ok(clawdAgent.hooks.stop[0].command.includes("hooks/kiro-hook.js"));
-    assert.ok(!clawdAgent.hooks.stop[0].command.includes("/old/path/"));
+    assert.strictEqual(wangpetAgent.hooks.stop.length, 1);
+    assert.ok(wangpetAgent.hooks.stop[0].command.includes("/usr/local/bin/node"));
+    assert.ok(wangpetAgent.hooks.stop[0].command.includes("hooks/kiro-hook.js"));
+    assert.ok(!wangpetAgent.hooks.stop[0].command.includes("/old/path/"));
   });
 
-  it("re-syncs clawd.json from the latest kiro_default template on every run", () => {
+  it("re-syncs wang-pet.json from the latest kiro_default template on every run", () => {
     const { agentsDir } = makeTempKiroHome();
-    const clawdPath = path.join(agentsDir, "clawd.json");
+    const wangpetPath = path.join(agentsDir, "wang-pet.json");
     fs.writeFileSync(
-      clawdPath,
+      wangpetPath,
       JSON.stringify({
-        name: "clawd",
+        name: "wang-pet",
         description: "Old default agent",
         prompt: "outdated",
         tools: ["old-tool"],
@@ -226,12 +226,12 @@ describe("Kiro hook installer", () => {
       silent: true,
       agentsDir,
       nodeBin: "/usr/local/bin/node",
-      syncClawdAgent(filePath) {
+      syncwangpetAgent(filePath) {
         const current = readJson(filePath);
         fs.writeFileSync(
           filePath,
           JSON.stringify({
-            name: "clawd",
+            name: "wang-pet",
             description: "Default agent",
             prompt: "# Kiro CLI Default Agent",
             tools: ["*"],
@@ -246,22 +246,22 @@ describe("Kiro hook installer", () => {
       },
     });
 
-    const clawdAgent = readJson(clawdPath);
-    assert.strictEqual(clawdAgent.description, "Default agent");
-    assert.strictEqual(clawdAgent.prompt, "# Kiro CLI Default Agent");
-    assert.deepStrictEqual(clawdAgent.tools, ["*"]);
-    assert.deepStrictEqual(clawdAgent.resources, ["file://README.md"]);
-    assert.strictEqual(clawdAgent.includeMcpJson, true);
-    assert.strictEqual(clawdAgent.model, null);
+    const wangpetAgent = readJson(wangpetPath);
+    assert.strictEqual(wangpetAgent.description, "Default agent");
+    assert.strictEqual(wangpetAgent.prompt, "# Kiro CLI Default Agent");
+    assert.deepStrictEqual(wangpetAgent.tools, ["*"]);
+    assert.deepStrictEqual(wangpetAgent.resources, ["file://README.md"]);
+    assert.strictEqual(wangpetAgent.includeMcpJson, true);
+    assert.strictEqual(wangpetAgent.model, null);
     assert.ok(result.updated >= 1);
-    assert.ok(clawdAgent.hooks.stop[0].command.includes("hooks/kiro-hook.js"));
+    assert.ok(wangpetAgent.hooks.stop[0].command.includes("hooks/kiro-hook.js"));
   });
 
-  it("EXCLUDED_KEYS filtering: model/includeMcpJson absent, description always Clawd's", {
+  it("EXCLUDED_KEYS filtering: model/includeMcpJson absent, description always WangPet's", {
     skip: process.platform === "win32" ? "fake kiro-cli uses POSIX shell script" : false,
   }, () => {
     const { agentsDir } = makeTempKiroHome();
-    const clawdPath = path.join(agentsDir, "clawd.json");
+    const wangpetPath = path.join(agentsDir, "wang-pet.json");
 
     // Create a fake kiro-cli script that writes a template JSON
     const fakeBin = path.join(agentsDir, "fake-kiro-cli");
@@ -298,18 +298,18 @@ fi
     fs.chmodSync(fakeBin, 0o755);
 
     const { __test } = require("../hooks/kiro-install");
-    const syncResult = __test.syncClawdAgentFromBuiltin(clawdPath, {
+    const syncResult = __test.syncwangpetAgentFromBuiltin(wangpetPath, {
       homeDir: path.dirname(agentsDir),
       kiroCliCandidates: [fakeBin],
       silent: true,
     });
 
     assert.ok(syncResult.synced);
-    assert.ok(fs.existsSync(clawdPath));
+    assert.ok(fs.existsSync(wangpetPath));
 
-    const agent = readJson(clawdPath);
-    // Name is always overridden to "clawd"
-    assert.strictEqual(agent.name, "clawd");
+    const agent = readJson(wangpetPath);
+    // Name is always overridden to "wang-pet"
+    assert.strictEqual(agent.name, "wang-pet");
     // Prompt, tools, resources, mcpServers should pass through
     assert.strictEqual(agent.prompt, "# Default prompt");
     assert.deepStrictEqual(agent.tools, ["*"]);
@@ -320,27 +320,27 @@ fi
       "model should be excluded");
     assert.strictEqual(Object.prototype.hasOwnProperty.call(agent, "includeMcpJson"), false,
       "includeMcpJson should be excluded");
-    assert.strictEqual(agent.description, "Clawd desktop pet hook integration");
+    assert.strictEqual(agent.description, "WangPet desktop pet hook integration");
     assert.deepStrictEqual(agent.hooks, {});
   });
 
   it("fallback to minimal agent when kiro-cli is unavailable", () => {
     const { agentsDir } = makeTempKiroHome();
-    const clawdPath = path.join(agentsDir, "clawd.json");
+    const wangpetPath = path.join(agentsDir, "wang-pet.json");
 
     const { __test } = require("../hooks/kiro-install");
-    const syncResult = __test.syncClawdAgentFromBuiltin(clawdPath, {
+    const syncResult = __test.syncwangpetAgentFromBuiltin(wangpetPath, {
       homeDir: path.dirname(agentsDir),
       kiroCliCandidates: ["/nonexistent/kiro-cli"],
       silent: true,
     });
 
     assert.ok(syncResult.synced);
-    assert.ok(fs.existsSync(clawdPath));
+    assert.ok(fs.existsSync(wangpetPath));
 
-    const agent = readJson(clawdPath);
-    assert.strictEqual(agent.name, "clawd");
-    assert.strictEqual(agent.description, "Clawd desktop pet hook integration");
+    const agent = readJson(wangpetPath);
+    assert.strictEqual(agent.name, "wang-pet");
+    assert.strictEqual(agent.description, "WangPet desktop pet hook integration");
     // No prompt/tools/resources in fallback
     assert.strictEqual(Object.prototype.hasOwnProperty.call(agent, "prompt"), false);
     assert.strictEqual(Object.prototype.hasOwnProperty.call(agent, "tools"), false);
@@ -401,18 +401,18 @@ fi
       agentsDir,
       nodeBin: "node",
       platform: "win32",
-      syncClawdAgent(filePath) {
+      syncwangpetAgent(filePath) {
         fs.writeFileSync(
           filePath,
-          JSON.stringify({ name: "clawd", description: "x", hooks: {} }, null, 2),
+          JSON.stringify({ name: "wang-pet", description: "x", hooks: {} }, null, 2),
           "utf8"
         );
       },
     });
 
-    const clawdAgent = readJson(path.join(agentsDir, "clawd.json"));
+    const wangpetAgent = readJson(path.join(agentsDir, "wang-pet.json"));
     for (const event of KIRO_HOOK_EVENTS) {
-      const cmd = clawdAgent.hooks[event][0].command;
+      const cmd = wangpetAgent.hooks[event][0].command;
       assert.ok(cmd.startsWith("& "), `${event} must start with PowerShell call operator: ${cmd}`);
       assert.ok(cmd.includes("kiro-hook.js"));
     }
@@ -422,7 +422,7 @@ fi
     skip: process.platform === "win32" ? "fake kiro-cli uses POSIX shell" : false,
   }, () => {
     const { agentsDir } = makeTempKiroHome();
-    const clawdPath = path.join(agentsDir, "clawd.json");
+    const wangpetPath = path.join(agentsDir, "wang-pet.json");
 
     // Fake kiro-cli: write the file, then exit 1 (simulates EDITOR mis-fire on Windows)
     const fakeBin = path.join(agentsDir, "fake-kiro-cli-failexit");
@@ -454,7 +454,7 @@ exit 1
     fs.chmodSync(fakeBin, 0o755);
 
     const { __test } = require("../hooks/kiro-install");
-    const result = __test.generateClawdTemplateFromBuiltin({
+    const result = __test.generatewangpetTemplateFromBuiltin({
       homeDir: path.dirname(agentsDir),
       kiroCliCandidates: [fakeBin],
     });
@@ -463,24 +463,24 @@ exit 1
     assert.strictEqual(result.template.prompt, "# Survived non-zero exit");
   });
 
-  it("fallback preserves existing clawd.json when kiro-cli is unavailable", () => {
+  it("fallback preserves existing wang-pet.json when kiro-cli is unavailable", () => {
     const { agentsDir } = makeTempKiroHome();
-    const clawdPath = path.join(agentsDir, "clawd.json");
+    const wangpetPath = path.join(agentsDir, "wang-pet.json");
 
-    // Pre-seed a full clawd.json (simulates a prior successful sync)
+    // Pre-seed a full wang-pet.json (simulates a prior successful sync)
     const preExisting = {
-      name: "clawd",
-      description: "Clawd desktop pet hook integration",
+      name: "wang-pet",
+      description: "WangPet desktop pet hook integration",
       prompt: "# Custom prompt from previous run",
       tools: ["*"],
       resources: ["file://README.md"],
       mcpServers: { foo: { command: "bar" } },
       hooks: { stop: [{ command: "node /path/to/kiro-hook.js" }] },
     };
-    fs.writeFileSync(clawdPath, JSON.stringify(preExisting, null, 2), "utf8");
+    fs.writeFileSync(wangpetPath, JSON.stringify(preExisting, null, 2), "utf8");
 
     const { __test } = require("../hooks/kiro-install");
-    const syncResult = __test.syncClawdAgentFromBuiltin(clawdPath, {
+    const syncResult = __test.syncwangpetAgentFromBuiltin(wangpetPath, {
       homeDir: path.dirname(agentsDir),
       kiroCliCandidates: ["/nonexistent/kiro-cli"],
       silent: true,
@@ -488,6 +488,6 @@ exit 1
 
     assert.ok(syncResult.synced);
     assert.strictEqual(syncResult.changed, false, "should not touch existing file");
-    assert.deepStrictEqual(readJson(clawdPath), preExisting, "content must be byte-identical");
+    assert.deepStrictEqual(readJson(wangpetPath), preExisting, "content must be byte-identical");
   });
 });

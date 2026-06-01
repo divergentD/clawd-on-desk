@@ -131,9 +131,9 @@ const kimiPermissionHolds = new Map();
 // TUI for tens of seconds (phone, lunch, deciding) so we keep this very
 // generous — the precise number isn't load bearing, the per-session cleanup
 // path (cleanStaleSessions / SessionEnd / Kimi event remap) is what should
-// release the hold in practice. Override with CLAWD_KIMI_PERMISSION_MAX_MS.
+// release the hold in practice. Override with WANGPET_KIMI_PERMISSION_MAX_MS.
 function parseKimiHoldMaxMs() {
-  const raw = process.env.CLAWD_KIMI_PERMISSION_MAX_MS;
+  const raw = process.env.WANGPET_KIMI_PERMISSION_MAX_MS;
   const n = Number.parseInt(raw, 10);
   // 0 disables the timer entirely (hold stays until an event or stale-cleanup).
   if (Number.isFinite(n) && n >= 0 && n <= 24 * 60 * 60 * 1000) return n;
@@ -157,7 +157,7 @@ let _lastKimiPulseAt = 0;
 //      for the user — promote to a real permission hold (notification state)
 const kimiPermissionSuspectTimers = new Map();
 function parseSuspectDelay() {
-  const raw = process.env.CLAWD_KIMI_PERMISSION_SUSPECT_MS;
+  const raw = process.env.WANGPET_KIMI_PERMISSION_SUSPECT_MS;
   const n = Number.parseInt(raw, 10);
   if (Number.isFinite(n) && n >= 0 && n <= 10000) return n;
   return 800;
@@ -187,7 +187,7 @@ function hasPermissionAnimationLock() {
 const QWEN_SELF_SUBMIT_WINDOW_DEFAULT_MS = 2000;
 const QWEN_SELF_SUBMIT_WINDOW_MAX_MS = 10000;
 function getQwenSelfSubmitWindowMs() {
-  const raw = process.env.CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS;
+  const raw = process.env.WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS;
   if (typeof raw !== "string" || !raw.trim()) return QWEN_SELF_SUBMIT_WINDOW_DEFAULT_MS;
   const n = Number.parseInt(raw.trim(), 10);
   if (!Number.isFinite(n) || n < 0 || n > QWEN_SELF_SUBMIT_WINDOW_MAX_MS) {
@@ -198,7 +198,7 @@ function getQwenSelfSubmitWindowMs() {
 function isQwenSelfSubmitFilterEnabled() {
   // Default on. Kill switch for users to disable if qwen ≥0.17 changes the
   // self-submit behavior in a way that breaks this filter.
-  return process.env.CLAWD_QWEN_SELF_SUBMIT_FILTER !== "0";
+  return process.env.WANGPET_QWEN_SELF_SUBMIT_FILTER !== "0";
 }
 
 // ── Stale cleanup ──
@@ -1012,7 +1012,7 @@ function updateSession(sessionId, state, event, opts = {}) {
   //   - Outside the window (real human input)
   //   - Stop has fired AFTER the most recent tool boundary (end-of-turn
   //     reached — any UserPromptSubmit now is real user input)
-  //   - Kill switch CLAWD_QWEN_SELF_SUBMIT_FILTER="0"
+  //   - Kill switch WANGPET_QWEN_SELF_SUBMIT_FILTER="0"
   if (
     event === "UserPromptSubmit"
     && srcAgentId === "qwen-code"

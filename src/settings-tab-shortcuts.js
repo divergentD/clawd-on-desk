@@ -216,5 +216,5 @@
     };
   }
 
-  root.ClawdSettingsTabShortcuts = { init };
+  root.wangpetSettingsTabShortcuts = { init };
 })(globalThis);

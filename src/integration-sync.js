@@ -8,10 +8,10 @@ function createIntegrationSyncRuntime(options = {}) {
   const startClaudeSettingsWatcher = options.startClaudeSettingsWatcher;
   const stopClaudeSettingsWatcher = options.stopClaudeSettingsWatcher;
 
-  function syncClawdHooks() {
+  function syncwangpetHooks() {
     try {
-      if (typeof ctx.syncClawdHooksImpl === "function") {
-        return ctx.syncClawdHooksImpl({
+      if (typeof ctx.syncwangpetHooksImpl === "function") {
+        return ctx.syncwangpetHooksImpl({
           autoStart: ctx.autoStartWithClaude,
           port: getHookServerPort(),
         });
@@ -23,11 +23,11 @@ function createIntegrationSyncRuntime(options = {}) {
         port: getHookServerPort(),
       });
       if (added > 0 || updated > 0 || removed > 0) {
-        console.log(`Clawd: synced hooks (added ${added}, updated ${updated}, removed ${removed})`);
+        console.log(`WangPet: synced hooks (added ${added}, updated ${updated}, removed ${removed})`);
       }
       return { status: "ok", added, updated, removed };
     } catch (err) {
-      console.warn("Clawd: failed to sync hooks:", err.message);
+      console.warn("WangPet: failed to sync hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Claude hooks" };
     }
   }
@@ -38,11 +38,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerGeminiHooks } = require("../hooks/gemini-install.js");
       const { added, updated } = registerGeminiHooks({ silent: true });
       if (added > 0 || updated > 0) {
-        console.log(`Clawd: synced Gemini hooks (added ${added}, updated ${updated})`);
+        console.log(`WangPet: synced Gemini hooks (added ${added}, updated ${updated})`);
       }
       return { status: "ok", added, updated };
     } catch (err) {
-      console.warn("Clawd: failed to sync Gemini hooks:", err.message);
+      console.warn("WangPet: failed to sync Gemini hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Gemini hooks" };
     }
   }
@@ -53,11 +53,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerAntigravityHooks } = require("../hooks/antigravity-install.js");
       const result = registerAntigravityHooks({ silent: true });
       if (result.added > 0 || result.updated > 0) {
-        console.log(`Clawd: synced Antigravity hooks (added ${result.added}, updated ${result.updated})`);
+        console.log(`WangPet: synced Antigravity hooks (added ${result.added}, updated ${result.updated})`);
       }
       return { status: "ok", ...result };
     } catch (err) {
-      console.warn("Clawd: failed to sync Antigravity hooks:", err.message);
+      console.warn("WangPet: failed to sync Antigravity hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Antigravity hooks" };
     }
   }
@@ -68,11 +68,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerCodeBuddyHooks } = require("../hooks/codebuddy-install.js");
       const { added, updated } = registerCodeBuddyHooks({ silent: true });
       if (added > 0 || updated > 0) {
-        console.log(`Clawd: synced CodeBuddy hooks (added ${added}, updated ${updated})`);
+        console.log(`WangPet: synced CodeBuddy hooks (added ${added}, updated ${updated})`);
       }
       return { status: "ok", added, updated };
     } catch (err) {
-      console.warn("Clawd: failed to sync CodeBuddy hooks:", err.message);
+      console.warn("WangPet: failed to sync CodeBuddy hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync CodeBuddy hooks" };
     }
   }
@@ -83,11 +83,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerKiroHooks } = require("../hooks/kiro-install.js");
       const { added, updated } = registerKiroHooks({ silent: true });
       if (added > 0 || updated > 0) {
-        console.log(`Clawd: synced Kiro hooks (added ${added}, updated ${updated})`);
+        console.log(`WangPet: synced Kiro hooks (added ${added}, updated ${updated})`);
       }
       return { status: "ok", added, updated };
     } catch (err) {
-      console.warn("Clawd: failed to sync Kiro hooks:", err.message);
+      console.warn("WangPet: failed to sync Kiro hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Kiro hooks" };
     }
   }
@@ -98,11 +98,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerKimiHooks } = require("../hooks/kimi-install.js");
       const { added, updated } = registerKimiHooks({ silent: true });
       if (added > 0 || updated > 0) {
-        console.log(`Clawd: synced Kimi hooks (added ${added}, updated ${updated})`);
+        console.log(`WangPet: synced Kimi hooks (added ${added}, updated ${updated})`);
       }
       return { status: "ok", added, updated };
     } catch (err) {
-      console.warn("Clawd: failed to sync Kimi hooks:", err.message);
+      console.warn("WangPet: failed to sync Kimi hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Kimi hooks" };
     }
   }
@@ -113,11 +113,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerQwenCodeHooks } = require("../hooks/qwen-code-install.js");
       const result = registerQwenCodeHooks({ silent: true });
       if (result.added > 0 || result.updated > 0) {
-        console.log(`Clawd: synced Qwen hooks (added ${result.added}, updated ${result.updated})`);
+        console.log(`WangPet: synced Qwen hooks (added ${result.added}, updated ${result.updated})`);
       }
       return { status: "ok", ...result };
     } catch (err) {
-      console.warn("Clawd: failed to sync Qwen hooks:", err.message);
+      console.warn("WangPet: failed to sync Qwen hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Qwen hooks" };
     }
   }
@@ -128,14 +128,14 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerCodexHooks } = require("../hooks/codex-install.js");
       const { added, updated, warnings } = registerCodexHooks({ silent: true });
       if (added > 0 || updated > 0) {
-        console.log(`Clawd: synced Codex hooks (added ${added}, updated ${updated})`);
+        console.log(`WangPet: synced Codex hooks (added ${added}, updated ${updated})`);
       }
       if (Array.isArray(warnings)) {
-        for (const warning of warnings) console.warn(`Clawd: Codex hook sync warning: ${warning}`);
+        for (const warning of warnings) console.warn(`WangPet: Codex hook sync warning: ${warning}`);
       }
       return { status: "ok", added, updated, warnings };
     } catch (err) {
-      console.warn("Clawd: failed to sync Codex hooks:", err.message);
+      console.warn("WangPet: failed to sync Codex hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Codex hooks" };
     }
   }
@@ -149,10 +149,10 @@ function createIntegrationSyncRuntime(options = {}) {
         forceCodexHooksFeature: options && options.forceCodexHooksFeature === true,
       });
       if (added > 0 || updated > 0 || configChanged) {
-        console.log(`Clawd: repaired Codex hooks (added ${added}, updated ${updated}, configChanged=${!!configChanged})`);
+        console.log(`WangPet: repaired Codex hooks (added ${added}, updated ${updated}, configChanged=${!!configChanged})`);
       }
       if (Array.isArray(warnings)) {
-        for (const warning of warnings) console.warn(`Clawd: Codex hook repair warning: ${warning}`);
+        for (const warning of warnings) console.warn(`WangPet: Codex hook repair warning: ${warning}`);
         if (warnings.length > 0) {
           return {
             status: "error",
@@ -170,7 +170,7 @@ function createIntegrationSyncRuntime(options = {}) {
           : "Codex hooks repaired",
       };
     } catch (err) {
-      console.warn("Clawd: failed to repair Codex hooks:", err.message);
+      console.warn("WangPet: failed to repair Codex hooks:", err.message);
       return { status: "error", message: err && err.message };
     }
   }
@@ -181,11 +181,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerCursorHooks } = require("../hooks/cursor-install.js");
       const { added, updated } = registerCursorHooks({ silent: true });
       if (added > 0 || updated > 0) {
-        console.log(`Clawd: synced Cursor hooks (added ${added}, updated ${updated})`);
+        console.log(`WangPet: synced Cursor hooks (added ${added}, updated ${updated})`);
       }
       return { status: "ok", added, updated };
     } catch (err) {
-      console.warn("Clawd: failed to sync Cursor hooks:", err.message);
+      console.warn("WangPet: failed to sync Cursor hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Cursor hooks" };
     }
   }
@@ -196,11 +196,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerCopilotHooks } = require("../hooks/copilot-install.js");
       const { added, updated } = registerCopilotHooks({ silent: true });
       if (added > 0 || updated > 0) {
-        console.log(`Clawd: synced Copilot hooks (added ${added}, updated ${updated})`);
+        console.log(`WangPet: synced Copilot hooks (added ${added}, updated ${updated})`);
       }
       return { status: "ok", added, updated };
     } catch (err) {
-      console.warn("Clawd: failed to sync Copilot hooks:", err.message);
+      console.warn("WangPet: failed to sync Copilot hooks:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Copilot hooks" };
     }
   }
@@ -211,11 +211,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerOpencodePlugin } = require("../hooks/opencode-install.js");
       const { added, created } = registerOpencodePlugin({ silent: true });
       if (added || created) {
-        console.log(`Clawd: synced opencode plugin (added=${added}, created=${created})`);
+        console.log(`WangPet: synced opencode plugin (added=${added}, created=${created})`);
       }
       return { status: "ok", added, created };
     } catch (err) {
-      console.warn("Clawd: failed to sync opencode plugin:", err.message);
+      console.warn("WangPet: failed to sync opencode plugin:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync opencode plugin" };
     }
   }
@@ -226,11 +226,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerPiExtension } = require("../hooks/pi-install.js");
       const result = registerPiExtension({ silent: true });
       if (result.installed && result.updated) {
-        console.log("Clawd: synced Pi extension");
+        console.log("WangPet: synced Pi extension");
       }
       return { status: "ok", ...result };
     } catch (err) {
-      console.warn("Clawd: failed to sync Pi extension:", err.message);
+      console.warn("WangPet: failed to sync Pi extension:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Pi extension" };
     }
   }
@@ -241,11 +241,11 @@ function createIntegrationSyncRuntime(options = {}) {
       const { registerOpenClawPlugin } = require("../hooks/openclaw-install.js");
       const result = registerOpenClawPlugin({ silent: true });
       if (result.installed && result.updated) {
-        console.log("Clawd: synced OpenClaw plugin");
+        console.log("WangPet: synced OpenClaw plugin");
       }
       return { status: "ok", ...result };
     } catch (err) {
-      console.warn("Clawd: failed to sync OpenClaw plugin:", err.message);
+      console.warn("WangPet: failed to sync OpenClaw plugin:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync OpenClaw plugin" };
     }
   }
@@ -263,7 +263,7 @@ function createIntegrationSyncRuntime(options = {}) {
       }
       return { status: "ok", ...result, message: "OpenClaw plugin repaired" };
     } catch (err) {
-      console.warn("Clawd: failed to repair OpenClaw plugin:", err.message);
+      console.warn("WangPet: failed to repair OpenClaw plugin:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to repair OpenClaw plugin" };
     }
   }
@@ -284,15 +284,15 @@ function createIntegrationSyncRuntime(options = {}) {
       }
       const result = registerHermesPlugin({ silent: true });
       if (result && result.status === "error") {
-        console.warn("Clawd: failed to sync Hermes plugin:", result.message);
+        console.warn("WangPet: failed to sync Hermes plugin:", result.message);
         return result;
       }
       if (result && (result.installed > 0 || result.updated > 0)) {
-        console.log(`Clawd: synced Hermes plugin (installed=${result.installed}, updated=${result.updated})`);
+        console.log(`WangPet: synced Hermes plugin (installed=${result.installed}, updated=${result.updated})`);
       }
       return result && typeof result === "object" ? result : { status: "ok" };
     } catch (err) {
-      console.warn("Clawd: failed to sync Hermes plugin:", err.message);
+      console.warn("WangPet: failed to sync Hermes plugin:", err.message);
       return { status: "error", message: err && err.message ? err.message : "Failed to sync Hermes plugin" };
     }
   }
@@ -322,7 +322,7 @@ function createIntegrationSyncRuntime(options = {}) {
   function syncIntegrationForAgent(agentId) {
     if (agentId === "claude-code") {
       if (!shouldManageClaudeHooks()) return false;
-      const result = syncClawdHooks();
+      const result = syncwangpetHooks();
       startClaudeSettingsWatcher();
       return result && typeof result === "object" ? result : true;
     }
@@ -351,7 +351,7 @@ function createIntegrationSyncRuntime(options = {}) {
 
   function syncEnabledStartupIntegrations() {
     if (shouldManageClaudeHooks() && isAgentEnabled("claude-code")) {
-      syncClawdHooks();
+      syncwangpetHooks();
       startClaudeSettingsWatcher();
     }
     for (const [agentId, sync] of Object.entries(AGENT_INTEGRATION_SYNCERS)) {
@@ -360,7 +360,7 @@ function createIntegrationSyncRuntime(options = {}) {
   }
 
   return {
-    syncClawdHooks,
+    syncwangpetHooks,
     syncGeminiHooks,
     syncAntigravityHooks,
     syncCursorHooks,

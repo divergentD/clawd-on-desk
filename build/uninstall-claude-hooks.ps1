@@ -4,8 +4,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding -ArgumentList $false
-$ClawdPermissionPorts = @(23333, 23334, 23335, 23336, 23337)
-$ClawdCommandMarkers = @("clawd-hook.js", "auto-start.js", "auto-start.sh")
+$wangpetPermissionPorts = @(23333, 23334, 23335, 23336, 23337)
+$wangpetCommandMarkers = @("wang-pet-hook.js", "auto-start.js", "auto-start.sh")
 
 function Normalize-PathForCompare {
   param([string]$PathValue)
@@ -71,7 +71,7 @@ function Read-TrimmedTextCandidates {
 }
 
 function Resolve-TargetUserHome {
-  $markerPath = Join-Path $InstallDir ".clawd-install-user-home"
+  $markerPath = Join-Path $InstallDir ".wang-pet-install-user-home"
   if ([System.IO.File]::Exists($markerPath)) {
     foreach ($candidateText in (Read-TrimmedTextCandidates $markerPath)) {
       $resolved = Resolve-PlausibleUserHome $candidateText
@@ -109,11 +109,11 @@ function Get-StringPropertyValue {
   return $property.Value
 }
 
-function Test-ClawdCommand {
+function Test-wangpetCommand {
   param([string]$Command)
   if ([string]::IsNullOrWhiteSpace($Command)) { return $false }
 
-  foreach ($marker in $ClawdCommandMarkers) {
+  foreach ($marker in $wangpetCommandMarkers) {
     if ($Command.IndexOf($marker, [System.StringComparison]::Ordinal) -ge 0) {
       return $true
     }
@@ -122,7 +122,7 @@ function Test-ClawdCommand {
   return $false
 }
 
-function Test-ClawdPermissionUrl {
+function Test-wangpetPermissionUrl {
   param([string]$Url)
   if ([string]::IsNullOrWhiteSpace($Url)) { return $false }
 
@@ -135,23 +135,23 @@ function Test-ClawdPermissionUrl {
       -and [string]::IsNullOrEmpty($uri.Query) `
       -and [string]::IsNullOrEmpty($uri.Fragment) `
       -and [string]::IsNullOrEmpty($uri.UserInfo) `
-      -and ($ClawdPermissionPorts -contains $uri.Port)
+      -and ($wangpetPermissionPorts -contains $uri.Port)
   } catch {
     return $false
   }
 }
 
-function Test-ClawdHttpHook {
+function Test-wangpetHttpHook {
   param([object]$Hook)
 
   $type = Get-StringPropertyValue $Hook "type"
   if ($type -ne "http") { return $false }
 
   $url = Get-StringPropertyValue $Hook "url"
-  return Test-ClawdPermissionUrl $url
+  return Test-wangpetPermissionUrl $url
 }
 
-function Remove-ClawdHooksFromEntries {
+function Remove-wangpetHooksFromEntries {
   param([object[]]$Entries)
 
   $nextEntries = New-Object System.Collections.ArrayList
@@ -165,13 +165,13 @@ function Remove-ClawdHooksFromEntries {
     }
 
     $entryCommand = Get-StringPropertyValue $entry "command"
-    if (Test-ClawdCommand $entryCommand) {
+    if (Test-wangpetCommand $entryCommand) {
       $removed++
       $changed = $true
       continue
     }
 
-    if (Test-ClawdHttpHook $entry) {
+    if (Test-wangpetHttpHook $entry) {
       $removed++
       $changed = $true
       continue
@@ -190,9 +190,9 @@ function Remove-ClawdHooksFromEntries {
       $removeHook = $false
       if ($null -ne $hook -and $null -ne $hook.PSObject) {
         $hookCommand = Get-StringPropertyValue $hook "command"
-        if (Test-ClawdCommand $hookCommand) {
+        if (Test-wangpetCommand $hookCommand) {
           $removeHook = $true
-        } elseif (Test-ClawdHttpHook $hook) {
+        } elseif (Test-wangpetHttpHook $hook) {
           $removeHook = $true
         }
       }
@@ -225,7 +225,7 @@ function Remove-ClawdHooksFromEntries {
   }
 }
 
-function Remove-ClawdHooksFromSettings {
+function Remove-wangpetHooksFromSettings {
   param([object]$Settings)
 
   $hooksProperty = Get-JsonProperty $Settings "hooks"
@@ -239,7 +239,7 @@ function Remove-ClawdHooksFromSettings {
   foreach ($eventProperty in $eventProperties) {
     if (-not ($eventProperty.Value -is [System.Array])) { continue }
 
-    $result = Remove-ClawdHooksFromEntries -Entries ([object[]]$eventProperty.Value)
+    $result = Remove-wangpetHooksFromEntries -Entries ([object[]]$eventProperty.Value)
     if (-not $result.Changed) { continue }
 
     $changed = $true
@@ -270,9 +270,9 @@ try {
   }
 
   if ($null -eq $settings) { exit 0 }
-  if (-not (Remove-ClawdHooksFromSettings $settings)) { exit 0 }
+  if (-not (Remove-wangpetHooksFromSettings $settings)) { exit 0 }
 
-  $backupName = "settings.json.clawd-uninstall-{0}.bak" -f (Get-Date -Format "yyyyMMdd-HHmmss-fff")
+  $backupName = "settings.json.wang-pet-uninstall-{0}.bak" -f (Get-Date -Format "yyyyMMdd-HHmmss-fff")
   $backupPath = Join-Path (Split-Path -Parent $settingsPath) $backupName
   [System.IO.File]::Copy($settingsPath, $backupPath, $false)
 

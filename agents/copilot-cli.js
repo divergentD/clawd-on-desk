@@ -22,7 +22,7 @@ module.exports = {
   capabilities: {
     httpHook: false,
     // Copilot CLI exposes a `permissionRequest` hook with
-    // `{ behavior: "allow" | "deny", message, interrupt }` schema, but Clawd
+    // `{ behavior: "allow" | "deny", message, interrupt }` schema, but WangPet
     // has not wired Copilot permissionRequest into the bubble pipeline yet.
     // See docs/guides/known-limitations.md for follow-up.
     permissionApproval: false,

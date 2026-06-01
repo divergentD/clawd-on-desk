@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Clawd — Codex official lifecycle and permission hook.
+// WangPet — Codex official lifecycle and permission hook.
 // Registered in ~/.codex/hooks.json by hooks/codex-install.js
 
 const crypto = require("crypto");
@@ -42,7 +42,7 @@ const EVENT_TO_STATE = {
 };
 
 function getCodexPermissionTimeoutMs() {
-  const raw = Number(process.env.CLAWD_CODEX_PERMISSION_TIMEOUT_MS);
+  const raw = Number(process.env.WANGPET_CODEX_PERMISSION_TIMEOUT_MS);
   if (Number.isFinite(raw) && raw > 0) return Math.min(raw, CODEX_PERMISSION_TIMEOUT_MS);
   return CODEX_PERMISSION_TIMEOUT_MS;
 }
@@ -301,7 +301,7 @@ function buildPermissionBody(payload, resolve) {
   if (toolUseId) body.tool_use_id = toolUseId;
   if (toolInputFingerprint) body.tool_input_fingerprint = toolInputFingerprint;
 
-  if (process.env.CLAWD_REMOTE) {
+  if (process.env.WANGPET_REMOTE) {
     body.host = readHostPrefix();
   } else {
     applyLocalProcessFields(body, resolve, {
@@ -367,7 +367,7 @@ function buildStateBody(payload, resolve) {
   if (toolUseId) body.tool_use_id = toolUseId;
   if (toolInputFingerprint) body.tool_input_fingerprint = toolInputFingerprint;
 
-  if (process.env.CLAWD_REMOTE) {
+  if (process.env.WANGPET_REMOTE) {
     body.host = readHostPrefix();
   } else {
     applyLocalProcessFields(body, resolve, {

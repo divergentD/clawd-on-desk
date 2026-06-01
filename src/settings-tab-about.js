@@ -148,11 +148,11 @@
 
     const crabWrap = document.createElement("div");
     crabWrap.className = "about-crab-wrap";
-    crabWrap.title = "Clawd";
+    crabWrap.title = "wang-pet";
 
     const title = document.createElement("h2");
     title.className = "about-title";
-    title.textContent = "WangPet";
+    title.textContent = "wang-pet";
 
     const tagline = document.createElement("p");
     tagline.className = "about-tagline";
@@ -353,5 +353,5 @@
     };
   }
 
-  root.ClawdSettingsTabAbout = { init };
+  root.wangpetSettingsTabAbout = { init };
 })(globalThis);

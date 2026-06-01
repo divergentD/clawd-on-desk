@@ -131,7 +131,7 @@ const integrationSync = createIntegrationSyncRuntime({
   stopClaudeSettingsWatcher,
 });
 const {
-  syncClawdHooks,
+  syncwangpetHooks,
   syncGeminiHooks,
   syncAntigravityHooks,
   syncCursorHooks,
@@ -161,7 +161,7 @@ function repairRuntimeStatus() {
   }
   return {
     status: "error",
-    message: "Local server is not listening; restart Clawd",
+    message: "Local server is not listening; restart WangPet",
   };
 }
 
@@ -170,7 +170,7 @@ const claudeSettingsWatcher = createClaudeSettingsWatcher({
   shouldManageClaudeHooks,
   isAgentEnabled,
   getHookServerPort,
-  syncClawdHooks,
+  syncwangpetHooks,
 });
 
 // Watch ~/.claude/ directory for settings.json overwrites (e.g. CC-Switch)
@@ -227,7 +227,7 @@ function startHttpServer() {
   httpServer.on("listening", () => {
     activeServerPort = listenPorts[listenIndex];
     writeRuntimeConfigFn(activeServerPort);
-    console.log(`Clawd state server listening on 127.0.0.1:${activeServerPort}`);
+    console.log(`WangPet state server listening on 127.0.0.1:${activeServerPort}`);
     // Defer hook/plugin registration off the startup path. Each sync call
     // reads+parses+writes a config JSON (50-150ms cumulative on slow disks),
     // and they operate on independent files for independent agents, so
@@ -252,7 +252,7 @@ return {
   getRuntimeStatus,
   getRecentHookEvents,
   clearRecentHookEvents,
-  syncClawdHooks,
+  syncwangpetHooks,
   syncGeminiHooks,
   syncAntigravityHooks,
   syncCursorHooks,

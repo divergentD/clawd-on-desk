@@ -36,7 +36,7 @@ describe("doctor aggregate checks", () => {
 
   it("runs all four Step 1 checks through injectable dependencies", () => {
     const result = runDoctorChecks({
-      prefs: { theme: "clawd" },
+      prefs: { theme: "wang-pet" },
       checkLocalServer: () => ({ id: "local-server", status: "pass", level: null }),
       checkAgentIntegrations: () => ({ id: "agent-integrations", status: "pass", level: null, details: [] }),
       checkPermissionBubblePolicy: () => ({ id: "permission-bubble-policy", status: "pass", level: null }),

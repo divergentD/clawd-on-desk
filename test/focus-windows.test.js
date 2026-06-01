@@ -102,8 +102,8 @@ describe("Windows terminal focus", () => {
       assert.match(helperScript, /unownedTitled\.Count > 0/);
       assert.match(helperScript, /titled\.Count > 0/);
       assert.doesNotMatch(helperScript, /skip owned helper\/pop-up windows/);
-      assert.match(cmd, /Get-ClawdVisiblePidWindows/);
-      assert.match(cmd, /Get-ClawdWindowsTerminalWindows/);
+      assert.match(cmd, /Get-wangpetVisiblePidWindows/);
+      assert.match(cmd, /Get-wangpetWindowsTerminalWindows/);
       assert.match(cmd, /\$chainWindowsTerminalPids/);
       assert.match(cmd, /wt-parent-title-match/);
       assert.match(cmd, /wt-parent-title-ambiguous/);
@@ -133,8 +133,8 @@ describe("Windows terminal focus", () => {
       const cmd = focus.__test.makeFocusCmd(1234, ["repo"]);
       const helperScript = focus.__test.PS_FOCUS_ADDTYPE;
 
-      assert.match(cmd, /Write-ClawdFocusResult/);
-      assert.match(helperScript, /__CLAWD_FOCUS_RESULT__/);
+      assert.match(cmd, /Write-wangpetFocusResult/);
+      assert.match(helperScript, /__WANGPET_FOCUS_RESULT__/);
       assert.doesNotMatch(cmd, /Add-Content/);
       assert.doesNotMatch(helperScript, /Add-Content/);
       assert.doesNotMatch(cmd, /focus-debug\.log/);
@@ -153,12 +153,12 @@ describe("Windows terminal focus", () => {
 
       assert.match(helperScript, /IsUsableWindow/);
       assert.match(cmd, /\$focusCacheKey = \(\[Text\.Encoding\]::UTF8\.GetString/);
-      assert.match(cmd, /\$global:ClawdFocusWindowCache/);
-      assert.match(cmd, /Get-ClawdCachedWindow/);
+      assert.match(cmd, /\$global:wangpetFocusWindowCache/);
+      assert.match(cmd, /Get-wangpetCachedWindow/);
       assert.match(cmd, /reason = 'cached-window'/);
-      assert.match(cmd, /Save-ClawdFocusCache \$matches\[0\]/);
-      assert.match(cmd, /Save-ClawdFocusCache \$wtMatches\[0\]/);
-      assert.match(cmd, /Save-ClawdFocusCache \$singleWtWindows\[0\]/);
+      assert.match(cmd, /Save-wangpetFocusCache \$matches\[0\]/);
+      assert.match(cmd, /Save-wangpetFocusCache \$wtMatches\[0\]/);
+      assert.match(cmd, /Save-wangpetFocusCache \$singleWtWindows\[0\]/);
     } finally {
       cleanup();
     }
@@ -174,7 +174,7 @@ describe("Windows terminal focus", () => {
       assert.match(helperScript, /IsUsableWindowsTerminalWindow/);
       assert.match(cmd, /\$wtHwndFromHook = \[IntPtr\]\(\[int64\]123456\)/);
       assert.match(cmd, /IsUsableWindowsTerminalWindow\(\$wtHwndFromHook\)/);
-      assert.match(cmd, /Save-ClawdFocusCache \$wtHwndFromHook/);
+      assert.match(cmd, /Save-wangpetFocusCache \$wtHwndFromHook/);
       assert.match(cmd, /reason = 'wt-hwnd-from-hook'/);
       assert.ok(cmd.indexOf("reason = 'wt-hwnd-from-hook'") < cmd.indexOf("for ($i = 0; $i -lt 8; $i++)"));
     } finally {
@@ -249,7 +249,7 @@ describe("Windows terminal focus", () => {
     const { initFocus, cleanup } = loadFocusWithMock();
     try {
       const focus = initFocus({ focusLog: (msg) => logs.push(msg) });
-      focus.__test.handleFocusHelperCompleteOutput("noise\n__CLAWD_FOCUS_RESULT__ parent-direct\n");
+      focus.__test.handleFocusHelperCompleteOutput("noise\n__WANGPET_FOCUS_RESULT__ parent-direct\n");
 
       assert.match(logs.join("\n"), /focus result branch=windows-helper reason=parent-direct/);
     } finally {
@@ -265,7 +265,7 @@ describe("Windows terminal focus", () => {
       execFile: (cmd, args, opts, cb) => {
         if (typeof opts === "function") cb = opts;
         execCalls.push({ cmd, args: [...args] });
-        if (cb) cb(null, "__CLAWD_FOCUS_RESULT__ parent-direct\n", "");
+        if (cb) cb(null, "__WANGPET_FOCUS_RESULT__ parent-direct\n", "");
       },
       spawn: () => ({
         pid: 9999,

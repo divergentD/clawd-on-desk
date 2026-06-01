@@ -69,7 +69,7 @@ const isWin = process.platform === "win32";
 // Ubuntu 26.04 defaults to Wayland, but Electron's native Wayland support
 // for transparent + alwaysOnTop + frequent setBounds (drag) is poor.
 // Force XWayland unless the user explicitly opts into native Wayland.
-if (isLinux && process.env.CLAWD_WAYLAND !== "1") {
+if (isLinux && process.env.WANGPET_WAYLAND !== "1") {
   app.commandLine.appendSwitch("ozone-platform", "x11");
 }
 const LINUX_WINDOW_TYPE = "toolbar";
@@ -88,20 +88,20 @@ if (isWin) {
     const user32 = koffi.load("user32.dll");
     _allowSetForeground = user32.func("bool __stdcall AllowSetForegroundWindow(int dwProcessId)");
   } catch (err) {
-    console.warn("Clawd: koffi/AllowSetForegroundWindow not available:", err.message);
+    console.warn("WangPet: koffi/AllowSetForegroundWindow not available:", err.message);
   }
 }
 
 // ── Windows: switch the dev console to UTF-8 ──
 //
-// `npm start` attaches Clawd to a parent PowerShell/cmd console. That
+// `npm start` attaches WangPet to a parent PowerShell/cmd console. That
 // console defaults to the system codepage (CP936 on zh-CN), so any
 // Chinese string we console.log lands as mojibake — the strings are
 // already UTF-8 in memory (after the GBK stderr decode fix), but the
 // console interprets the bytes as GBK on the way out.
 //
 // SetConsoleOutputCP(65001) tells the attached console to interpret
-// stdout/stderr as UTF-8 while Clawd is running. Packaged builds run under
+// stdout/stderr as UTF-8 while WangPet is running. Packaged builds run under
 // the Windows GUI subsystem with no console attached, so this call is a
 // no-op there.
 let _restoreConsoleOutputCP = null;
@@ -124,7 +124,7 @@ if (isWin) {
     }
   } catch (err) {
     // Best-effort — mojibake in dev console is annoying but not fatal.
-    console.warn("Clawd: SetConsoleOutputCP(65001) failed:", err && err.message);
+    console.warn("WangPet: SetConsoleOutputCP(65001) failed:", err && err.message);
   }
 }
 
@@ -151,7 +151,7 @@ const {
   isAllBubblesHidden,
 } = require("./bubble-policy");
 const loginItemHelpers = require("./login-item");
-const PREFS_PATH = path.join(app.getPath("userData"), "clawd-prefs.json");
+const PREFS_PATH = path.join(app.getPath("userData"), "wang-pet-prefs.json");
 const _initialPrefsLoad = prefsModule.load(PREFS_PATH);
 
 // Lazy helpers — these run inside the action `effect` callbacks at click time,
@@ -208,10 +208,10 @@ function _deferredResizePet(sizeKey) {
 }
 
 let _restartScheduled = false;
-function _restartClawdNow() {
+function _restartwangpetNow() {
   if (_restartScheduled) return;
   _restartScheduled = true;
-  // Triggered by Doctor's restart-clawd repair. relaunch() queues a fresh
+  // Triggered by Doctor's restart-wangpet repair. relaunch() queues a fresh
   // process; quit() then follows the normal shutdown path so before-quit
   // still flushes prefs and cleans up server/monitor resources.
   // setImmediate so the IPC reply for repairDoctorIssue lands in the
@@ -271,7 +271,7 @@ const _settingsController = createSettingsController({
     repairLocalServer: () => _server && typeof _server.repairRuntimeStatus === "function"
       ? _server.repairRuntimeStatus()
       : false,
-    restartClawd: _restartClawdNow,
+    restartwangpet: _restartwangpetNow,
     clearSessionsByAgent: (id) => agentRuntime ? agentRuntime.clearSessionsByAgent(id) : 0,
     dismissPermissionsByAgent: (id) => agentRuntime ? agentRuntime.dismissPermissionsByAgent(id) : 0,
     resizePet: _deferredResizePet,
@@ -336,14 +336,14 @@ function hydrateSystemBackedSettings() {
   try {
     systemValue = !!_readSystemOpenAtLogin();
   } catch (err) {
-    console.warn("Clawd: failed to read system openAtLogin during hydration:", err && err.message);
+    console.warn("WangPet: failed to read system openAtLogin during hydration:", err && err.message);
   }
   const result = _settingsController.hydrate({
     openAtLogin: systemValue,
     openAtLoginHydrated: true,
   });
   if (result && result.status === "error") {
-    console.warn("Clawd: openAtLogin hydration failed:", result.message);
+    console.warn("WangPet: openAtLogin hydration failed:", result.message);
   }
 }
 
@@ -393,7 +393,7 @@ function safeConsoleError(...args) {
   } catch (err) {
     try {
       const line = `${new Date().toISOString()} ${args.map((x) => String(x)).join(" ")}\n`;
-      fs.appendFileSync(path.join(app.getPath("userData"), "clawd-main.log"), line);
+      fs.appendFileSync(path.join(app.getPath("userData"), "wang-pet-main.log"), line);
     } catch {}
   }
 }
@@ -493,14 +493,14 @@ codexPetMain = createCodexPetMain({
 });
 const REGISTER_PROTOCOL_DEV_ARG = codexPetMain.REGISTER_PROTOCOL_DEV_ARG;
 // Lenient load so a missing/corrupt user-selected theme can't brick boot.
-// If lenient fell back to "clawd" OR the variant fell back to "default",
+// If lenient fell back to "wang-pet" OR the variant fell back to "default",
 // hydrate prefs to match so the store stays truth.
 //
 // Startup runs BEFORE the window is ready, so we call the runtime's initial
 // load path, not activateTheme (which requires ready windows) and not the
 // setThemeSelection command (which goes through activateTheme). The runtime
 // switch path via UI goes through setThemeSelection post-window-ready.
-let _requestedThemeId = _settingsController.get("theme") || "clawd";
+let _requestedThemeId = _settingsController.get("theme") || "wang-pet";
 const _initialVariantMap = _settingsController.get("themeVariant") || {};
 let _requestedVariantId = _initialVariantMap[_requestedThemeId] || "default";
 const _initialThemeOverrides = _settingsController.get("themeOverrides") || {};
@@ -513,7 +513,7 @@ if (codexPetMain.summaryHasActiveOrphan(_startupCodexPetSyncSummary, _requestedT
   delete nextVariantMap[orphanThemeId];
   delete nextOverrides[orphanThemeId];
 
-  _requestedThemeId = "clawd";
+  _requestedThemeId = "wang-pet";
   _requestedVariantId = nextVariantMap[_requestedThemeId] || "default";
   _requestedThemeOverrides = nextOverrides[_requestedThemeId] || null;
   const result = _settingsController.hydrate({
@@ -522,7 +522,7 @@ if (codexPetMain.summaryHasActiveOrphan(_startupCodexPetSyncSummary, _requestedT
     themeOverrides: nextOverrides,
   });
   if (result && result.status === "error") {
-    console.warn("Clawd: Codex Pet active theme fallback hydrate failed:", result.message);
+    console.warn("WangPet: Codex Pet active theme fallback hydrate failed:", result.message);
   }
   _startupCodexPetSyncSummary = codexPetMain.mergeSyncSummaries(
     _startupCodexPetSyncSummary,
@@ -546,7 +546,7 @@ if (_loadedStartupTheme._id !== _requestedThemeId || _loadedStartupTheme._varian
     themeVariant: nextVariantMap,
   });
   if (result && result.status === "error") {
-    console.warn("Clawd: theme hydrate after fallback failed:", result.message);
+    console.warn("WangPet: theme hydrate after fallback failed:", result.message);
   }
 }
 
@@ -1236,7 +1236,7 @@ function reconcilePowerSaveBlocker() {
       powerSaveBlockerId = null;
     }
   } catch (err) {
-    console.warn("Clawd: reconcilePowerSaveBlocker failed:", err);
+    console.warn("WangPet: reconcilePowerSaveBlocker failed:", err);
   }
 }
 function releasePowerSaveBlocker() {
@@ -1602,7 +1602,7 @@ async function persistTelegramMigrationPatch(patch) {
 
 // Canonical paths only — no env-var override. The Settings "Save token" button,
 // the sidecar's bridge TOML, and tokenStatus all share this single location so
-// a malicious or accidental CLAWD_TG_BOT_TOKEN_FILE / CLAWD_BRIDGE_CONFIG can't
+// a malicious or accidental WANGPET_TG_BOT_TOKEN_FILE / WANGPET_BRIDGE_CONFIG can't
 // redirect the writer to an attacker-controlled path or split the writer/reader
 // view of where the token lives.
 function getTelegramApprovalPaths() {
@@ -1840,9 +1840,9 @@ async function startTelegramApprovalSidecar() {
   }
   if (telegramApprovalSidecar) await stopTelegramApprovalSidecar();
   // The bot token only ever lives at userData/telegram-approval.env on disk.
-  // The sidecar reads it from there directly — Clawd's main process must never
+  // The sidecar reads it from there directly — WangPet's main process must never
   // pipe a token value through process.env or child env, so there is no
-  // botToken option here and no CLAWD_TG_BOT_TOKEN read from process.env.
+  // botToken option here and no WANGPET_TG_BOT_TOKEN read from process.env.
   telegramApprovalSidecar = createTelegramApprovalSidecar({
     baseEnv: process.env,
     env: process.env,
@@ -2065,7 +2065,7 @@ async function sendTelegramApprovalTest() {
   const timer = setTimeout(() => controller.abort(), 60 * 1000);
   try {
     const decision = await client.requestApproval({
-      title: "Clawd Telegram approval test",
+      title: "WangPet Telegram approval test",
       detail: "This is a settings test message. It is not attached to any agent permission request.",
     }, { signal: controller.signal });
     if (decision === "allow" || decision === "deny") {
@@ -2085,7 +2085,7 @@ function hardwareBuddyLog(msg) {
   if (sessionDebugLog) {
     sessionLog(line);
   } else {
-    console.log(`Clawd: ${line}`);
+    console.log(`WangPet: ${line}`);
   }
 }
 
@@ -2127,7 +2127,7 @@ function broadcastHardwareBuddyStatus(status) {
       }
     }
   } catch (err) {
-    console.warn("Clawd: Hardware Buddy status broadcast failed:", err && err.message);
+    console.warn("WangPet: Hardware Buddy status broadcast failed:", err && err.message);
   }
 }
 
@@ -2261,7 +2261,7 @@ function sendHardwareBuddyTestApproval() {
       isCodex: true,
       isHardwareBuddyTest: true,
       cwd: __dirname,
-      codexOriginator: "clawd-settings",
+      codexOriginator: "wang-pet-settings",
       codexSource: "hardware-buddy-test",
     };
 
@@ -2311,7 +2311,7 @@ unsubscribeHardwareBuddySettings = _settingsController.subscribeKey("hardwareBud
   try {
     hardwareBuddyAdapter.applySettingsChange();
   } catch (err) {
-    console.warn("Clawd: failed to apply Hardware Buddy settings:", err && err.message);
+    console.warn("WangPet: failed to apply Hardware Buddy settings:", err && err.message);
     hardwareBuddyLog(`settings apply failed: ${err && err.message ? err.message : err}`);
   }
 });
@@ -2347,7 +2347,7 @@ const _menuCtx = {
   set tokenDisplayEnabled(v) { _settingsController.applyUpdate("tokenDisplayEnabled", v); },
   get hideBubbles() { return getAllBubblesHidden(); },
   set hideBubbles(v) { _settingsController.applyCommand("setAllBubblesHidden", { hidden: !!v }).catch((err) => {
-    console.warn("Clawd: setAllBubblesHidden failed:", err && err.message);
+    console.warn("WangPet: setAllBubblesHidden failed:", err && err.message);
   }); },
   get soundMuted() { return soundMuted; },
   set soundMuted(v) { _settingsController.applyUpdate("soundMuted", v); },
@@ -2395,7 +2395,7 @@ const _menuCtx = {
   getNearestWorkArea,
   reapplyMacVisibility,
   discoverThemes: () => themeLoader.discoverThemes(),
-  getActiveThemeId: () => themeRuntime.getActiveThemeId("clawd"),
+  getActiveThemeId: () => themeRuntime.getActiveThemeId("wang-pet"),
   getActiveThemeCapabilities: () => themeRuntime.getActiveThemeCapabilities(),
   ensureUserThemesDir: () => themeLoader.ensureUserThemesDir(),
   openSettingsWindow: () => settingsWindowRuntime.open(),
@@ -2529,7 +2529,7 @@ const {
 notifyUpdaterSilentExit = () => { try { updaterOnSilentModeExit(); } catch {} };
 
 // #329: react to the autoUpdateCheck toggle in real time so users see
-// the scheduler start/stop without restarting Clawd.
+// the scheduler start/stop without restarting WangPet.
 try {
   _settingsController.subscribeKey("autoUpdateCheck", (value) => {
     try {
@@ -2566,7 +2566,7 @@ const { createRemoteSshRuntime } = require("./remote-ssh-runtime");
 const { registerRemoteSshIpc } = require("./remote-ssh-ipc");
 const _remoteSshRuntime = createRemoteSshRuntime({
   getHookServerPort: () => getHookServerPort(),
-  log: (...args) => console.warn("Clawd remote-ssh:", ...args),
+  log: (...args) => console.warn("WangPet remote-ssh:", ...args),
 });
 const _remoteSshIpc = registerRemoteSshIpc({
   ipcMain,
@@ -2651,7 +2651,7 @@ registerSettingsIpc({
     ? hardwareBuddyAdapter.createQuickCommand(payload)
     : { status: "error", code: "quick_commands_unavailable", message: "Quick Commands are unavailable" },
   checkForUpdates,
-  aboutHeroSvgPath: path.join(__dirname, "..", "assets", "svg", "clawd-about-hero.svg"),
+  aboutHeroSvgPath: path.join(__dirname, "..", "assets", "svg", "wang-pet-about-hero.svg"),
 });
 
 registerSessionIpc({
@@ -2668,11 +2668,11 @@ registerSessionIpc({
     if (result && typeof result.then === "function") {
       result
         .then((r) => {
-          if (r && r.status === "error") console.warn("Clawd: failed to pin Session HUD:", r.message);
+          if (r && r.status === "error") console.warn("WangPet: failed to pin Session HUD:", r.message);
         })
-        .catch((err) => console.warn("Clawd: failed to pin Session HUD:", err && err.message));
+        .catch((err) => console.warn("WangPet: failed to pin Session HUD:", err && err.message));
     } else if (result && result.status === "error") {
-      console.warn("Clawd: failed to pin Session HUD:", result.message);
+      console.warn("WangPet: failed to pin Session HUD:", result.message);
     }
   },
 });
@@ -2920,7 +2920,7 @@ Object.defineProperties(this || {}, {}); // no-op placeholder
 // active theme source and the cleanup/refresh/reload protocol.
 
 // ── Auto-install VS Code / Cursor terminal-focus extension ──
-const EXT_ID = "clawd.clawd-terminal-focus";
+const EXT_ID = "WangPet.wang-pet-terminal-focus";
 const EXT_VERSION = "0.1.0";
 const EXT_DIR_NAME = `${EXT_ID}-${EXT_VERSION}`;
 
@@ -2933,7 +2933,7 @@ function installTerminalFocusExtension() {
   extSrc = extSrc.replace("app.asar" + path.sep, "app.asar.unpacked" + path.sep);
 
   if (!fs.existsSync(extSrc)) {
-    console.log("Clawd: terminal-focus extension source not found, skipping auto-install");
+    console.log("WangPet: terminal-focus extension source not found, skipping auto-install");
     return;
   }
 
@@ -2956,13 +2956,13 @@ function installTerminalFocusExtension() {
         fs.copyFileSync(path.join(extSrc, file), path.join(dest, file));
       }
       installed++;
-      console.log(`Clawd: installed terminal-focus extension to ${dest}`);
+      console.log(`WangPet: installed terminal-focus extension to ${dest}`);
     } catch (err) {
-      console.warn(`Clawd: failed to install extension to ${dest}:`, err.message);
+      console.warn(`WangPet: failed to install extension to ${dest}:`, err.message);
     }
   }
   if (installed > 0) {
-    console.log(`Clawd: terminal-focus extension installed to ${installed} editor(s). Restart VS Code/Cursor to activate.`);
+    console.log(`WangPet: terminal-focus extension installed to ${installed} editor(s). Restart VS Code/Cursor to activate.`);
   }
 }
 
@@ -2976,7 +2976,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   if (process.argv.includes(REGISTER_PROTOCOL_DEV_ARG)) {
     const protocolRegistered = codexPetMain.registerProtocolClient();
-    console.log(`Clawd: clawd:// dev protocol registration ${protocolRegistered ? "succeeded" : "failed"}`);
+    console.log(`WangPet: wang-pet:// dev protocol registration ${protocolRegistered ? "succeeded" : "failed"}`);
   }
   // Another instance is already running — quit silently
   app.quit();
@@ -3007,7 +3007,7 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     const protocolRegistered = codexPetMain.registerProtocolClient();
     if (process.argv.includes(REGISTER_PROTOCOL_DEV_ARG)) {
-      console.log(`Clawd: clawd:// dev protocol registration ${protocolRegistered ? "succeeded" : "failed"}`);
+      console.log(`WangPet: wang-pet:// dev protocol registration ${protocolRegistered ? "succeeded" : "failed"}`);
       app.quit();
       return;
     }
@@ -3022,7 +3022,7 @@ if (!gotTheLock) {
     sessionDebugLog = path.join(app.getPath("userData"), "session-debug.log");
     focusDebugLog = path.join(app.getPath("userData"), "focus-debug.log");
     initTelegramMigrationController().catch((err) => {
-      console.warn("Clawd: migration controller init failed:", err && err.message);
+      console.warn("WangPet: migration controller init failed:", err && err.message);
     });
     createWindow();
     if (shouldOpenSettingsWindowFromArgv(process.argv)) {
@@ -3030,7 +3030,7 @@ if (!gotTheLock) {
     }
     codexPetMain.enqueueImportUrlsFromArgv(process.argv);
     codexPetMain.flushPendingImportUrls().catch((err) => {
-      console.warn("Clawd: Codex Pet import queue failed:", err && err.message);
+      console.warn("WangPet: Codex Pet import queue failed:", err && err.message);
     });
 
     // Register persistent global shortcuts from the validated prefs snapshot.
@@ -3046,13 +3046,13 @@ if (!gotTheLock) {
     try {
       hardwareBuddyAdapter.start();
     } catch (err) {
-      console.warn("Clawd: failed to start Hardware Buddy adapter:", err && err.message);
+      console.warn("WangPet: failed to start Hardware Buddy adapter:", err && err.message);
       hardwareBuddyLog(`start failed: ${err && err.message ? err.message : err}`);
     }
 
     // Auto-install VS Code/Cursor terminal-focus extension
     try { installTerminalFocusExtension(); } catch (err) {
-      console.warn("Clawd: failed to auto-install terminal-focus extension:", err.message);
+      console.warn("WangPet: failed to auto-install terminal-focus extension:", err.message);
     }
 
     // Auto-updater: setup event handlers (user triggers check via tray menu)

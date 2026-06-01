@@ -75,7 +75,7 @@ function querySupersetWorkspaceId(dbPath, cwd, callback) {
 
 module.exports = function initFocus(ctx) {
 
-const FOCUS_RESULT_PREFIX = "__CLAWD_FOCUS_RESULT__ ";
+const FOCUS_RESULT_PREFIX = "__WANGPET_FOCUS_RESULT__ ";
 
 const PS_FOCUS_ADDTYPE = `
 Add-Type @"
@@ -205,7 +205,7 @@ public class WinFocus {
 }
 "@
 
-function Write-ClawdFocusResult([string]$reason) {
+function Write-wangpetFocusResult([string]$reason) {
     if (-not $reason) { $reason = 'unknown' }
     Write-Output ('${FOCUS_RESULT_PREFIX}' + $reason)
 }
@@ -246,16 +246,16 @@ function makeFocusCmd(sourcePid, cwdCandidates, focusCacheKey = null, wtHwnd = n
             $matches = @([WinFocus]::FindByPidTitles([uint32]$curPid, [string[]]$titleNames))
             if ($matches.Count -eq 1) {
                 [WinFocus]::Focus($matches[0])
-                Save-ClawdFocusCache $matches[0]
+                Save-wangpetFocusCache $matches[0]
                 $focused = $true
                 $reason = 'wt-parent-title-match'
             } elseif ($matches.Count -gt 1) {
                 $reason = 'wt-parent-title-ambiguous'
             } else {
-                $pidWindows = @(Get-ClawdVisiblePidWindows -pids @([int]$curPid))
+                $pidWindows = @(Get-wangpetVisiblePidWindows -pids @([int]$curPid))
                 if ($pidWindows.Count -eq 1) {
                     [WinFocus]::Focus($pidWindows[0])
-                    Save-ClawdFocusCache $pidWindows[0]
+                    Save-wangpetFocusCache $pidWindows[0]
                     $focused = $true
                     $reason = 'wt-parent-pid-window'
                 } elseif ($pidWindows.Count -gt 1) {
@@ -266,14 +266,14 @@ function makeFocusCmd(sourcePid, cwdCandidates, focusCacheKey = null, wtHwnd = n
             }
         } else {
             [WinFocus]::Focus($proc.MainWindowHandle)
-            Save-ClawdFocusCache $proc.MainWindowHandle
+            Save-wangpetFocusCache $proc.MainWindowHandle
             $focused = $true
             $reason = 'parent-direct'
         }
         break` : `
         if ($wtProcessNames -notcontains $proc.ProcessName) {
             [WinFocus]::Focus($proc.MainWindowHandle)
-            Save-ClawdFocusCache $proc.MainWindowHandle
+            Save-wangpetFocusCache $proc.MainWindowHandle
             $focused = $true
             $reason = 'parent-direct-no-title'
         } else {
@@ -299,25 +299,25 @@ function makeFocusCmd(sourcePid, cwdCandidates, focusCacheKey = null, wtHwnd = n
     }
     if ($wtMatches.Count -eq 1) {
         [WinFocus]::Focus($wtMatches[0])
-        Save-ClawdFocusCache $wtMatches[0]
+        Save-wangpetFocusCache $wtMatches[0]
         $focused = $true
         $reason = 'wt-title-match'
     } elseif ($wtMatches.Count -gt 1) {
         $reason = 'wt-title-ambiguous'
     } else {
-        $pidWindows = @(Get-ClawdVisiblePidWindows -pids $chainWindowsTerminalPids)
+        $pidWindows = @(Get-wangpetVisiblePidWindows -pids $chainWindowsTerminalPids)
         if ($pidWindows.Count -eq 1) {
             [WinFocus]::Focus($pidWindows[0])
-            Save-ClawdFocusCache $pidWindows[0]
+            Save-wangpetFocusCache $pidWindows[0]
             $focused = $true
             $reason = 'wt-title-mismatch-pid-window'
         } elseif ($pidWindows.Count -gt 1) {
             $reason = 'wt-title-mismatch-pid-window-ambiguous'
         } else {
-            $singleWtWindows = @(Get-ClawdWindowsTerminalWindows)
+            $singleWtWindows = @(Get-wangpetWindowsTerminalWindows)
             if ($singleWtWindows.Count -eq 1) {
                 [WinFocus]::Focus($singleWtWindows[0])
-                Save-ClawdFocusCache $singleWtWindows[0]
+                Save-wangpetFocusCache $singleWtWindows[0]
                 $focused = $true
                 $reason = 'wt-title-mismatch-single-wt-window'
             } elseif ($singleWtWindows.Count -gt 1) {
@@ -335,27 +335,27 @@ $wtProcessNames = @('WindowsTerminal', 'WindowsTerminalPreview')
 $chainWindowsTerminalPids = @()
 $focusCacheKey = ${cacheKey}
 $wtHwndFromHook = [IntPtr]([int64]${wtHwndLiteral})
-if ($null -eq $global:ClawdFocusWindowCache) {
-    $global:ClawdFocusWindowCache = @{}
+if ($null -eq $global:wangpetFocusWindowCache) {
+    $global:wangpetFocusWindowCache = @{}
 }
-function Save-ClawdFocusCache([IntPtr]$hwnd) {
+function Save-wangpetFocusCache([IntPtr]$hwnd) {
     if (-not $focusCacheKey -or $hwnd -eq [IntPtr]::Zero) { return }
-    $global:ClawdFocusWindowCache[$focusCacheKey] = $hwnd.ToInt64()
+    $global:wangpetFocusWindowCache[$focusCacheKey] = $hwnd.ToInt64()
 }
-function Get-ClawdCachedWindow() {
+function Get-wangpetCachedWindow() {
     if (-not $focusCacheKey) { return [IntPtr]::Zero }
-    if (-not $global:ClawdFocusWindowCache.ContainsKey($focusCacheKey)) { return [IntPtr]::Zero }
+    if (-not $global:wangpetFocusWindowCache.ContainsKey($focusCacheKey)) { return [IntPtr]::Zero }
     try {
-        $hwnd = [IntPtr]([int64]$global:ClawdFocusWindowCache[$focusCacheKey])
+        $hwnd = [IntPtr]([int64]$global:wangpetFocusWindowCache[$focusCacheKey])
     } catch {
-        $global:ClawdFocusWindowCache.Remove($focusCacheKey)
+        $global:wangpetFocusWindowCache.Remove($focusCacheKey)
         return [IntPtr]::Zero
     }
     if ([WinFocus]::IsUsableWindow($hwnd)) { return $hwnd }
-    $global:ClawdFocusWindowCache.Remove($focusCacheKey)
+    $global:wangpetFocusWindowCache.Remove($focusCacheKey)
     return [IntPtr]::Zero
 }
-function Get-ClawdVisiblePidWindows([int[]]$pids) {
+function Get-wangpetVisiblePidWindows([int[]]$pids) {
     $windows = @()
     foreach ($pidValue in @($pids)) {
         if (-not $pidValue -or $pidValue -le 0) { continue }
@@ -369,7 +369,7 @@ function Get-ClawdVisiblePidWindows([int[]]$pids) {
     }
     return @($windows)
 }
-function Get-ClawdWindowsTerminalWindows() {
+function Get-wangpetWindowsTerminalWindows() {
     $wtPids = @()
     foreach ($wtName in $wtProcessNames) {
         foreach ($wtProc in @(Get-Process -Name $wtName -ErrorAction SilentlyContinue)) {
@@ -378,7 +378,7 @@ function Get-ClawdWindowsTerminalWindows() {
             }
         }
     }
-    return @(Get-ClawdVisiblePidWindows -pids $wtPids)
+    return @(Get-wangpetVisiblePidWindows -pids $wtPids)
 }
 $curPid = ${sourcePid}
 $focused = $false
@@ -386,7 +386,7 @@ $reason = 'no-parent-window'
 $pendingConsoleHwnd = [IntPtr]::Zero
 $consoleShimSkipped = $false
 $wtHwndFromHookInvalid = $false
-$cachedHwnd = Get-ClawdCachedWindow
+$cachedHwnd = Get-wangpetCachedWindow
 if ($cachedHwnd -ne [IntPtr]::Zero) {
     [WinFocus]::Focus($cachedHwnd)
     $focused = $true
@@ -395,7 +395,7 @@ if ($cachedHwnd -ne [IntPtr]::Zero) {
 if (-not $focused -and $wtHwndFromHook -ne [IntPtr]::Zero) {
     if ([WinFocus]::IsUsableWindowsTerminalWindow($wtHwndFromHook)) {
         [WinFocus]::Focus($wtHwndFromHook)
-        Save-ClawdFocusCache $wtHwndFromHook
+        Save-wangpetFocusCache $wtHwndFromHook
         $focused = $true
         $reason = 'wt-hwnd-from-hook'
     } else {
@@ -441,7 +441,7 @@ if (-not $focused -and $pendingConsoleHwnd -ne [IntPtr]::Zero) {
         $reason -eq 'wt-title-mismatch-single-wt-window-ambiguous' -or
         $reason -eq 'wt-title-mismatch-no-pid-window') {
         [WinFocus]::Focus($pendingConsoleHwnd)
-        Save-ClawdFocusCache $pendingConsoleHwnd
+        Save-wangpetFocusCache $pendingConsoleHwnd
         $focused = $true
         $reason = 'legacy-conhost-window'
     }
@@ -459,7 +459,7 @@ if (-not $focused -and $consoleShimSkipped) {
         $reason = 'console-window-shim-skip'
     }
 }
-Write-ClawdFocusResult $reason
+Write-wangpetFocusResult $reason
 `;
 }
 

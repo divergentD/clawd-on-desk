@@ -45,7 +45,7 @@ class FakeIpcMain {
 }
 
 function makeTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "clawd-settings-ipc-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-settings-ipc-"));
 }
 
 function makeZip(entries) {
@@ -114,7 +114,7 @@ function createHarness(overrides = {}) {
   const calls = [];
   const ipcMain = new FakeIpcMain();
   const activeTheme = overrides.activeTheme || {
-    _id: "clawd",
+    _id: "wang-pet",
     sounds: { complete: "complete.mp3" },
   };
   const settingsController = overrides.settingsController || {
@@ -134,7 +134,7 @@ function createHarness(overrides = {}) {
     getSoundUrl: () => null,
     listThemesWithMetadata: () => [],
     getThemeMetadata: (themeId) => ({ name: themeId }),
-    ensureUserThemesDir: () => path.join(os.tmpdir(), "clawd-user-themes"),
+    ensureUserThemesDir: () => path.join(os.tmpdir(), "wang-pet-user-themes"),
   };
   const codexPetMain = overrides.codexPetMain || {
     decorateThemeMetadata: (theme) => theme,
@@ -342,7 +342,7 @@ test("settings IPC delegates Codex Pet theme channels and decorates metadata", a
       getSoundOverridesDir: () => null,
       getSoundUrl: () => null,
       listThemesWithMetadata: () => [
-        { id: "clawd", name: "Clawd" },
+        { id: "wang-pet", name: "wang-pet" },
         { id: "imported-pet", name: "Imported Pet" },
       ],
       getThemeMetadata: () => null,
@@ -372,7 +372,7 @@ test("settings IPC delegates Codex Pet theme channels and decorates metadata", a
   });
 
   assert.deepStrictEqual(await ipcMain.invoke("settings:list-themes"), [
-    { id: "clawd", name: "Clawd", active: false, managedCodexPet: false },
+    { id: "wang-pet", name: "wang-pet", active: false, managedCodexPet: false },
     { id: "imported-pet", name: "Imported Pet", active: true, managedCodexPet: true },
   ]);
   assert.deepStrictEqual(await ipcMain.invoke("settings:refresh-codex-pets"), {
@@ -408,7 +408,7 @@ test("settings IPC opens the user themes directory", async () => {
       getSoundUrl: () => null,
       listThemesWithMetadata: () => [],
       getThemeMetadata: () => null,
-      ensureUserThemesDir: () => "C:\\Users\\Example\\AppData\\Roaming\\Clawd\\themes",
+      ensureUserThemesDir: () => "C:\\Users\\Example\\AppData\\Roaming\\wang-pet\\themes",
     },
     shell: {
       openPath: async (dir) => {
@@ -421,12 +421,12 @@ test("settings IPC opens the user themes directory", async () => {
 
   assert.deepStrictEqual(await ipcMain.invoke("settings:open-user-themes-dir"), {
     status: "ok",
-    path: "C:\\Users\\Example\\AppData\\Roaming\\Clawd\\themes",
+    path: "C:\\Users\\Example\\AppData\\Roaming\\wang-pet\\themes",
   });
-  assert.deepStrictEqual(openCalls, ["C:\\Users\\Example\\AppData\\Roaming\\Clawd\\themes"]);
+  assert.deepStrictEqual(openCalls, ["C:\\Users\\Example\\AppData\\Roaming\\wang-pet\\themes"]);
 });
 
-test("settings IPC imports Clawd user theme zip packages", async () => {
+test("settings IPC imports WangPet user theme zip packages", async () => {
   const root = makeTempDir();
   try {
     const userThemesDir = path.join(root, "user-themes");
@@ -480,7 +480,7 @@ test("settings IPC imports Clawd user theme zip packages", async () => {
     });
     assert.deepStrictEqual(dialogParent, { id: "parent", sender: "sender-web-contents" });
     assert.deepStrictEqual(dialogOptions.properties, ["openFile"]);
-    assert.deepStrictEqual(dialogOptions.filters, [{ name: "Clawd theme zip", extensions: ["zip"] }]);
+    assert.deepStrictEqual(dialogOptions.filters, [{ name: "WangPet theme zip", extensions: ["zip"] }]);
     assert.strictEqual(
       fs.readFileSync(path.join(userThemesDir, "pixel-cat", "theme.json"), "utf8"),
       JSON.stringify(themeJson)
@@ -544,7 +544,7 @@ test("settings IPC copies sound overrides, removes stale siblings, and invalidat
     assert.strictEqual(activeTheme._soundOverrideFiles.complete, path.join(overridesDir, "complete.wav"));
     assert.deepStrictEqual(calls, [
       ["applyCommand", "setSoundOverride", {
-        themeId: "clawd",
+        themeId: "wang-pet",
         soundName: "complete",
         file: "complete.wav",
         originalName: "picked.wav",
@@ -624,7 +624,7 @@ test("settings IPC serves agent/about/update/external and remove-theme dialog he
     ]);
     assert.deepStrictEqual(await ipcMain.invoke("settings:get-about-info"), {
       version: "1.2.3",
-      repoUrl: "https://github.com/rullerzhou-afk/clawd-on-desk",
+      repoUrl: "https://github.com/rullerzhou-afk/wang-pet",
       license: "AGPL-3.0",
       copyright: "\u00a9 2026 Ruller_Lulu",
       authorName: "Ruller_Lulu / \u9e7f\u9e7f",

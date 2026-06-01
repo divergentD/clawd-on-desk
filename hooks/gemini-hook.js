@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// Clawd — Gemini CLI hook (stdin JSON with hook_event_name; stdout JSON for gating hooks)
+// WangPet — Gemini CLI hook (stdin JSON with hook_event_name; stdout JSON for gating hooks)
 // Registered in ~/.gemini/settings.json by hooks/gemini-install.js
 
 const { postStateToRunningServer, readHostPrefix } = require("./server-config");
 const { createPidResolver, readStdinJson, getPlatformConfig } = require("./shared-process");
 const { applyTokenUsageFields } = require("./json-utils");
 
-// Gemini hook event → { state, event } for the Clawd state machine
+// Gemini hook event → { state, event } for the WangPet state machine
 const HOOK_MAP = {
   SessionStart:  { state: "idle",         event: "SessionStart" },
   SessionEnd:    { state: "sleeping",     event: "SessionEnd" },
@@ -47,7 +47,7 @@ function resolveHookName(payload, argvEvent) {
 }
 
 function shouldResolvePid(hookName, env = process.env) {
-  return !!HOOK_MAP[hookName] && !env.CLAWD_REMOTE;
+  return !!HOOK_MAP[hookName] && !env.WANGPET_REMOTE;
 }
 
 function normalizeSessionId(value) {
@@ -114,7 +114,7 @@ function sendHookEvent(payload, argvEvent, deps = {}) {
   const env = deps.env || process.env;
   const hookName = resolveHookName(payload, argvEvent);
   const outLine = stdoutForEvent(hookName);
-  const remote = !!env.CLAWD_REMOTE;
+  const remote = !!env.WANGPET_REMOTE;
   const body = buildStateBody(hookName, payload, {
     remote,
     host: remote && deps.readHostPrefix ? deps.readHostPrefix() : undefined,

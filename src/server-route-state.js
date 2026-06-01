@@ -2,8 +2,8 @@
 
 const path = require("path");
 const {
-  CLAWD_SERVER_HEADER,
-  CLAWD_SERVER_ID,
+  WANGPET_SERVER_HEADER,
+  WANGPET_SERVER_ID,
 } = require("../hooks/server-config");
 const {
   normalizeHookToolUseId,
@@ -56,10 +56,10 @@ function normalizeTokenUsage(data) {
 }
 
 function sendStateHealthResponse(res, options) {
-  const body = JSON.stringify({ ok: true, app: CLAWD_SERVER_ID, port: options.getHookServerPort() });
+  const body = JSON.stringify({ ok: true, app: WANGPET_SERVER_ID, port: options.getHookServerPort() });
   res.writeHead(200, {
     "Content-Type": "application/json",
-    [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID,
+    [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID,
   });
   res.end(body);
 }
@@ -145,7 +145,7 @@ function handleStatePost(req, res, options) {
       // so hook exit behavior is unchanged.
       if (typeof ctx.isAgentEnabled === "function" && !ctx.isAgentEnabled(agentId)) {
         recordRequestHookEvent.droppedByDisabled();
-        res.writeHead(204, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
+        res.writeHead(204, { [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID });
         res.end();
         return;
       }
@@ -158,7 +158,7 @@ function handleStatePost(req, res, options) {
           ctx.codexSubagentClassifier
         );
         if (codexHookState.drop) {
-          res.writeHead(204, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
+          res.writeHead(204, { [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID });
           res.end();
           return;
         }
@@ -225,7 +225,7 @@ function handleStatePost(req, res, options) {
             totalCost,
           });
         }
-        res.writeHead(200, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
+        res.writeHead(200, { [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID });
         res.end("ok");
       } else {
         res.writeHead(400);

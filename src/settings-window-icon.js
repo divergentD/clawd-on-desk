@@ -2,7 +2,7 @@
 
 const path = require("path");
 
-const WINDOWS_APP_USER_MODEL_ID = "com.wangpet.app";
+const WINDOWS_APP_USER_MODEL_ID = "com.wang-pet.app";
 const SETTINGS_WINDOW_TITLE = "WangPet Settings";
 const SETTINGS_WINDOW_LAUNCH_ARG = "--open-settings-window";
 

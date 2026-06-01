@@ -1602,5 +1602,5 @@
     };
   }
 
-  root.ClawdSettingsTabGeneral = { init };
+  root.wangpetSettingsTabGeneral = { init };
 })(globalThis);

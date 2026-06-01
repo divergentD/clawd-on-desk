@@ -104,7 +104,7 @@ test("native runner sends nonce card and dispatches TEST_SUCCESS for matching ca
   assert.equal(server.calls[0].method, "getUpdates");
 
   await runner.sendTestCard();
-  assert.match(callbackData, /^clawd-test:[a-z0-9]+$/);
+  assert.match(callbackData, /^wang-pet-test:[a-z0-9]+$/);
 
   releaseFirstPoll({ ok: true, result: [] });
   await tick();
@@ -308,7 +308,7 @@ test("native runner requestApproval ignores wrong user and resolves later callba
   server.enqueue("sendMessage", (payload) => {
     denyData = payload.reply_markup.inline_keyboard[0][1].callback_data;
     assert.match(denyData, /^cp:([a-z0-9]+):d$/);
-    legacyDenyData = denyData.replace(/^cp:([a-z0-9]+):d$/, "clawdperm:$1:deny");
+    legacyDenyData = denyData.replace(/^cp:([a-z0-9]+):d$/, "wangpetperm:$1:deny");
     return { ok: true, result: { message_id: 100, chat: { id: 123 } } };
   });
   server.enqueue("getUpdates", () => ({

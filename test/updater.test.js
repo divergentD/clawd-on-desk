@@ -104,7 +104,7 @@ describe("updater visual flow", () => {
       },
       applyState: (state, svgOverride) => applied.push({ state, svgOverride }),
       resolveDisplayState: () => overlayState === "checking" ? "thinking" : (overlayState ? "notification" : "idle"),
-      getSvgOverride: (state) => state === "thinking" ? "clawd-working-debugger.svg" : null,
+      getSvgOverride: (state) => state === "thinking" ? "wang-pet-working-debugger.svg" : null,
       showUpdateBubble: (payload) => bubbles.push(payload),
     });
     const updater = initUpdater(ctx, makeDeps({
@@ -127,11 +127,11 @@ describe("updater visual flow", () => {
     assert.deepStrictEqual(visualStates, ["checking", null]);
     assert.deepStrictEqual(bubbles.map((bubble) => bubble.mode), ["checking", "up-to-date"]);
     assert.ok(
-      applied.some((entry) => entry.state === "thinking" && entry.svgOverride === "clawd-working-debugger.svg")
+      applied.some((entry) => entry.state === "thinking" && entry.svgOverride === "wang-pet-working-debugger.svg")
     );
   });
 
-  it("does not assume a clawd-specific checking override when the current theme has none", async () => {
+  it("does not assume a wang-pet-specific checking override when the current theme has none", async () => {
     const visualStates = [];
     const bubbles = [];
     const applied = [];
@@ -187,7 +187,7 @@ describe("updater visual flow", () => {
         if (overlayState === "available") return "notification";
         return overlayState || "idle";
       },
-      getSvgOverride: (state) => state === "thinking" ? "clawd-working-debugger.svg" : null,
+      getSvgOverride: (state) => state === "thinking" ? "wang-pet-working-debugger.svg" : null,
       showUpdateBubble: async (payload) => {
         bubbles.push(payload);
         if (payload.mode === "available") return "later";
@@ -223,7 +223,7 @@ describe("updater visual flow", () => {
 
     assert.deepStrictEqual(visualStates, ["checking", "available", null]);
     assert.deepStrictEqual(bubbles.map((bubble) => bubble.mode), ["checking", "available"]);
-    assert.ok(applied.some((entry) => entry.state === "thinking" && entry.svgOverride === "clawd-working-debugger.svg"));
+    assert.ok(applied.some((entry) => entry.state === "thinking" && entry.svgOverride === "wang-pet-working-debugger.svg"));
     assert.ok(applied.some((entry) => entry.state === "notification" && entry.svgOverride == null));
   });
 
@@ -454,11 +454,11 @@ describe("updater visual flow", () => {
         tag_name: "v0.6.1",
         assets: [
           {
-            name: "Clawd-on-Desk-Setup-0.6.1-x64.exe",
+            name: "WangPet-Setup-0.6.1-x64.exe",
             browser_download_url: "https://example.invalid/x64.exe",
           },
           {
-            name: "Clawd-on-Desk-Setup-0.6.1-arm64.exe",
+            name: "WangPet-Setup-0.6.1-arm64.exe",
             browser_download_url: "https://example.invalid/arm64.exe",
           },
         ],
@@ -470,7 +470,7 @@ describe("updater visual flow", () => {
     assert.deepStrictEqual(bubbles.map((bubble) => bubble.mode), ["checking", "available", "ready"]);
     assert.match(bubbles[1].title, /ARM64/);
     assert.match(bubbles[1].message, /native Windows ARM64 installer/i);
-    assert.match(bubbles[1].message, /Clawd v0\.6\.1/);
+    assert.match(bubbles[1].message, /WangPet v0\.6\.1/);
     assert.doesNotMatch(bubbles[1].message, /vv0\.6\.1/);
     assert.strictEqual(openedUrls[0], "https://example.invalid/arm64.exe");
     assert.strictEqual(autoUpdateChecks, 0);
@@ -498,7 +498,7 @@ describe("updater visual flow", () => {
         tag_name: "v0.6.1",
         assets: [
           {
-            name: "Clawd-on-Desk-Setup-0.6.1-x64.exe",
+            name: "WangPet-Setup-0.6.1-x64.exe",
             browser_download_url: "https://example.invalid/x64.exe",
           },
         ],
@@ -532,7 +532,7 @@ describe("updater visual flow", () => {
         tag_name: "v0.6.1",
         assets: [
           {
-            name: "Clawd-on-Desk-Setup-0.6.1-arm64.exe",
+            name: "WangPet-Setup-0.6.1-arm64.exe",
             browser_download_url: "https://example.invalid/arm64.exe",
           },
         ],
@@ -580,7 +580,7 @@ describe("updater visual flow", () => {
       tag_name: "v0.6.1",
       assets: [
         {
-          name: "Clawd-on-Desk-Setup-0.6.1-arm64.exe",
+          name: "WangPet-Setup-0.6.1-arm64.exe",
           browser_download_url: "https://example.invalid/arm64.exe",
         },
       ],
@@ -593,7 +593,7 @@ describe("updater visual flow", () => {
       tag_name: "v0.6.1",
       assets: [
         {
-          name: "Clawd-on-Desk-Setup-0.6.1-arm64.exe",
+          name: "WangPet-Setup-0.6.1-arm64.exe",
           browser_download_url: "https://example.invalid/arm64.exe",
         },
       ],
@@ -652,7 +652,7 @@ describe("updater visual flow", () => {
       tag_name: "v0.6.1",
       assets: [
         {
-          name: "Clawd-on-Desk-Setup-0.6.1-arm64.exe",
+          name: "WangPet-Setup-0.6.1-arm64.exe",
           browser_download_url: "https://example.invalid/arm64.exe",
         },
       ],
@@ -673,7 +673,7 @@ describe("updater visual flow", () => {
       tag_name: "v0.6.1",
       assets: [
         {
-          name: "Clawd-on-Desk-Setup-0.6.1-x64.exe",
+          name: "WangPet-Setup-0.6.1-x64.exe",
           browser_download_url: "https://example.invalid/x64.exe",
         },
       ],
@@ -737,7 +737,7 @@ describe("updater visual flow", () => {
       await handlers["update-available"]({ version: "0.5.11" });
 
       assert.deepStrictEqual(bubbles.map((bubble) => bubble.mode), ["checking", "available", "ready"]);
-      assert.strictEqual(openedUrls[0], "https://github.com/rullerzhou-afk/clawd-on-desk/releases/latest");
+      assert.strictEqual(openedUrls[0], "https://github.com/rullerzhou-afk/wang-pet/releases/latest");
       assert.match(bubbles[2].message, /opened/i);
     } finally {
       Object.defineProperty(process, "platform", { value: originalPlatform });
@@ -868,9 +868,9 @@ describe("updater Windows ARM64 migration helpers", () => {
     const { findWindowsArm64InstallerAsset } = initUpdater.__test;
     const asset = findWindowsArm64InstallerAsset({
       assets: [
-        { name: "Clawd-on-Desk-Setup-0.6.1-arm64.exe.blockmap", browser_download_url: "blockmap" },
-        { name: "Clawd-on-Desk-Setup-0.6.1-x64.exe", browser_download_url: "x64" },
-        { name: "Clawd-on-Desk-Setup-0.6.1-arm64.exe", browser_download_url: "arm64" },
+        { name: "WangPet-Setup-0.6.1-arm64.exe.blockmap", browser_download_url: "blockmap" },
+        { name: "WangPet-Setup-0.6.1-x64.exe", browser_download_url: "x64" },
+        { name: "WangPet-Setup-0.6.1-arm64.exe", browser_download_url: "arm64" },
       ],
     });
 

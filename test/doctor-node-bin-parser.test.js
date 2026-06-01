@@ -18,7 +18,7 @@ function fakeFs(existingPaths) {
 describe("doctor hook command parser", () => {
   it("validates POSIX absolute node and script paths", () => {
     const nodeBin = "/usr/local/bin/node";
-    const scriptPath = "/opt/clawd/hooks/cursor-hook.js";
+    const scriptPath = "/opt/wang-pet/hooks/cursor-hook.js";
     const command = formatNodeHookCommand(nodeBin, scriptPath, { platform: "linux" });
 
     assert.deepStrictEqual(
@@ -101,9 +101,9 @@ describe("doctor hook command parser", () => {
 
   it("strips POSIX env prefixes", () => {
     const nodeBin = "/usr/local/bin/node";
-    const scriptPath = "/opt/clawd/hooks/kimi-hook.js";
+    const scriptPath = "/opt/wang-pet/hooks/kimi-hook.js";
     const base = formatNodeHookCommand(nodeBin, scriptPath, { platform: "linux" });
-    const command = withCommandEnv(base, { CLAWD_KIMI_PERMISSION_MODE: "suspect" }, "linux");
+    const command = withCommandEnv(base, { WANGPET_KIMI_PERMISSION_MODE: "suspect" }, "linux");
 
     assert.deepStrictEqual(
       validateHookCommand(command, {
@@ -120,7 +120,7 @@ describe("doctor hook command parser", () => {
       platform: "win32",
       windowsWrapper: "powershell",
     });
-    const command = withCommandEnv(base, { CLAWD_REMOTE: "1" }, "win32");
+    const command = withCommandEnv(base, { WANGPET_REMOTE: "1" }, "win32");
 
     assert.deepStrictEqual(
       validateHookCommand(command, { platform: "win32", fs: fakeFs([scriptPath]) }),
@@ -144,7 +144,7 @@ describe("doctor hook command parser", () => {
 
   it("reports missing script paths", () => {
     const nodeBin = "/usr/local/bin/node";
-    const scriptPath = "/opt/clawd/hooks/missing-hook.js";
+    const scriptPath = "/opt/wang-pet/hooks/missing-hook.js";
     const command = formatNodeHookCommand(nodeBin, scriptPath, { platform: "linux" });
 
     assert.deepStrictEqual(
@@ -157,7 +157,7 @@ describe("doctor hook command parser", () => {
   });
 
   it("reports bare node as invalid on POSIX", () => {
-    const scriptPath = "/opt/clawd/hooks/cursor-hook.js";
+    const scriptPath = "/opt/wang-pet/hooks/cursor-hook.js";
     const command = formatNodeHookCommand("node", scriptPath, { platform: "linux" });
 
     assert.deepStrictEqual(

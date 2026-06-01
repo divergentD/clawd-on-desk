@@ -1,8 +1,8 @@
 "use strict";
 
 const {
-  CLAWD_SERVER_HEADER,
-  CLAWD_SERVER_ID,
+  WANGPET_SERVER_HEADER,
+  WANGPET_SERVER_ID,
 } = require("../hooks/server-config");
 const { CODEX_OFFICIAL_HOOK_SOURCE } = require("./server-codex-official-turns");
 const {
@@ -132,12 +132,12 @@ function buildQwenCodePermissionSessionOptions(data) {
 }
 
 function sendCodexPermissionNoDecision(res) {
-  res.writeHead(204, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
+  res.writeHead(204, { [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID });
   res.end();
 }
 
 function sendQwenCodePermissionNoDecision(res) {
-  res.writeHead(204, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
+  res.writeHead(204, { [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID });
   res.end();
 }
 
@@ -150,13 +150,13 @@ function sendPiPermissionAllow(res) {
   });
   res.writeHead(200, {
     "Content-Type": "application/json",
-    [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID,
+    [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID,
   });
   res.end(responseBody);
 }
 
 function sendAntigravityPermissionNoDecision(res) {
-  res.writeHead(204, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
+  res.writeHead(204, { [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID });
   res.end();
 }
 
@@ -206,7 +206,7 @@ function handlePermissionPost(req, res, options) {
   req.on("end", () => {
     if (tooLarge) {
       ctx.permLog("SKIPPED: permission payload too large");
-      ctx.sendPermissionResponse(res, "deny", "Permission request too large for Clawd bubble; answer in terminal");
+      ctx.sendPermissionResponse(res, "deny", "Permission request too large for WangPet bubble; answer in terminal");
       return;
     }
 
@@ -234,7 +234,7 @@ function handlePermissionPost(req, res, options) {
       // leave the TUI hanging until timeout. Instead we route DND
       // through the same reverse bridge the plugin uses for replies.
       if (data.agent_id === "opencode") {
-        res.writeHead(200, { [CLAWD_SERVER_HEADER]: CLAWD_SERVER_ID });
+        res.writeHead(200, { [WANGPET_SERVER_HEADER]: WANGPET_SERVER_ID });
         res.end("ok");
 
         // Agent gate: same silent-drop semantics as DND — plugin is
@@ -259,7 +259,7 @@ function handlePermissionPost(req, res, options) {
         ctx.permLog(`opencode perm: tool=${toolName} session=${sessionId} req=${requestId} bridge=${bridgeUrl} always=${alwaysCandidates.length}`);
 
         // bridge_url/bridge_token are required — this is the reverse
-        // channel Clawd uses to send the decision back to the plugin,
+        // channel WangPet uses to send the decision back to the plugin,
         // which then calls opencode's in-process Hono route. Without it
         // we have no way to resolve the pending permission.
         if (!requestId || !bridgeUrl || !bridgeToken) {
@@ -334,7 +334,7 @@ function handlePermissionPost(req, res, options) {
       }
 
       // ── Antigravity CLI PreToolUse branch (state-only after D2 decision) ──
-      // Clawd intentionally does NOT show a permission bubble for agy. If a
+      // WangPet intentionally does NOT show a permission bubble for agy. If a
       // stray PreToolUse request arrives anyway (legacy hooks.json entry, user
       // manually re-registered the hook, or auto-sync was skipped), respond
       // with 204 so the hook prints `decision:"ask"` and agy's own 5-option
@@ -464,7 +464,7 @@ function handlePermissionPost(req, res, options) {
 
       // ── Qwen Code PermissionRequest branch ──
       // Qwen command hooks treat empty/no-decision output as "show native
-      // permission prompt". Keep every fallback as 204/no-decision so Clawd
+      // permission prompt". Keep every fallback as 204/no-decision so WangPet
       // never denies tools on cleanup or disabled bubble paths.
       if (data.agent_id === "qwen-code") {
         const toolName = typeof data.tool_name === "string" && data.tool_name ? data.tool_name : "Unknown";
@@ -553,10 +553,10 @@ function handlePermissionPost(req, res, options) {
       }
 
       // ── Pi extension legacy PermissionRequest branch ──
-      // Pi is state-only in Clawd. Current extensions never POST /permission.
+      // Pi is state-only in WangPet. Current extensions never POST /permission.
       // A pre-state-only managed extension may still be loaded in an existing
       // Pi process, so return "allow" to preserve Pi's native YOLO behavior
-      // instead of turning Clawd fallback into a terminal confirmation prompt.
+      // instead of turning WangPet fallback into a terminal confirmation prompt.
       if (data.agent_id === "pi") {
         const toolName = typeof data.tool_name === "string" && data.tool_name ? data.tool_name : "unknown";
         if (ctx.doNotDisturb) {
@@ -604,7 +604,7 @@ function handlePermissionPost(req, res, options) {
       );
       const toolInputFingerprint = buildToolInputFingerprint(rawInput);
       const sessionId = data.session_id || "default";
-      // Tag the permEntry with the source agent. Clawd's HTTP permission
+      // Tag the permEntry with the source agent. WangPet's HTTP permission
       // path is shared between Claude Code and codebuddy (both set
       // capabilities.permissionApproval=true and POST here). Stamping lets
       // dismissPermissionsByAgent() clean up the right ones when the user

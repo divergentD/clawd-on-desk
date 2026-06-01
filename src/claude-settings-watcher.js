@@ -5,7 +5,7 @@ const path = require("path");
 const os = require("os");
 const { buildPermissionUrl } = require("../hooks/server-config");
 
-const HOOK_MARKER = "clawd-hook.js";
+const HOOK_MARKER = "wang-pet-hook.js";
 const SETTINGS_FILENAME = "settings.json";
 const MANAGED_COMMAND_MARKERS = Object.freeze([
   HOOK_MARKER,
@@ -99,7 +99,7 @@ function countCommandHooksInEntries(entries, options = {}) {
  * Count total command hooks across every event in the hooks object.
  * Handles both nested format (entry.hooks[].command) and flat format (entry.command).
  * HTTP hooks (type: "http") are excluded because they cannot encode the marker.
- * TODO: Decide whether non-Clawd HTTP hooks should contribute to third-party shrink detection.
+ * TODO: Decide whether non-wang-pet HTTP hooks should contribute to third-party shrink detection.
  * @param {object|null|undefined} hooks
  * @returns {number}
  */
@@ -209,8 +209,8 @@ function createClaudeSettingsWatcher(ctx = {}) {
     const settingsDir = getClaudeSettingsDir();
     const settingsPath = getClaudeSettingsPath();
     // Seed the trusted baseline from the current settings.json before the watcher starts,
-    // so the very first watcher event after Clawd boots (e.g. an external CLI minimize
-    // landing right after syncClawdHooks() ran) can be compared against a real snapshot
+    // so the very first watcher event after WangPet boots (e.g. an external CLI minimize
+    // landing right after syncwangpetHooks() ran) can be compared against a real snapshot
     // instead of null. Wrapped in its own try/catch so a missing or unreadable file
     // (fresh install, permission error) cannot prevent the watcher from starting.
     // The settingsNeedClaudeHookResync guard inside this block also prevents seeding
@@ -223,7 +223,7 @@ function createClaudeSettingsWatcher(ctx = {}) {
         lastTrustedSnapshot = takeSnapshot(seedRaw);
       }
     } catch (err) {
-      console.warn("Clawd: could not seed settings baseline:", err.message);
+      console.warn("WangPet: could not seed settings baseline:", err.message);
     }
     try {
       settingsWatcher = fsApi.watch(settingsDir, (_event, filename) => {
@@ -245,15 +245,15 @@ function createClaudeSettingsWatcher(ctx = {}) {
               // since an external CLI may have minimized it and re-registering would
               // drop third-party hooks. See PR description for the production race.
               if (isSuspiciousShrink(lastTrustedSnapshot, currentSnapshot, suspiciousShrinkRatio, suspiciousKeyLossThreshold)) {
-                console.warn("Clawd: settings.json shrank suspiciously — skipping auto-resync to preserve third-party hooks");
+                console.warn("WangPet: settings.json shrank suspiciously — skipping auto-resync to preserve third-party hooks");
                 if (typeof ctx.notifySuspiciousShrink === "function") {
                   ctx.notifySuspiciousShrink(lastTrustedSnapshot, currentSnapshot);
                 }
                 return;
               }
-              console.log("Clawd: hooks missing from settings.json — re-registering");
+              console.log("WangPet: hooks missing from settings.json — re-registering");
               settingsWatchLastSyncTime = nowFn();
-              if (typeof ctx.syncClawdHooks === "function") ctx.syncClawdHooks();
+              if (typeof ctx.syncwangpetHooks === "function") ctx.syncwangpetHooks();
             } else if (currentSnapshot) {
               // Trust this state — refresh the baseline only when the file looks healthy.
               lastTrustedSnapshot = currentSnapshot;
@@ -262,11 +262,11 @@ function createClaudeSettingsWatcher(ctx = {}) {
         }, settingsWatchDebounceMs);
       });
       if (settingsWatcher && typeof settingsWatcher.on === "function") settingsWatcher.on("error", (err) => {
-        console.warn("Clawd: settings watcher error:", err.message);
+        console.warn("WangPet: settings watcher error:", err.message);
       });
       return true;
     } catch (err) {
-      console.warn("Clawd: failed to watch settings directory:", err.message);
+      console.warn("WangPet: failed to watch settings directory:", err.message);
       settingsWatcher = null;
       return false;
     }

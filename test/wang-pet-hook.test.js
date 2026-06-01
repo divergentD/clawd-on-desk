@@ -1,6 +1,6 @@
 "use strict";
 
-// Unit tests for hooks/clawd-hook.js pure helpers.
+// Unit tests for hooks/wang-pet-hook.js pure helpers.
 // Tests `buildStateBody` and `extractSessionTitleFromTranscript`.
 // The top-level `main()` path (stdin read, HTTP post, process.exit) is not
 // tested here; its side effects are exercised by manual / end-to-end runs.
@@ -16,11 +16,11 @@ const {
   extractSessionTitleFromTranscript,
   extractApiErrorFromEntries,
   extractLastAssistantTextFromEntries,
-} = require("../hooks/clawd-hook.js");
+} = require("../hooks/wang-pet-hook.js");
 const { buildToolInputFingerprint } = require("../src/server").__test;
 
 function writeTmpJsonl(entries) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-hook-test-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-hook-test-"));
   const file = path.join(dir, "transcript.jsonl");
   const body = entries.map((e) => JSON.stringify(e)).join("\n") + "\n";
   fs.writeFileSync(file, body);
@@ -420,9 +420,9 @@ describe("buildStateBody", () => {
     });
   });
 
-  describe("remote mode (CLAWD_REMOTE=1)", () => {
-    before(() => { process.env.CLAWD_REMOTE = "1"; });
-    after(() => { delete process.env.CLAWD_REMOTE; });
+  describe("remote mode (WANGPET_REMOTE=1)", () => {
+    before(() => { process.env.WANGPET_REMOTE = "1"; });
+    after(() => { delete process.env.WANGPET_REMOTE; });
 
     it("includes host prefix instead of source_pid", () => {
       const body = buildStateBody("SessionStart", { session_id: "sid-1" }, mockResolve);
@@ -506,7 +506,7 @@ describe("extractSessionTitleFromTranscript", () => {
   });
 
   it("ignores corrupt JSON lines and keeps scanning", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-hook-test-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-hook-test-"));
     const file = path.join(dir, "corrupt.jsonl");
     fs.writeFileSync(
       file,
@@ -531,7 +531,7 @@ describe("extractSessionTitleFromTranscript", () => {
     // The tail window is 256KB, so the first line of what we read will be a
     // truncated JSON fragment. extractSessionTitleFromTranscript must drop it
     // rather than letting JSON.parse reject it loudly.
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-hook-test-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-hook-test-"));
     const file = path.join(dir, "big.jsonl");
     const padLine = JSON.stringify({ type: "user", message: { content: "x".repeat(400) } });
     const parts = [];
@@ -890,7 +890,7 @@ describe("buildStateBody — Stop → ApiError upgrade", () => {
   });
 
   it("survives a transcript with corrupted JSON lines", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-hook-test-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-hook-test-"));
     const file = path.join(dir, "corrupt.jsonl");
     const errEntry = makeApiErrorEntry({ sessionId: "sid-1", error: "server_error", uuid: "e1" });
     const body =

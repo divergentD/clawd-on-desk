@@ -66,7 +66,7 @@ function makeCtx(overrides = {}) {
     readRuntimePort: () => null,
 
     // Hook sync impls — keep them all as no-ops
-    syncClawdHooksImpl: () => {},
+    syncwangpetHooksImpl: () => {},
     syncGeminiHooksImpl: () => {},
     syncCursorHooksImpl: () => {},
     syncCodeBuddyHooksImpl: () => {},

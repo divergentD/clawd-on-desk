@@ -8,7 +8,7 @@ const path = require("node:path");
 // Load default theme for test ctx
 const themeLoader = require("../src/theme-loader");
 themeLoader.init(path.join(__dirname, "..", "src"));
-const _defaultTheme = themeLoader.loadTheme("clawd");
+const _defaultTheme = themeLoader.loadTheme("wang-pet");
 const _calicoTheme = themeLoader.loadTheme("calico");
 const { createTranslator } = require("../src/i18n");
 
@@ -178,7 +178,7 @@ describe("resolveDisplayState()", () => {
 
     api.setUpdateVisualState("checking");
     assert.strictEqual(api.resolveDisplayState(), "thinking");
-    assert.strictEqual(api.getSvgOverride("thinking"), "clawd-working-debugger.svg");
+    assert.strictEqual(api.getSvgOverride("thinking"), "wang-pet-working-debugger.svg");
 
     api.setUpdateVisualState("available");
     assert.strictEqual(api.resolveDisplayState(), "notification");
@@ -210,7 +210,7 @@ describe("resolveDisplayState()", () => {
     api = require("../src/state")(ctx);
 
     api.setUpdateVisualState("checking");
-    assert.strictEqual(api.getSvgOverride("thinking"), "clawd-working-debugger.svg");
+    assert.strictEqual(api.getSvgOverride("thinking"), "wang-pet-working-debugger.svg");
 
     ctx.theme = _calicoTheme;
     api.refreshTheme();
@@ -218,7 +218,7 @@ describe("resolveDisplayState()", () => {
 
     ctx.theme = _defaultTheme;
     api.refreshTheme();
-    assert.strictEqual(api.getSvgOverride("thinking"), "clawd-working-debugger.svg");
+    assert.strictEqual(api.getSvgOverride("thinking"), "wang-pet-working-debugger.svg");
   });
 
   it("update overlay does not override higher-priority agent states", () => {
@@ -266,7 +266,7 @@ describe("resolveDisplayState()", () => {
   it("update overlay wins when no sessions exist", () => {
     api.setUpdateVisualState("checking");
     assert.strictEqual(api.resolveDisplayState(), "thinking");
-    assert.strictEqual(api.getSvgOverride("thinking"), "clawd-working-debugger.svg");
+    assert.strictEqual(api.getSvgOverride("thinking"), "wang-pet-working-debugger.svg");
     api.setUpdateVisualState("available");
     assert.strictEqual(api.resolveDisplayState(), "notification");
     api.setUpdateVisualState(null);
@@ -360,35 +360,35 @@ describe("working sub-animations", () => {
 
   it("1 working session → typing SVG", () => {
     api.sessions.set("s1", rawSession("working"));
-    assert.strictEqual(api.getSvgOverride("working"), "clawd-working-typing.svg");
+    assert.strictEqual(api.getSvgOverride("working"), "wang-pet-working-typing.svg");
   });
 
   it("2 working sessions → headphones groove SVG", () => {
     api.sessions.set("s1", rawSession("working"));
     api.sessions.set("s2", rawSession("working"));
-    assert.strictEqual(api.getSvgOverride("working"), "clawd-headphones-groove.svg");
+    assert.strictEqual(api.getSvgOverride("working"), "wang-pet-headphones-groove.svg");
   });
 
   it("3+ working sessions → building SVG", () => {
     api.sessions.set("s1", rawSession("working"));
     api.sessions.set("s2", rawSession("thinking"));
     api.sessions.set("s3", rawSession("working"));
-    assert.strictEqual(api.getSvgOverride("working"), "clawd-working-building.svg");
+    assert.strictEqual(api.getSvgOverride("working"), "wang-pet-working-building.svg");
   });
 
   it("1 juggling session → headphones groove SVG", () => {
     api.sessions.set("s1", rawSession("juggling"));
-    assert.strictEqual(api.getSvgOverride("juggling"), "clawd-headphones-groove.svg");
+    assert.strictEqual(api.getSvgOverride("juggling"), "wang-pet-headphones-groove.svg");
   });
 
   it("2+ juggling sessions → three-ball juggling SVG", () => {
     api.sessions.set("s1", rawSession("juggling"));
     api.sessions.set("s2", rawSession("juggling"));
-    assert.strictEqual(api.getSvgOverride("juggling"), "clawd-working-juggling.svg");
+    assert.strictEqual(api.getSvgOverride("juggling"), "wang-pet-working-juggling.svg");
   });
 
   it("idle → follow SVG", () => {
-    assert.strictEqual(api.getSvgOverride("idle"), "clawd-idle-follow.svg");
+    assert.strictEqual(api.getSvgOverride("idle"), "wang-pet-idle-follow.svg");
   });
 });
 
@@ -400,10 +400,10 @@ describe("hitbox selection", () => {
   it("uses a file-specific hitbox for the displayed SVG", () => {
     const theme = cloneTheme(_defaultTheme);
     const fileBox = { x: 10, y: 11, w: 12, h: 13 };
-    theme.fileHitBoxes = { "clawd-working-typing.svg": fileBox };
+    theme.fileHitBoxes = { "wang-pet-working-typing.svg": fileBox };
     api = require("../src/state")(makeCtx({ theme }));
 
-    api.applyState("working", "clawd-working-typing.svg");
+    api.applyState("working", "wang-pet-working-typing.svg");
 
     assert.deepStrictEqual(api.getCurrentHitBox(), fileBox);
   });
@@ -413,10 +413,10 @@ describe("hitbox selection", () => {
     theme.fileHitBoxes = {};
     api = require("../src/state")(makeCtx({ theme }));
 
-    api.applyState("error", "clawd-error.svg");
+    api.applyState("error", "wang-pet-error.svg");
     assert.deepStrictEqual(api.getCurrentHitBox(), theme.hitBoxes.wide);
 
-    api.applyState("working", "clawd-working-typing.svg");
+    api.applyState("working", "wang-pet-working-typing.svg");
     assert.deepStrictEqual(api.getCurrentHitBox(), theme.hitBoxes.default);
   });
 });
@@ -440,7 +440,7 @@ describe("visual fallback resolution", () => {
   it("keeps the logical state while resolving visuals through fallbackTo", () => {
     api.applyState("error");
     assert.strictEqual(api.getCurrentState(), "error");
-    assert.strictEqual(api.getCurrentSvg(), "clawd-happy.svg");
+    assert.strictEqual(api.getCurrentSvg(), "wang-pet-happy.svg");
 
     mock.timers.tick(5000);
     assert.strictEqual(api.getCurrentState(), "idle");
@@ -592,7 +592,7 @@ describe("wake poll behavior", () => {
     fakeCursor.x = 200;
     mock.timers.tick(200);
     assert.strictEqual(api.getCurrentState(), "idle");
-    assert.strictEqual(api.getCurrentSvg(), "clawd-idle-follow.svg");
+    assert.strictEqual(api.getCurrentSvg(), "wang-pet-idle-follow.svg");
   });
 
   it("dozing + still > DEEP_SLEEP_TIMEOUT → collapsing", () => {
@@ -908,7 +908,7 @@ describe("updateSession()", () => {
     assert.ok(!api.sessions.has("s1"));
   });
 
-  it("dismissSession removes only Clawd bookkeeping for that session", () => {
+  it("dismissSession removes only WangPet bookkeeping for that session", () => {
     update(api, { id: "s1", state: "working" });
     update(api, { id: "s2", state: "thinking" });
 
@@ -2130,7 +2130,7 @@ describe("refreshTheme()", () => {
   });
 
   it("updates idle svg and DND sleep path after hot theme switch", () => {
-    assert.strictEqual(api.getSvgOverride("idle"), "clawd-idle-follow.svg");
+    assert.strictEqual(api.getSvgOverride("idle"), "wang-pet-idle-follow.svg");
 
     ctx.theme = _calicoTheme;
     api.refreshTheme();
@@ -2384,7 +2384,7 @@ describe("evictOldestSessionIfNeeded two-phase", () => {
 // UserPromptSubmit ~900-1000ms after PostToolUse to feed the tool result back
 // to the model. Without filtering this flashes "thinking" between working and
 // idle. Measured twice in dogfood (908ms non-interactive, 945ms interactive).
-// Window = 2000ms default, overridable via CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS.
+// Window = 2000ms default, overridable via WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS.
 // Two timestamps: lastToolBoundaryAt (PostToolUse / PostToolUseFailure) and
 // lastStopAt (Stop). Filter only fires while a recent tool boundary has NOT
 // yet been followed by Stop. See project_qwen_0_16_1_event_semantics canary.
@@ -2397,14 +2397,14 @@ describe("qwen-code self-submit filter", () => {
     mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"] });
     ctx = makeCtx();
     api = require("../src/state")(ctx);
-    delete process.env.CLAWD_QWEN_SELF_SUBMIT_FILTER;
-    delete process.env.CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS;
+    delete process.env.WANGPET_QWEN_SELF_SUBMIT_FILTER;
+    delete process.env.WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS;
   });
   afterEach(() => {
     api.cleanup();
     mock.timers.reset();
-    delete process.env.CLAWD_QWEN_SELF_SUBMIT_FILTER;
-    delete process.env.CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS;
+    delete process.env.WANGPET_QWEN_SELF_SUBMIT_FILTER;
+    delete process.env.WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS;
   });
 
   function bootQwenAfterPostToolUse() {
@@ -2485,8 +2485,8 @@ describe("qwen-code self-submit filter", () => {
     assert.strictEqual(after.state, "thinking", "claude-code must pass through normally");
   });
 
-  it("kill switch CLAWD_QWEN_SELF_SUBMIT_FILTER=0 disables the filter", () => {
-    process.env.CLAWD_QWEN_SELF_SUBMIT_FILTER = "0";
+  it("kill switch WANGPET_QWEN_SELF_SUBMIT_FILTER=0 disables the filter", () => {
+    process.env.WANGPET_QWEN_SELF_SUBMIT_FILTER = "0";
     bootQwenAfterPostToolUse();
     mock.timers.tick(500);
     update(api, { id: "qsid", state: "thinking", event: "UserPromptSubmit", agentId: "qwen-code" });
@@ -2503,8 +2503,8 @@ describe("qwen-code self-submit filter", () => {
     assert.strictEqual(after.state, "thinking", "no boundary → cannot be a self-submit");
   });
 
-  it("CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS override widens the window", () => {
-    process.env.CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS = "5000";
+  it("WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS override widens the window", () => {
+    process.env.WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS = "5000";
     bootQwenAfterPostToolUse();
     mock.timers.tick(3500); // would pass with default 2000 window, but env override extends to 5000
     update(api, { id: "qsid", state: "thinking", event: "UserPromptSubmit", agentId: "qwen-code" });
@@ -2513,8 +2513,8 @@ describe("qwen-code self-submit filter", () => {
     assert.strictEqual(after.state, "working", "extended window must still drop self-submit");
   });
 
-  it("CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS invalid value falls back to default 2000ms", () => {
-    process.env.CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS = "not-a-number";
+  it("WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS invalid value falls back to default 2000ms", () => {
+    process.env.WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS = "not-a-number";
     bootQwenAfterPostToolUse();
     mock.timers.tick(1500); // within default 2000ms
     update(api, { id: "qsid", state: "thinking", event: "UserPromptSubmit", agentId: "qwen-code" });
@@ -2523,8 +2523,8 @@ describe("qwen-code self-submit filter", () => {
     assert.strictEqual(after.state, "working", "invalid env must fall back to default and still drop");
   });
 
-  it("CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS out-of-range value falls back to default", () => {
-    process.env.CLAWD_QWEN_SELF_SUBMIT_WINDOW_MS = "999999"; // above max 10000
+  it("WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS out-of-range value falls back to default", () => {
+    process.env.WANGPET_QWEN_SELF_SUBMIT_WINDOW_MS = "999999"; // above max 10000
     bootQwenAfterPostToolUse();
     mock.timers.tick(3000); // outside default 2000ms window
     update(api, { id: "qsid", state: "thinking", event: "UserPromptSubmit", agentId: "qwen-code" });

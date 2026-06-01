@@ -3,7 +3,7 @@
 // ── Preferences (pure data layer) ──
 //
 // This module is the canonical schema definition + load/save/migrate/validate
-// for `clawd-prefs.json`. It has zero dependencies on Electron, the store, the
+// for `wang-pet-prefs.json`. It has zero dependencies on Electron, the store, the
 // controller, or anything stateful — it deals in plain snapshots.
 //
 // `load(prefsPath)`  — read file, migrate to current version, validate, return snapshot
@@ -12,7 +12,7 @@
 // `validate(snapshot)` — coerces an arbitrary object into a valid snapshot, dropping bad fields
 // `migrate(raw)` — applies version-to-version migrations, returns the upgraded raw snapshot
 //
-// Bad-file handling: read failure → backup as `clawd-prefs.json.bak` → return defaults.
+// Bad-file handling: read failure → backup as `wang-pet-prefs.json.bak` → return defaults.
 // Future-version handling: read succeeds but version > current → warn + refuse to overwrite
 //   (caller still gets a valid snapshot, but `save()` becomes a no-op via the locked flag).
 
@@ -169,7 +169,7 @@ const SCHEMA = {
     normalize: normalizeShortcuts,
   },
   // Theme
-  theme: { type: "string", default: "clawd" },
+  theme: { type: "string", default: "wang-pet" },
   // Phase 2/3 placeholders — schema reserves the keys so future migrations don't need v2.
   agents: {
     type: "object",
@@ -179,7 +179,7 @@ const SCHEMA = {
       "copilot-cli": { enabled: true, permissionsEnabled: true, notificationHookEnabled: true },
       "cursor-agent": { enabled: true, permissionsEnabled: true, notificationHookEnabled: true },
       "gemini-cli": { enabled: true, permissionsEnabled: true, notificationHookEnabled: true },
-      // Antigravity is state-only post-D2 — Clawd never surfaces a permission
+      // Antigravity is state-only post-D2 — WangPet never surfaces a permission
       // bubble for agy regardless of this flag (see server-route-permission.js
       // antigravity branch). Default kept as false so legacy reads don't see a
       // stale "true" implying bubbles are enabled.
@@ -200,7 +200,7 @@ const SCHEMA = {
     defaultFactory: () => ({}),
     normalize: normalizeThemeOverrides,
   },
-  // Phase 3b-swap: per-theme variant selection (e.g. {clawd: "chill", calico: "default"}).
+  // Phase 3b-swap: per-theme variant selection (e.g. {"wang-pet": "chill", calico: "default"}).
   // Missing key for a theme = use that theme's `default` variant. Unknown variantIds
   // get lenient-fallback to default at load time (see theme-loader._resolveVariant).
   themeVariant: {
@@ -328,7 +328,7 @@ function validate(raw) {
 }
 
 // Hand-edited-file fallback: if a user manually inverted the pair in
-// clawd-prefs.json, clamp workingStaleMs down to sessionStaleMs at load time
+// wang-pet-prefs.json, clamp workingStaleMs down to sessionStaleMs at load time
 // so the live mirror is consistent. Primary enforcement lives in the
 // per-key validators in settings-actions.js and the
 // commandRegistry["sessionCleanup.setTriple"] command — this function is
@@ -356,7 +356,7 @@ function normalizeStaleTriple(out) {
 // v2 → v3: raise passive notification bubble default from 3s to 6s. Users
 //   who explicitly chose 3s in v2 are indistinguishable from defaulted-3 and
 //   are migrated too; other non-default values are preserved.
-// v3 → v4: Pi returns to a state-only integration. Clawd no longer inserts a
+// v3 → v4: Pi returns to a state-only integration. WangPet no longer inserts a
 //   permission prompt into Pi's default YOLO flow, so the Pi permission subgate
 //   is reset off.
 function migrate(raw) {
@@ -750,9 +750,9 @@ function load(prefsPath) {
     try {
       const bak = prefsPath + ".bak";
       fs.copyFileSync(prefsPath, bak);
-      console.warn(`Clawd: prefs file unreadable, backed up to ${bak}:`, err.message);
+      console.warn(`WangPet: prefs file unreadable, backed up to ${bak}:`, err.message);
     } catch (bakErr) {
-      console.warn("Clawd: prefs file unreadable and backup failed:", err.message, bakErr.message);
+      console.warn("WangPet: prefs file unreadable and backup failed:", err.message, bakErr.message);
     }
     return { snapshot: getDefaults(), locked: false };
   }
@@ -763,7 +763,7 @@ function load(prefsPath) {
   const incomingVersion = typeof raw.version === "number" ? raw.version : 0;
   if (incomingVersion > CURRENT_VERSION) {
     console.warn(
-      `Clawd: prefs file version ${incomingVersion} is newer than supported (${CURRENT_VERSION}). ` +
+      `WangPet: prefs file version ${incomingVersion} is newer than supported (${CURRENT_VERSION}). ` +
       `Settings will be readable but not saved to avoid data loss.`
     );
     return { snapshot: validate(raw), locked: true };

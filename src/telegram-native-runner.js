@@ -23,7 +23,7 @@ const {
 const { EVENTS } = require("./telegram-migration-state");
 
 const APPROVAL_CALLBACK_RE = /^cp:([a-z0-9]+):(a|d|s(\d+))$/;
-const LEGACY_APPROVAL_CALLBACK_RE = /^clawdperm:([a-z0-9]+):(allow|deny)$/;
+const LEGACY_APPROVAL_CALLBACK_RE = /^wangpetperm:([a-z0-9]+):(allow|deny)$/;
 const MAX_MESSAGE_TEXT = 3800;
 const MAX_BUTTON_TEXT = 32;
 const DEFAULT_APPROVAL_TIMEOUT_MS = 90000;
@@ -336,8 +336,8 @@ function createTelegramNativeRunner({
   async function handleTestCallback(cb, { fromId, chatId }) {
     const isAllowedUser = !pendingTest.allowedUser || fromId === String(pendingTest.allowedUser);
     const isExpectedChat = !pendingTest.chatId || chatId === String(pendingTest.chatId);
-    if (cb.data !== `clawd-test:${pendingTest.nonce}` || !isAllowedUser || !isExpectedChat) {
-      if (typeof cb.data !== "string" || !cb.data.startsWith("clawd-test:")) return false;
+    if (cb.data !== `wang-pet-test:${pendingTest.nonce}` || !isAllowedUser || !isExpectedChat) {
+      if (typeof cb.data !== "string" || !cb.data.startsWith("wang-pet-test:")) return false;
       // Acknowledge stray callbacks so the Telegram client closes its spinner.
       try { await client.answerCallbackQuery({ callback_query_id: cb.id }); } catch {}
       return true;
@@ -442,9 +442,9 @@ function createTelegramNativeRunner({
     try {
       const msg = await client.sendMessage({
         chat_id: chatId,
-        text: "Clawd: test native Telegram bot. Tap to confirm.",
+        text: "WangPet: test native Telegram bot. Tap to confirm.",
         reply_markup: {
-          inline_keyboard: [[{ text: "Confirm", callback_data: `clawd-test:${nonce}` }]],
+          inline_keyboard: [[{ text: "Confirm", callback_data: `wang-pet-test:${nonce}` }]],
         },
       });
       if (pendingTest && pendingTest.nonce === nonce) {

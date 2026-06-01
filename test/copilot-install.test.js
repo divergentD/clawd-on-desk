@@ -18,7 +18,7 @@ const MARKER = "copilot-hook.js";
 const tempDirs = [];
 
 function makeTempHomeWithCopilot(initialJson) {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-copilot-install-"));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-copilot-install-"));
   const copilotDir = path.join(tmpDir, ".copilot");
   const hooksDir = path.join(copilotDir, "hooks");
   fs.mkdirSync(hooksDir, { recursive: true });
@@ -30,7 +30,7 @@ function makeTempHomeWithCopilot(initialJson) {
 }
 
 function makeTempHomeWithoutCopilot() {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-copilot-install-no-"));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-copilot-install-no-"));
   tempDirs.push(tmpDir);
   return { homeDir: tmpDir };
 }
@@ -40,7 +40,7 @@ function readJson(filePath) {
 }
 
 function listCleanupBackups(dir) {
-  return fs.readdirSync(dir).filter((name) => name.includes(".clawd-cleanup-") && name.endsWith(".bak"));
+  return fs.readdirSync(dir).filter((name) => name.includes(".wang-pet-cleanup-") && name.endsWith(".bak"));
 }
 
 afterEach(() => {
@@ -50,7 +50,7 @@ afterEach(() => {
 });
 
 describe("COPILOT_HOOK_EVENTS", () => {
-  it("covers all 10 events Clawd's EVENT_TO_STATE map supports", () => {
+  it("covers all 10 events WangPet's EVENT_TO_STATE map supports", () => {
     assert.strictEqual(COPILOT_HOOK_EVENTS.length, 10);
     for (const event of [
       "sessionStart", "userPromptSubmitted", "preToolUse", "postToolUse", "sessionEnd",
@@ -127,7 +127,7 @@ describe("buildCopilotHookCommands", () => {
     assert.ok(bash.includes('"node\\""'));
   });
 
-  it("adds CLAWD_REMOTE env prefixes for remote hook commands", () => {
+  it("adds WANGPET_REMOTE env prefixes for remote hook commands", () => {
     const { bash, powershell } = buildCopilotHookCommands(
       "/usr/bin/node",
       "/home/u/.claude/hooks/copilot-hook.js",
@@ -136,11 +136,11 @@ describe("buildCopilotHookCommands", () => {
     );
     assert.strictEqual(
       bash,
-      'CLAWD_REMOTE=1 "/usr/bin/node" "/home/u/.claude/hooks/copilot-hook.js" "sessionStart"'
+      'WANGPET_REMOTE=1 "/usr/bin/node" "/home/u/.claude/hooks/copilot-hook.js" "sessionStart"'
     );
     assert.strictEqual(
       powershell,
-      '$env:CLAWD_REMOTE=\'1\'; & "/usr/bin/node" "/home/u/.claude/hooks/copilot-hook.js" "sessionStart"'
+      '$env:WANGPET_REMOTE=\'1\'; & "/usr/bin/node" "/home/u/.claude/hooks/copilot-hook.js" "sessionStart"'
     );
   });
 });
@@ -166,7 +166,7 @@ describe("registerCopilotHooks", () => {
       silent: true,
       homeDir,
       nodeBin: "/usr/local/bin/node",
-      hookScript: "/srv/clawd/hooks/copilot-hook.js",
+      hookScript: "/srv/wang-pet/hooks/copilot-hook.js",
     });
 
     assert.strictEqual(result.added, COPILOT_HOOK_EVENTS.length);
@@ -183,21 +183,21 @@ describe("registerCopilotHooks", () => {
       assert.strictEqual(entry.type, "command");
       assert.strictEqual(entry.timeoutSec, TIMEOUT_SEC);
       assert.ok(entry.bash.includes("/usr/local/bin/node"));
-      assert.ok(entry.bash.includes("/srv/clawd/hooks/copilot-hook.js"));
+      assert.ok(entry.bash.includes("/srv/wang-pet/hooks/copilot-hook.js"));
       assert.ok(entry.bash.includes(event));
       assert.ok(entry.powershell.startsWith("& "));
       assert.ok(entry.powershell.includes(event));
     }
   });
 
-  it("registers remote hooks with CLAWD_REMOTE in both platform commands", () => {
+  it("registers remote hooks with WANGPET_REMOTE in both platform commands", () => {
     const { homeDir, hooksPath } = makeTempHomeWithCopilot();
 
     const result = registerCopilotHooks({
       silent: true,
       homeDir,
       nodeBin: "/usr/local/bin/node",
-      hookScript: "/srv/clawd/hooks/copilot-hook.js",
+      hookScript: "/srv/wang-pet/hooks/copilot-hook.js",
       remote: true,
     });
 
@@ -206,9 +206,9 @@ describe("registerCopilotHooks", () => {
     const settings = readJson(hooksPath);
     for (const event of COPILOT_HOOK_EVENTS) {
       const entry = settings.hooks[event][0];
-      assert.ok(entry.bash.startsWith("CLAWD_REMOTE=1 "));
+      assert.ok(entry.bash.startsWith("WANGPET_REMOTE=1 "));
       assert.ok(entry.bash.includes(event));
-      assert.ok(entry.powershell.startsWith("$env:CLAWD_REMOTE='1'; & "));
+      assert.ok(entry.powershell.startsWith("$env:WANGPET_REMOTE='1'; & "));
       assert.ok(entry.powershell.includes(event));
     }
   });
@@ -219,13 +219,13 @@ describe("registerCopilotHooks", () => {
     registerCopilotHooks({
       silent: true,
       homeDir,
-      hookScript: "/srv/clawd/hooks/copilot-hook.js",
+      hookScript: "/srv/wang-pet/hooks/copilot-hook.js",
       remote: true,
     });
 
     const entry = readJson(hooksPath).hooks.sessionStart[0];
     assert.ok(entry.bash.includes(`"${process.execPath.replace(/"/g, '\\"')}"`));
-    assert.ok(!entry.bash.startsWith('CLAWD_REMOTE=1 "node" '));
+    assert.ok(!entry.bash.startsWith('WANGPET_REMOTE=1 "node" '));
   });
 
   it("is idempotent on second run (no rewrite when state matches)", () => {
@@ -250,7 +250,7 @@ describe("registerCopilotHooks", () => {
     assert.strictEqual(fs.statSync(hooksPath).mtimeMs, beforeMtime);
   });
 
-  it("updates the Clawd entry when the hook script path changes (no append)", () => {
+  it("updates the WangPet entry when the hook script path changes (no append)", () => {
     const { homeDir, hooksPath } = makeTempHomeWithCopilot();
     registerCopilotHooks({
       silent: true,
@@ -301,7 +301,7 @@ describe("registerCopilotHooks", () => {
     });
 
     const settings = readJson(hooksPath);
-    // User entries preserved, Clawd entry appended
+    // User entries preserved, WangPet entry appended
     assert.strictEqual(settings.hooks.sessionStart.length, 2);
     assert.ok(settings.hooks.sessionStart.some((e) => e.bash === "echo my-custom-hook"));
     assert.ok(settings.hooks.sessionStart.some((e) => e.bash.includes(MARKER)));
@@ -311,7 +311,7 @@ describe("registerCopilotHooks", () => {
     assert.ok(settings.hooks.userPromptSubmitted.some((e) => e.bash.includes(MARKER)));
   });
 
-  it("updates the existing Clawd entry in place when other entries are present", () => {
+  it("updates the existing WangPet entry in place when other entries are present", () => {
     const customSession = { type: "command", bash: "echo custom", powershell: "echo custom" };
     const { homeDir, hooksPath } = makeTempHomeWithCopilot({
       version: 1,
@@ -339,7 +339,7 @@ describe("registerCopilotHooks", () => {
     assert.strictEqual(settings.hooks.sessionStart.length, 2);
     // Custom entry untouched and still first
     assert.deepStrictEqual(settings.hooks.sessionStart[0], customSession);
-    // Clawd entry updated in place at index 1, not appended at index 2
+    // WangPet entry updated in place at index 1, not appended at index 2
     assert.ok(settings.hooks.sessionStart[1].bash.includes("/new/copilot-hook.js"));
     assert.ok(!settings.hooks.sessionStart[1].bash.includes("/old/copilot-hook.js"));
   });
@@ -375,7 +375,7 @@ describe("registerCopilotHooks", () => {
     }
   });
 
-  it("repairs schema drift on the Clawd entry (e.g., missing powershell, wrong timeoutSec)", () => {
+  it("repairs schema drift on the WangPet entry (e.g., missing powershell, wrong timeoutSec)", () => {
     const { homeDir, hooksPath } = makeTempHomeWithCopilot({
       version: 1,
       hooks: {
@@ -438,7 +438,7 @@ describe("registerCopilotHooks", () => {
     assert.strictEqual(result.added, COPILOT_HOOK_EVENTS.length - 1);
 
     const sessionStart = readJson(hooksPath).hooks.sessionStart;
-    assert.strictEqual(sessionStart.length, 1, "no duplicate Clawd entries");
+    assert.strictEqual(sessionStart.length, 1, "no duplicate WangPet entries");
     assert.ok(sessionStart[0].bash.includes("/new/copilot-hook.js"));
     assert.ok(sessionStart[0].powershell.includes("/new/copilot-hook.js"));
   });
@@ -482,7 +482,7 @@ describe("registerCopilotHooks", () => {
   });
 
   it("writes to env.COPILOT_HOME when set, not homeDir/.copilot", () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-copilot-home-env-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-copilot-home-env-"));
     tempDirs.push(tmpDir);
     const customCopilot = path.join(tmpDir, "custom-cli");
     fs.mkdirSync(path.join(customCopilot, "hooks"), { recursive: true });
@@ -506,7 +506,7 @@ describe("registerCopilotHooks", () => {
   });
 
   it("options.copilotHome wins over env.COPILOT_HOME and homeDir", () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-copilot-opt-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-copilot-opt-"));
     tempDirs.push(tmpDir);
     const optHome = path.join(tmpDir, "opt-copilot");
     fs.mkdirSync(path.join(optHome, "hooks"), { recursive: true });
@@ -544,7 +544,7 @@ describe("registerCopilotHooks", () => {
   });
 
   it("skips registration when env.COPILOT_HOME points at a missing directory", () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-copilot-env-missing-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wang-pet-copilot-env-missing-"));
     tempDirs.push(tmpDir);
     const fakeHome = path.join(tmpDir, "fake-home");
     fs.mkdirSync(fakeHome, { recursive: true });
@@ -560,7 +560,7 @@ describe("registerCopilotHooks", () => {
     assert.strictEqual(fs.existsSync(nonexistent), false);
   });
 
-  it("unregister removes stale Clawd markers from any Copilot event", () => {
+  it("unregister removes stale WangPet markers from any Copilot event", () => {
     const { homeDir, hooksPath } = makeTempHomeWithCopilot({
       version: 1,
       hooks: {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Clawd Desktop Pet — Claude Code Hook Script
-// Usage: node clawd-hook.js <event_name>
+// WangPet Desktop Pet — Claude Code Hook Script
+// Usage: node wang-pet-hook.js <event_name>
 // Reads stdin JSON from Claude Code for session_id
 
 const crypto = require("crypto");
@@ -396,7 +396,7 @@ function buildStateBody(event, payload, resolve) {
       }
     }
   }
-  if (process.env.CLAWD_REMOTE) {
+  if (process.env.WANGPET_REMOTE) {
     body.host = readHostPrefix();
   } else {
     const pidMeta = resolve();
@@ -406,7 +406,7 @@ function buildStateBody(event, payload, resolve) {
     if (detectedEditor) body.editor = detectedEditor;
     if (agentPid) {
       body.agent_pid = agentPid;
-      body.claude_pid = agentPid; // backward compat with older Clawd versions
+      body.claude_pid = agentPid; // backward compat with older WangPet versions
       if (agentCommandLine && /\s(-p|--print)(\s|$)/.test(agentCommandLine)) {
         body.headless = true;
       }
@@ -433,7 +433,7 @@ function main() {
 
   // Pre-resolve on SessionStart (runs during stdin buffering, not after)
   // Remote mode: skip PID collection — remote PIDs are meaningless on the local machine
-  if (event === "SessionStart" && !process.env.CLAWD_REMOTE) resolve();
+  if (event === "SessionStart" && !process.env.WANGPET_REMOTE) resolve();
 
   readStdinJson().then((payload) => {
     const body = buildStateBody(event, payload || {}, resolve);

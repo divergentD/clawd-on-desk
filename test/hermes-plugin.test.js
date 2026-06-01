@@ -56,7 +56,7 @@ describe("Hermes plugin", () => {
     assert.ok(!hooks.includes("post_approval_response"));
   });
 
-  it("maps verified Hermes session boundary hooks to Clawd lifecycle events", () => {
+  it("maps verified Hermes session boundary hooks to WangPet lifecycle events", () => {
     const source = readPluginSource();
     assert.match(source, /"on_session_finalize": \("sleeping", "SessionEnd"\)/);
     assert.match(source, /"on_session_reset": \("idle", "SessionStart"\)/);

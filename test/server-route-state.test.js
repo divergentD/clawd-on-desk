@@ -5,8 +5,8 @@ const assert = require("node:assert");
 const { EventEmitter } = require("node:events");
 
 const {
-  CLAWD_SERVER_HEADER,
-  CLAWD_SERVER_ID,
+  WANGPET_SERVER_HEADER,
+  WANGPET_SERVER_ID,
 } = require("../hooks/server-config");
 const {
   MAX_STATE_BODY_BYTES,
@@ -87,10 +87,10 @@ describe("server-route-state health", () => {
 
     assert.strictEqual(res.statusCode, 200);
     assert.strictEqual(res.headers["Content-Type"], "application/json");
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.deepStrictEqual(JSON.parse(res.body), {
       ok: true,
-      app: CLAWD_SERVER_ID,
+      app: WANGPET_SERVER_ID,
       port: 23334,
     });
   });
@@ -226,7 +226,7 @@ describe("server-route-state POST", () => {
     });
 
     assert.strictEqual(res.statusCode, 204);
-    assert.strictEqual(res.headers[CLAWD_SERVER_HEADER], CLAWD_SERVER_ID);
+    assert.strictEqual(res.headers[WANGPET_SERVER_HEADER], WANGPET_SERVER_ID);
     assert.deepStrictEqual(res.calls.recorder.map((entry) => entry.outcome).filter(Boolean), ["disabled"]);
     assert.deepStrictEqual(res.calls.updateSession, []);
   });

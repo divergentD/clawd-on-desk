@@ -63,9 +63,9 @@ function createTopmostRuntime(options = {}) {
     if (!isMac) return;
     const apply = (win) => {
       if (!isLiveWindow(win)) return;
-      const deferUntil = Number(win.__clawdMacDeferredVisibilityUntil) || 0;
+      const deferUntil = Number(win.__wangpetMacDeferredVisibilityUntil) || 0;
       if (deferUntil > Date.now()) return;
-      if (deferUntil) delete win.__clawdMacDeferredVisibilityUntil;
+      if (deferUntil) delete win.__wangpetMacDeferredVisibilityUntil;
       win.setAlwaysOnTop(true, MAC_TOPMOST_LEVEL);
       if (!applyStationaryCollectionBehavior(win)) {
         const options = { visibleOnFullScreen: true };

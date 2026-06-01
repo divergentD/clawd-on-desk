@@ -231,8 +231,8 @@ function warningsFromResult(agentId, result) {
 
 function notesFromResult(agentId, result) {
   const notes = [];
-  if (agentId === "kiro-cli" && result && result.retainedClawdAgent) {
-    notes.push("Kiro clawd.json was retained; only Clawd hook entries were removed.");
+  if (agentId === "kiro-cli" && result && result.retainedwangpetAgent) {
+    notes.push("Kiro wang-pet.json was retained; only WangPet hook entries were removed.");
   }
   return notes;
 }
@@ -342,7 +342,7 @@ function parseArgs(argv) {
 }
 
 function printResult(result) {
-  console.log(`Clawd integration cleanup -> ${result.homeDir}`);
+  console.log(`WangPet integration cleanup -> ${result.homeDir}`);
   for (const agent of result.agents) {
     const suffix = agent.error ? ` (${agent.error})` : "";
     console.log(`  ${agent.displayName}: ${agent.status}, removed=${agent.removed}${suffix}`);

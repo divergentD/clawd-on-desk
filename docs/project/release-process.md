@@ -1,6 +1,6 @@
 # Release Process
 
-Use this flow when preparing a Clawd app release.
+Use this flow when preparing a WangPet app release.
 
 ## Before Tagging
 
@@ -16,7 +16,7 @@ node scripts/verify-sidecar-binaries.js prebuild:all
 4. Run the `Build & Release` workflow manually on `main`.
 
 Manual workflow dispatch builds Windows, macOS, and Linux artifacts, fetches the
-pinned `cc-connect-clawd` sidecar release, verifies source-pinned checksums, and
+pinned `cc-connect-wang-pet` sidecar release, verifies source-pinned checksums, and
 uploads build artifacts. It does not publish a GitHub Release.
 
 ## Draft Release
@@ -39,10 +39,10 @@ bad draft release.
 
 ## Sidecar Dependency
 
-Clawd release builds do not consume upstream `cc-connect` latest artifacts. They
-download the fixed `cc-connect-clawd` fork release pinned by
+WangPet release builds do not consume upstream `cc-connect` latest artifacts. They
+download the fixed `cc-connect-wang-pet` fork release pinned by
 `scripts/fetch-sidecar-binaries.js`, verify SHA256 values pinned in that script,
 and package those binaries into app resources.
 
 When the sidecar needs an upstream update, publish a new fixed sidecar release
-from the fork first, then update the Clawd pin and rerun the fetch/verify tests.
+from the fork first, then update the WangPet pin and rerun the fetch/verify tests.

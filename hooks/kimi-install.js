@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Merge Clawd Kimi CLI hooks into ~/.kimi/config.toml (append-only, idempotent)
+// Merge WangPet Kimi CLI hooks into ~/.kimi/config.toml (append-only, idempotent)
 
 const fs = require("fs");
 const path = require("path");
@@ -51,7 +51,7 @@ function normalizePermissionMode(value) {
   return null;
 }
 
-// Extract any existing CLAWD_KIMI_PERMISSION_MODE=... prefix from Clawd-owned
+// Extract any existing WANGPET_KIMI_PERMISSION_MODE=... prefix from wang-pet-owned
 // hook command lines in config.toml. Used as a fallback when the caller did
 // not pass an explicit mode AND no env var is set — without this, the startup
 // auto-sync would silently strip the prefix written by a previous install,
@@ -59,7 +59,7 @@ function normalizePermissionMode(value) {
 function extractExistingPermissionMode(content) {
   if (typeof content !== "string" || !content) return null;
   // Match both quoting styles. The double-quoted branch must allow `\"` inside
-  // because Clawd installer historically wrote `command = "...\"node\" \"...kimi-hook.js\""`.
+  // because WangPet installer historically wrote `command = "...\"node\" \"...kimi-hook.js\""`.
   // A naive `[^"]*` truncates at the first `\"`, drops MARKER, and silently
   // returns null — which is exactly the regression that erased the user's
   // suspect-mode prefix on startup auto-sync.
@@ -70,7 +70,7 @@ function extractExistingPermissionMode(content) {
       ? unescapeTomlDoubleQuotedCommand(match[1])
       : (match[2] || "");
     if (!value.includes(MARKER)) continue;
-    const modeMatch = value.match(/CLAWD_KIMI_PERMISSION_MODE=([A-Za-z]+)/);
+    const modeMatch = value.match(/WANGPET_KIMI_PERMISSION_MODE=([A-Za-z]+)/);
     if (modeMatch) {
       const normalized = normalizePermissionMode(modeMatch[1]);
       if (normalized) return normalized;
@@ -95,13 +95,13 @@ function findKimiHookCommands(content, marker = MARKER) {
   return commands;
 }
 
-// Remove every [[hooks]] block whose command references Clawd's kimi-hook.js.
+// Remove every [[hooks]] block whose command references WangPet's kimi-hook.js.
 // A block ends at the next TOML section header (`[x]` or `[[x]]`) or EOF —
 // NOT only at the next `[[hooks]]`. Using the narrower lookahead would cause
 // a regex-based pass to greedily swallow any trailing `[server]`, `[mcp]`,
 // `[[tools]]`, etc. that the user added after their hooks, silently deleting
 // their own config. Walking line-by-line avoids that entirely.
-function stripClawdKimiHookBlocks(content) {
+function stripwangpetKimiHookBlocks(content) {
   if (typeof content !== "string" || !content) return { content: "", removed: 0 };
   const HEADER_RE = /^\s*\[\[?[^\]]+\]\]?\s*(?:#.*)?$/;
   const HOOKS_HEADER_RE = /^\s*\[\[hooks\]\]\s*(?:#.*)?$/;
@@ -131,7 +131,7 @@ function stripClawdKimiHookBlocks(content) {
 }
 
 /**
- * Register Clawd hooks into ~/.kimi/config.toml
+ * Register WangPet hooks into ~/.kimi/config.toml
  * @param {object} [options]
  * @param {boolean} [options.silent]
  * @param {string} [options.settingsPath]
@@ -144,7 +144,7 @@ function registerKimiHooks(options = {}) {
   // or custom path points to a non-existent home).
   const kimiDir = path.dirname(settingsPath);
   if (!fs.existsSync(kimiDir)) {
-    if (!options.silent) console.log("Clawd: ~/.kimi/ not found — skipping Kimi hook registration");
+    if (!options.silent) console.log("WangPet: ~/.kimi/ not found — skipping Kimi hook registration");
     return { added: 0, skipped: 0, updated: 0 };
   }
 
@@ -172,16 +172,16 @@ function registerKimiHooks(options = {}) {
 
   // Priority: explicit caller option → env var → mode already baked into the
   // existing config.toml hook command. The fallback is critical for the
-  // startup auto-sync path: Clawd launches without the env var, sees an
-  // existing install that was done with CLAWD_KIMI_PERMISSION_MODE=suspect,
+  // startup auto-sync path: WangPet launches without the env var, sees an
+  // existing install that was done with WANGPET_KIMI_PERMISSION_MODE=suspect,
   // and MUST preserve that prefix so the user's persistent choice survives.
   const providedMode = normalizePermissionMode(
     options.permissionMode !== undefined
       ? options.permissionMode
-      : process.env.CLAWD_KIMI_PERMISSION_MODE
+      : process.env.WANGPET_KIMI_PERMISSION_MODE
   );
   const configuredMode = providedMode || extractExistingPermissionMode(content);
-  const modePrefix = configuredMode ? `CLAWD_KIMI_PERMISSION_MODE=${configuredMode} ` : "";
+  const modePrefix = configuredMode ? `WANGPET_KIMI_PERMISSION_MODE=${configuredMode} ` : "";
   const desiredCommand = `${modePrefix}"${nodeBin}" "${hookScript}"`;
 
   // Check if our hooks are already registered (matches both single and double quotes)
@@ -189,10 +189,10 @@ function registerKimiHooks(options = {}) {
   const existingMatches = [...content.matchAll(markerRegex)];
 
   if (existingMatches.length > 0) {
-    // Normalize + de-duplicate all Clawd-owned Kimi hook blocks. A stale extra
+    // Normalize + de-duplicate all wang-pet-owned Kimi hook blocks. A stale extra
     // block can fire duplicate PreToolUse events that cancel suspect timers and
     // suppress notification animation.
-    const stripped = stripClawdKimiHookBlocks(content);
+    const stripped = stripwangpetKimiHookBlocks(content);
     let normalized = stripped.content;
     normalized = normalized.replace(/^hooks\s*=\s*\[\]\s*$/m, "");
     const hookBlocks = KIMI_HOOK_EVENTS.map((event) => `[[hooks]]
@@ -209,7 +209,7 @@ timeout = 30
       fs.writeFileSync(settingsPath, content);
     }
     if (!options.silent) {
-      console.log(`Clawd Kimi hooks → ${settingsPath}`);
+      console.log(`WangPet Kimi hooks → ${settingsPath}`);
       if (updated > 0) {
         console.log(`  Updated: normalized ${existingMatches.length} existing hook command(s)`);
         if (stripped.removed > KIMI_HOOK_EVENTS.length) {
@@ -240,7 +240,7 @@ timeout = 30
   fs.writeFileSync(settingsPath, content);
 
   if (!options.silent) {
-    console.log(`Clawd Kimi hooks → ${settingsPath}`);
+    console.log(`WangPet Kimi hooks → ${settingsPath}`);
     console.log(`  Added: ${KIMI_HOOK_EVENTS.length} hooks`);
   }
 
@@ -258,11 +258,11 @@ function unregisterKimiHooks(options = {}) {
     throw new Error(`Failed to read config.toml: ${err.message}`);
   }
 
-  const stripped = stripClawdKimiHookBlocks(content);
+  const stripped = stripwangpetKimiHookBlocks(content);
   const changed = stripped.content !== content;
   let backupPath = null;
   if (changed) backupPath = writeTextAtomicWithBackup(settingsPath, stripped.content, options);
-  if (!options.silent) console.log(`Clawd Kimi hooks removed: ${stripped.removed}`);
+  if (!options.silent) console.log(`WangPet Kimi hooks removed: ${stripped.removed}`);
   const result = { removed: stripped.removed, changed, settingsPath };
   if (options.backup === true) result.backupPath = backupPath;
   return result;
@@ -277,7 +277,7 @@ module.exports = {
   normalizePermissionMode,
   extractExistingPermissionMode,
   findKimiHookCommands,
-  stripClawdKimiHookBlocks,
+  stripwangpetKimiHookBlocks,
   MODE_EXPLICIT,
   MODE_SUSPECT,
 };

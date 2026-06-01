@@ -5,7 +5,7 @@ const themeLoader = require("../src/theme-loader");
 const { createTranslator } = require("../src/i18n");
 
 themeLoader.init(path.join(__dirname, "..", "src"));
-const defaultTheme = themeLoader.loadTheme("clawd");
+const defaultTheme = themeLoader.loadTheme("wang-pet");
 
 function makeCtx() {
   const kimiNotifyShown = [];
@@ -94,11 +94,11 @@ describe("Kimi permission hold by session", () => {
     assert.strictEqual(api.resolveDisplayState(), "idle");
   });
 
-  it("CLAWD_KIMI_PERMISSION_MAX_MS=0 disables the safety timer entirely", () => {
-    const old = process.env.CLAWD_KIMI_PERMISSION_MAX_MS;
+  it("WANGPET_KIMI_PERMISSION_MAX_MS=0 disables the safety timer entirely", () => {
+    const old = process.env.WANGPET_KIMI_PERMISSION_MAX_MS;
     api.cleanup();
     try {
-      process.env.CLAWD_KIMI_PERMISSION_MAX_MS = "0";
+      process.env.WANGPET_KIMI_PERMISSION_MAX_MS = "0";
       ctx = makeCtx();
       api = require("../src/state")(ctx);
 
@@ -109,8 +109,8 @@ describe("Kimi permission hold by session", () => {
       mock.timers.tick(60 * 60 * 1000); // 1h
       assert.strictEqual(api.resolveDisplayState(), "notification");
     } finally {
-      if (old == null) delete process.env.CLAWD_KIMI_PERMISSION_MAX_MS;
-      else process.env.CLAWD_KIMI_PERMISSION_MAX_MS = old;
+      if (old == null) delete process.env.WANGPET_KIMI_PERMISSION_MAX_MS;
+      else process.env.WANGPET_KIMI_PERMISSION_MAX_MS = old;
     }
   });
 

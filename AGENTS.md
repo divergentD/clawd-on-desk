@@ -4,7 +4,7 @@ This file is the entry point for coding agents working in this repository. Keep 
 
 ## Project Overview
 
-Clawd 是一个 Electron 桌宠：通过 hook、日志轮询、plugin 和 extension 感知 AI coding agent 的工作状态，并播放像素风动画。当前支持 Claude Code、Codex CLI、Copilot CLI、Gemini CLI、Antigravity CLI (agy)、Cursor Agent、CodeBuddy、Kiro CLI、Kimi Code CLI (Kimi-CLI)、Qwen Code、opencode、Pi、OpenClaw、Hermes Agent；内置 Clawd / Calico / Cloudling 三套主题，支持用户主题；平台覆盖 Windows、macOS、Linux，UI 支持 en / zh / ko / ja。
+WangPet 是一个 Electron 桌宠：通过 hook、日志轮询、plugin 和 extension 感知 AI coding agent 的工作状态，并播放像素风动画。当前支持 Claude Code、Codex CLI、Copilot CLI、Gemini CLI、Antigravity CLI (agy)、Cursor Agent、CodeBuddy、Kiro CLI、Kimi Code CLI (Kimi-CLI)、Qwen Code、opencode、Pi、OpenClaw、Hermes Agent；内置 WangPet / Calico / Cloudling 三套主题，支持用户主题；平台覆盖 Windows、macOS、Linux，UI 支持 en / zh / ko / ja。
 
 ## Common Commands
 
@@ -49,7 +49,7 @@ bash test-macos.sh
 bash test-oneshot-gate.sh [state] [seconds]
 ```
 
-正常启动时，Clawd 只会为已启用的 agent 自动同步 Claude / Codex / Copilot / Gemini / Antigravity / Cursor / CodeBuddy / Kiro / Kimi / Qwen hooks、opencode / OpenClaw / Hermes plugins 和 Pi extension。禁用 agent 会跳过启动同步并屏蔽事件/权限入口，但不会卸载用户已有 hooks / plugins / extensions；从 Settings 重新启用时会对该 agent 做一次 integration sync。手动安装命令主要用于调试、重装或远程部署。
+正常启动时，WangPet 只会为已启用的 agent 自动同步 Claude / Codex / Copilot / Gemini / Antigravity / Cursor / CodeBuddy / Kiro / Kimi / Qwen hooks、opencode / OpenClaw / Hermes plugins 和 Pi extension。禁用 agent 会跳过启动同步并屏蔽事件/权限入口，但不会卸载用户已有 hooks / plugins / extensions；从 Settings 重新启用时会对该 agent 做一次 integration sync。手动安装命令主要用于调试、重装或远程部署。
 Copilot CLI 同步走 `<COPILOT_HOME 或 ~/.copilot>/hooks/hooks.json`，marker-based 增量合并只接管含 `copilot-hook.js` 标记的条目，用户其他 entry / 其他 `hooks/*.json` 文件原样保留；hooks.json 或 `settings.json` 顶层 `disableAllHooks: true` 时 doctor 报 warning（不挂 Fix 按钮）。详见 `docs/guides/copilot-setup.md`。
 
 ## Read These Docs
@@ -116,9 +116,9 @@ Copilot CLI 同步走 `<COPILOT_HOME 或 ~/.copilot>/hooks/hooks.json`，marker-
 | `agents/registry.js` | agent 注册表 |
 | `agents/codex-log-monitor.js` | Codex JSONL fallback 轮询 |
 | `agents/gemini-log-monitor.js` | legacy Gemini session JSON 轮询器；当前 Gemini hook-only 路径不启动 |
-| `hooks/clawd-hook.js` + `hooks/copilot-hook.js` | Claude Code / Copilot CLI 状态上报脚本 |
+| `hooks/wang-pet-hook.js` + `hooks/copilot-hook.js` | Claude Code / Copilot CLI 状态上报脚本 |
 | `hooks/install.js` | Claude hook 注册 / 卸载 |
-| `hooks/auto-start.js` | Claude `SessionStart` 自动拉起 Clawd 的 hook |
+| `hooks/auto-start.js` | Claude `SessionStart` 自动拉起 WangPet 的 hook |
 | `hooks/codex-hook.js` / `hooks/codex-install.js` | Codex official hooks 状态与权限审批、安装 / 卸载 |
 | `hooks/cursor-install.js` / `gemini-install.js` / `antigravity-install.js` / `kiro-install.js` / `kimi-install.js` / `qwen-code-install.js` / `codebuddy-install.js` / `opencode-install.js` / `pi-install.js` / `openclaw-install.js` / `hermes-install.js` | 各 agent 集成安装逻辑 |
 | `hooks/codex-remote-monitor.js` | 远程 Codex JSONL 轮询并通过 SSH 隧道回传 |
@@ -131,11 +131,11 @@ Copilot CLI 同步走 `<COPILOT_HOME 或 ~/.copilot>/hooks/hooks.json`，marker-
 - hook 脚本只允许依赖 Node 内置模块，以及同目录的 `server-config.js`、`shared-process.js`、`json-utils.js`、`codex-subagent-fields.js`
 - hook 脚本需要稳定终端 PID 时，必须走 `getStablePid()` 进程树解析；不要用 `process.ppid` 做简化替代
 - opencode 权限不走 `permission.ask` hook，而是 event hook + reverse bridge
-- Pi 通过 `~/.pi/agent/extensions/clawd-on-desk` 的 global extension 推送状态；Clawd 对 Pi 是 **state-only**，不接管权限、不弹权限气泡，也不把 Pi 的默认 YOLO 流程改成手动确认
+- Pi 通过 `~/.pi/agent/extensions/wang-pet` 的 global extension 推送状态；WangPet 对 Pi 是 **state-only**，不接管权限、不弹权限气泡，也不把 Pi 的默认 YOLO 流程改成手动确认
 - OpenClaw 通过 `~/.openclaw/openclaw.json` plugin 路径做 state-only 集成；Phase 1 不做 permission bubble / terminal focus，主要支持本地 `openclaw tui --local`
-- Antigravity CLI (agy) 通过 `~/.gemini/config/hooks.json` 做 **state-only** hook 集成（PreInvocation / PostToolUse / PostInvocation / Stop），**不注册 PreToolUse**。agy LLM 会主动调内置 `ask_permission` 工具，触发 agy 自己的 5 选项 native menu（含 "Persist to settings.json" 持久白名单），Clawd 不插手权限决策也不双层确认。`agents/antigravity-cli.js` `capabilities.permissionApproval` / `interactiveBubble` 均为 false。
+- Antigravity CLI (agy) 通过 `~/.gemini/config/hooks.json` 做 **state-only** hook 集成（PreInvocation / PostToolUse / PostInvocation / Stop），**不注册 PreToolUse**。agy LLM 会主动调内置 `ask_permission` 工具，触发 agy 自己的 5 选项 native menu（含 "Persist to settings.json" 持久白名单），WangPet 不插手权限决策也不双层确认。`agents/antigravity-cli.js` `capabilities.permissionApproval` / `interactiveBubble` 均为 false。
 - Qwen Code 通过 `~/.qwen/settings.json` 做 hook-only 集成（SessionStart / SessionEnd / UserPromptSubmit / PreToolUse / PostToolUse / Stop / Notification / PermissionRequest），支持状态与阻塞式 `PermissionRequest` 权限气泡；`disableAllHooks: true` 时注册条目不会触发。
-- HTTP 服务端口范围固定为 `127.0.0.1:23333-23337`；运行时端口写入 `~/.clawd/runtime.json`
+- HTTP 服务端口范围固定为 `127.0.0.1:23333-23337`；运行时端口写入 `~/.wang-pet/runtime.json`
 - Remote SSH 的远端 Node 探测要求 Node >= 14；`scripts/remote-deploy.sh` 与 `src/remote-ssh-node.js` 的 probe 顺序、候选路径、版本判断和输出字段必须保持行为对齐
 - 注册 Claude Code hook 时只能追加，不能覆盖用户已有 hook 数组
 - Copilot CLI hooks 走自动同步：`hooks/copilot-install.js` 在本地启动和 `scripts/remote-deploy.sh --remote` 两路都被调用；路径解析尊重 `COPILOT_HOME` env（trimmed 非空才生效，否则 fallback 到 `~/.copilot`）；`hooks/copilot-hook.js` 的 session-state resolver 同样走 env
