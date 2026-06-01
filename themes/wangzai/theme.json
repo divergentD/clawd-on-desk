@@ -37,16 +37,16 @@
       "codex-pet-review-loop.svg"
     ],
     "working": [
-      "codex-pet-running-loop.svg"
+      "wangzai-flight-console.apng"
     ],
     "juggling": [
-      "codex-pet-running-loop.svg"
+      "wangzai-satellite-rack.apng"
     ],
     "sweeping": [
-      "codex-pet-running-loop.svg"
+      "wangzai-sample-vacuum.apng"
     ],
     "carrying": [
-      "codex-pet-running-loop.svg"
+      "wangzai-carrying-module.apng"
     ],
     "notification": [
       "codex-pet-waiting-loop.svg"
@@ -66,16 +66,37 @@
   },
   "workingTiers": [
     {
+      "minSessions": 3,
+      "file": "wangzai-rover-welding.apng"
+    },
+    {
+      "minSessions": 2,
+      "file": "wangzai-satellite-rack.apng"
+    },
+    {
       "minSessions": 1,
-      "file": "codex-pet-running-loop.svg"
+      "file": "wangzai-flight-console.apng"
     }
   ],
   "jugglingTiers": [
     {
       "minSessions": 1,
-      "file": "codex-pet-running-loop.svg"
+      "file": "wangzai-satellite-rack.apng"
     }
   ],
+  "idleAnimations": [
+    {
+      "file": "wangzai-idle-breathing.apng",
+      "duration": 1440
+    }
+  ],
+  "displayHintMap": {
+    "clawd-working-building.svg": "wangzai-rover-welding.apng",
+    "clawd-working-typing.svg": "wangzai-flight-console.apng",
+    "clawd-headphones-groove.svg": "wangzai-satellite-rack.apng",
+    "clawd-working-juggling.svg": "wangzai-satellite-rack.apng",
+    "clawd-working-conducting.svg": "wangzai-satellite-rack.apng"
+  },
   "hitBoxes": {
     "default": {
       "x": 0,
