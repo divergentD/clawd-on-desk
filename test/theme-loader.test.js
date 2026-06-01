@@ -375,6 +375,17 @@ describe("theme-loader getThemeMetadata", () => {
         builtin: true,
         json: validThemeJson({ name: "No Preview", states: { ...validThemeJson().states, idle: ["fallback.svg"] } }),
       },
+      {
+        id: "atlasPreview",
+        builtin: true,
+        json: validThemeJson({
+          name: "Atlas Preview",
+          codexPet: { previewAtlas: "spritesheet.webp" },
+        }),
+        assets: {
+          "spritesheet.webp": "fake-webp",
+        },
+      },
       { id: "broken", builtin: false, json: { name: "Bad", version: "1", states: {} } },
     ]);
   });
@@ -406,6 +417,13 @@ describe("theme-loader getThemeMetadata", () => {
     // (Exercising the positive path requires writing assets; we trust
     // path.basename() + fs.existsSync as leaf pieces.)
     assert.strictEqual(meta.previewFileUrl, null);
+  });
+
+  it("exposes an explicit Codex Pet atlas preview for built-in themes", () => {
+    const meta = themeLoader.getThemeMetadata("atlasPreview");
+    assert.ok(meta);
+    assert.ok(meta.codexPet);
+    assert.match(meta.codexPet.previewAtlasUrl, /spritesheet\.webp$/);
   });
 });
 

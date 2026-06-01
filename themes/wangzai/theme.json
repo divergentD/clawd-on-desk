@@ -26,6 +26,9 @@
   "rendering": {
     "svgChannel": "object"
   },
+  "codexPet": {
+    "previewAtlas": "spritesheet.webp"
+  },
   "states": {
     "idle": [
       "codex-pet-idle-loop.svg"

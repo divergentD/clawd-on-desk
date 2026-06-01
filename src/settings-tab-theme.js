@@ -134,7 +134,7 @@
   }
 
   function buildThemePreviewMedia(theme) {
-    if (theme.managedCodexPet && getCodexPetPreviewAtlasUrl(theme)) {
+    if (getCodexPetPreviewAtlasUrl(theme)) {
       return buildCodexPetAtlasPreview(theme);
     }
     const img = document.createElement("img");

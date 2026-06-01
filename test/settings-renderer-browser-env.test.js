@@ -3600,6 +3600,30 @@ describe("settings renderer browser environment", () => {
     assert.deepStrictEqual(commands, []);
   });
 
+  it("uses atlas previews for built-in Codex Pet style themes", () => {
+    const { content } = loadThemeTabForTest({
+      themes: [
+        {
+          id: "wangzai",
+          name: "WangZai",
+          builtin: true,
+          active: false,
+          codexPet: {
+            previewAtlasUrl: "file:///themes/wangzai/assets/spritesheet.webp",
+          },
+        },
+      ],
+    });
+
+    const card = content.querySelector(".theme-card");
+    const frame = card.querySelector(".theme-thumb-atlas-frame");
+    const importedBadge = card.querySelectorAll(".theme-card-badge")
+      .find((badge) => badge.classList.contains("accent"));
+    assert.ok(frame, "atlas preview frame should be rendered");
+    assert.strictEqual(frame.querySelector("img").src, "file:///themes/wangzai/assets/spritesheet.webp");
+    assert.strictEqual(importedBadge, undefined, "built-in atlas themes should not be labeled as imported Codex Pets");
+  });
+
   it("animates collapsible Settings groups with measured height instead of instant hidden jumps", () => {
     const coreSource = fs.readFileSync(SETTINGS_UI_CORE, "utf8");
     const css = fs.readFileSync(SETTINGS_CSS, "utf8");

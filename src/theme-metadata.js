@@ -84,6 +84,28 @@ function buildVariantMetadata(raw, themeDir, isBuiltin, options = {}) {
   return out;
 }
 
+function buildCodexPetMetadata(raw, themeDir, isBuiltin, options = {}) {
+  const rawCodexPet = isPlainObject(raw.codexPet) ? raw.codexPet : null;
+  const previewAtlas = rawCodexPet
+    && typeof rawCodexPet.previewAtlas === "string"
+    && rawCodexPet.previewAtlas
+    ? rawCodexPet.previewAtlas
+    : null;
+  if (!previewAtlas) return null;
+
+  const filename = path.basename(previewAtlas);
+  if (!filename) return null;
+  const themeLocal = path.join(themeDir, "assets", filename);
+  let previewAtlasUrl = null;
+  if (fs.existsSync(themeLocal)) {
+    previewAtlasUrl = fileUrl(themeLocal);
+  } else if (isBuiltin && options.assetsSvgDir) {
+    const central = path.join(options.assetsSvgDir, filename);
+    if (fs.existsSync(central)) previewAtlasUrl = fileUrl(central);
+  }
+  return previewAtlasUrl ? { previewAtlasUrl } : null;
+}
+
 function computePreviewContentRatio(raw) {
   const vb = raw && raw.viewBox;
   const cb = raw && raw.layout && raw.layout.contentBox;
@@ -110,6 +132,7 @@ function computePreviewContentOffsetPct(raw) {
 
 function buildThemeMetadata(themeId, raw, isBuiltin, themeDir, options = {}) {
   if (!raw) return null;
+  const codexPet = buildCodexPetMetadata(raw, themeDir, isBuiltin, options);
   return {
     id: themeId,
     name: raw.name || themeId,
@@ -119,6 +142,8 @@ function buildThemeMetadata(themeId, raw, isBuiltin, themeDir, options = {}) {
     previewContentOffsetPct: computePreviewContentOffsetPct(raw),
     variants: buildVariantMetadata(raw, themeDir, isBuiltin, options),
     capabilities: buildCapabilities(raw),
+    rendering: isPlainObject(raw.rendering) ? raw.rendering : null,
+    ...(codexPet ? { codexPet } : {}),
   };
 }
 
@@ -161,6 +186,7 @@ module.exports = {
   buildPreviewUrl,
   buildVariantPreviewUrl,
   buildVariantMetadata,
+  buildCodexPetMetadata,
   computePreviewContentRatio,
   computePreviewContentOffsetPct,
 };
