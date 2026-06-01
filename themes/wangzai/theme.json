@@ -37,7 +37,7 @@
       "codex-pet-review-loop.svg"
     ],
     "working": [
-      "wangzai-flight-console.apng"
+      "codex-pet-running-loop.svg"
     ],
     "juggling": [
       "wangzai-satellite-rack.apng"
@@ -75,7 +75,7 @@
     },
     {
       "minSessions": 1,
-      "file": "wangzai-flight-console.apng"
+      "file": "codex-pet-running-loop.svg"
     }
   ],
   "jugglingTiers": [
@@ -92,7 +92,7 @@
   ],
   "displayHintMap": {
     "clawd-working-building.svg": "wangzai-rover-welding.apng",
-    "clawd-working-typing.svg": "wangzai-flight-console.apng",
+    "clawd-working-typing.svg": "codex-pet-running-loop.svg",
     "clawd-headphones-groove.svg": "wangzai-satellite-rack.apng",
     "clawd-working-juggling.svg": "wangzai-satellite-rack.apng",
     "clawd-working-conducting.svg": "wangzai-satellite-rack.apng"
