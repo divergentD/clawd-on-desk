@@ -62,6 +62,7 @@ function resolvePermissionTools() {
 }
 
 const PERMISSION_TOOLS = resolvePermissionTools();
+const DEFAULT_KIMI_SESSIONS_ROOT = path.join(os.homedir(), ".kimi", "sessions");
 
 function readPermissionMode() {
   const raw = typeof process.env.CLAWD_KIMI_PERMISSION_MODE === "string"
@@ -161,6 +162,77 @@ function readToolName(payload) {
     if (typeof payload.tool.tool_name === "string" && payload.tool.tool_name) return payload.tool.tool_name;
   }
   return "";
+}
+
+function normalizeTokenCount(value) {
+  return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+}
+
+function readStatusUpdateTokenUsage(entry) {
+  const message = entry && entry.message;
+  if (!message || message.type !== "StatusUpdate") return null;
+  const payload = message.payload;
+  const tokenUsage = payload && payload.token_usage;
+  if (!tokenUsage || typeof tokenUsage !== "object") return null;
+  const inputTokens = normalizeTokenCount(tokenUsage.input_other)
+    + normalizeTokenCount(tokenUsage.input_cache_read)
+    + normalizeTokenCount(tokenUsage.input_cache_creation);
+  const outputTokens = normalizeTokenCount(tokenUsage.output);
+  if (inputTokens <= 0 && outputTokens <= 0) return null;
+  return { inputTokens, outputTokens };
+}
+
+function readLatestWireStatusUpdate(filePath) {
+  let text = "";
+  try {
+    text = fs.readFileSync(filePath, "utf8");
+  } catch {
+    return null;
+  }
+  const lines = text.trimEnd().split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    try {
+      const usage = readStatusUpdateTokenUsage(JSON.parse(line));
+      if (usage) return usage;
+    } catch {}
+  }
+  return null;
+}
+
+function readLatestKimiWireTokenUsage(sessionId, options = {}) {
+  if (typeof sessionId !== "string" || !sessionId) return null;
+  const diskSessionId = sessionId.startsWith("kimi-cli:") ? sessionId.slice("kimi-cli:".length) : sessionId;
+  if (!diskSessionId) return null;
+  const kimiHome = typeof process.env.KIMI_HOME === "string" && process.env.KIMI_HOME.trim()
+    ? process.env.KIMI_HOME.trim()
+    : null;
+  const sessionsRoot = options.sessionsRoot || (kimiHome
+    ? path.join(kimiHome, "sessions")
+    : DEFAULT_KIMI_SESSIONS_ROOT);
+  let workspaces = [];
+  try {
+    workspaces = fs.readdirSync(sessionsRoot, { withFileTypes: true });
+  } catch {
+    return null;
+  }
+  for (const workspace of workspaces) {
+    if (!workspace || !workspace.isDirectory()) continue;
+    const wirePath = path.join(sessionsRoot, workspace.name, diskSessionId, "wire.jsonl");
+    const usage = readLatestWireStatusUpdate(wirePath);
+    if (usage) return usage;
+  }
+  return null;
+}
+
+function applyKimiWireTokenUsage(body, rawSessionId, options = {}) {
+  if (!body || body.input_tokens !== undefined || body.output_tokens !== undefined) return body;
+  const usage = readLatestKimiWireTokenUsage(rawSessionId, options);
+  if (!usage) return body;
+  body.input_tokens = usage.inputTokens;
+  body.output_tokens = usage.outputTokens;
+  return body;
 }
 
 function isExplicitPermissionSignal(payload) {
@@ -270,6 +342,7 @@ function buildStateBody(event, payload, resolve) {
   const body = { state: resolvedState, session_id: sessionId, event };
   body.agent_id = "kimi-cli";
   applyTokenUsageFields(body, payload);
+  applyKimiWireTokenUsage(body, rawSessionId);
   if (permissionSuspect) body.permission_suspect = true;
   if (cwd) body.cwd = cwd;
 
@@ -352,4 +425,6 @@ module.exports = {
   readHookDebugMaxBytes,
   appendHookDebug,
   DEFAULT_HOOK_DEBUG_MAX_BYTES,
+  readLatestKimiWireTokenUsage,
+  applyKimiWireTokenUsage,
 };

@@ -19,6 +19,7 @@ const {
   readHookDebugMaxBytes,
   appendHookDebug,
   DEFAULT_HOOK_DEBUG_MAX_BYTES,
+  readLatestKimiWireTokenUsage,
 } = require("../hooks/kimi-hook");
 
 describe("Kimi hook script", () => {
@@ -431,6 +432,87 @@ describe("Kimi hook script", () => {
     assert.strictEqual(body.kimi_pid, 22222);
     assert.strictEqual(body.editor, "code");
     assert.deepStrictEqual(body.pid_chain, [22222, 11111]);
+  });
+
+  it("reads latest token usage from Kimi wire.jsonl for the session", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-kimi-wire-"));
+    try {
+      const sessionId = "8f605215-fdb7-4857-b07e-a213d3a3ab7d";
+      const sessionDir = path.join(tmpDir, "workspace-hash", sessionId);
+      fs.mkdirSync(sessionDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(sessionDir, "wire.jsonl"),
+        [
+          JSON.stringify({
+            message: {
+              type: "StatusUpdate",
+              payload: {
+                token_usage: {
+                  input_other: 10,
+                  input_cache_read: 20,
+                  input_cache_creation: 3,
+                  output: 4,
+                },
+              },
+            },
+          }),
+          JSON.stringify({
+            message: {
+              type: "StatusUpdate",
+              payload: {
+                token_usage: {
+                  input_other: 100,
+                  input_cache_read: 200,
+                  input_cache_creation: 30,
+                  output: 40,
+                },
+              },
+            },
+          }),
+        ].join("\n"),
+        "utf8"
+      );
+
+      assert.deepStrictEqual(readLatestKimiWireTokenUsage(sessionId, { sessionsRoot: tmpDir }), {
+        inputTokens: 330,
+        outputTokens: 40,
+      });
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it("reads Kimi wire token usage when session id already has agent prefix", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "clawd-kimi-wire-prefix-"));
+    try {
+      const sessionId = "8f605215-fdb7-4857-b07e-a213d3a3ab7d";
+      const sessionDir = path.join(tmpDir, "workspace-hash", sessionId);
+      fs.mkdirSync(sessionDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(sessionDir, "wire.jsonl"),
+        `${JSON.stringify({
+          message: {
+            type: "StatusUpdate",
+            payload: {
+              token_usage: {
+                input_other: 1,
+                input_cache_read: 2,
+                input_cache_creation: 3,
+                output: 4,
+              },
+            },
+          },
+        })}\n`,
+        "utf8"
+      );
+
+      assert.deepStrictEqual(readLatestKimiWireTokenUsage(`kimi-cli:${sessionId}`, { sessionsRoot: tmpDir }), {
+        inputTokens: 6,
+        outputTokens: 4,
+      });
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 
   it("allows overriding permission tools through env parser", () => {
