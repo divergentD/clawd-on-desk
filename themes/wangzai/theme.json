@@ -87,7 +87,7 @@
   "idleAnimations": [
     {
       "file": "wangzai-idle-breathing.apng",
-      "duration": 1440
+      "duration": 2880
     }
   ],
   "displayHintMap": {
