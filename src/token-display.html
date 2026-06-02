@@ -11,8 +11,8 @@
     }
 
     body {
-      width: 196px;
-      height: 116px;
+      width: 228px;
+      height: 152px;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
       font-size: 12px;
@@ -25,6 +25,9 @@
       --border: rgba(0, 0, 0, 0.12);
       --text: #242427;
       --label: #6b6b70;
+      --muted: #8a8a90;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.14);
       --shadow: rgba(0, 0, 0, 0.16);
     }
 
@@ -34,13 +37,16 @@
         --border: rgba(255, 255, 255, 0.12);
         --text: #f4f4f5;
         --label: #a1a1aa;
+        --muted: #71717a;
+        --accent: #60a5fa;
+        --accent-soft: rgba(96, 165, 250, 0.16);
       }
     }
 
     .token-badge {
-      width: 196px;
+      width: 228px;
       min-height: 28px;
-      padding: 7px 9px 8px;
+      padding: 8px 10px 9px;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -49,40 +55,127 @@
       transition: transform 0.15s ease, opacity 0.2s ease;
     }
 
-    .token-summary {
+    .level-panel {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: center;
+      min-height: 46px;
+    }
+
+    .level-badge {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .level-copy {
+      min-width: 0;
+    }
+
+    .level-title {
       display: flex;
       align-items: center;
       gap: 4px;
-      min-height: 17px;
+      min-width: 0;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.1;
     }
 
-    .token-icon {
-      font-size: 12px;
+    .level-subtitle {
+      margin-top: 3px;
+      color: var(--label);
+      font-size: 11px;
       line-height: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .level-percent {
+      align-self: start;
+      padding: 3px 5px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .level-progress {
+      grid-column: 1 / -1;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(127, 127, 140, 0.18);
+      overflow: hidden;
+    }
+
+    .level-progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      transition: width 0.35s ease;
+    }
+
+    .token-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      min-height: 17px;
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1px solid var(--border);
+    }
+
+    .token-total-copy {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      min-width: 0;
     }
 
     .token-value {
-      font-size: 12px;
+      font-size: 15px;
       font-weight: 600;
       color: var(--text);
       line-height: 1;
       font-variant-numeric: tabular-nums;
-      min-width: 32px;
-      text-align: center;
     }
 
     .token-label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--label);
       line-height: 1;
+    }
+
+    .session-value {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
 
     .model-rows {
       display: grid;
       gap: 2px;
-      margin-top: 5px;
-      padding-top: 5px;
-      border-top: 1px solid var(--border);
+      margin-top: 7px;
     }
 
     .model-row {
@@ -90,7 +183,7 @@
       grid-template-columns: 16px minmax(0, 1fr) auto;
       align-items: center;
       gap: 4px;
-      min-height: 16px;
+      min-height: 15px;
     }
 
     .model-dot {
@@ -127,10 +220,25 @@
 </head>
 <body>
   <div class="token-badge" id="tokenBadge">
+    <div class="level-panel" id="levelPanel">
+      <div class="level-badge" id="levelBadge">Lv.1</div>
+      <div class="level-copy">
+        <div class="level-title">
+          <span>WangPet Level</span>
+        </div>
+        <div class="level-subtitle" id="levelSubtitle">0 XP to Lv.2</div>
+      </div>
+      <div class="level-percent" id="levelPercent">0%</div>
+      <div class="level-progress">
+        <div class="level-progress-fill" id="levelProgressFill"></div>
+      </div>
+    </div>
     <div class="token-summary">
-      <span class="token-icon">🪙</span>
-      <span class="token-value" id="tokenValue">0</span>
-      <span class="token-label">total tk</span>
+      <div class="token-total-copy">
+        <span class="token-value" id="tokenValue">0</span>
+        <span class="token-label">total tk</span>
+      </div>
+      <span class="session-value" id="sessionValue">live 0</span>
     </div>
     <div class="model-rows" id="modelRows"></div>
   </div>

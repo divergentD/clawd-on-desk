@@ -4,6 +4,12 @@
   const tokenValue = document.getElementById("tokenValue");
   const tokenBadge = document.getElementById("tokenBadge");
   const modelRows = document.getElementById("modelRows");
+  const levelPanel = document.getElementById("levelPanel");
+  const levelBadge = document.getElementById("levelBadge");
+  const levelSubtitle = document.getElementById("levelSubtitle");
+  const levelPercent = document.getElementById("levelPercent");
+  const levelProgressFill = document.getElementById("levelProgressFill");
+  const sessionValue = document.getElementById("sessionValue");
   const MODEL_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#B983FF"];
 
   let currentTotal = 0;
@@ -17,6 +23,10 @@
       return (num / 1000).toFixed(1) + "K";
     }
     return String(num);
+  }
+
+  function formatExperience(num) {
+    return formatNumber(Math.max(0, Math.round(num || 0)));
   }
 
   function springEasing(t) {
@@ -87,9 +97,31 @@
   function handleSnapshot(data) {
     if (!data || !Array.isArray(data.sessions)) return;
     const { totalTokens, rows } = window.tokenDisplayModels.groupTokenUsage(data.sessions);
+    renderPetLevel(data.petLevel);
     renderModelRows(rows);
+    sessionValue.textContent = "live " + formatNumber(totalTokens);
     if (totalTokens !== currentTotal) {
       animateCountUp(totalTokens, 800);
+    }
+  }
+
+  function renderPetLevel(levelData) {
+    if (!levelData || levelData.enabled === false) {
+      if (levelPanel) levelPanel.style.display = "none";
+      return;
+    }
+    if (levelPanel) levelPanel.style.display = "";
+    const level = Number.isFinite(levelData.level) ? levelData.level : 1;
+    const progress = Number.isFinite(levelData.progress)
+      ? Math.max(0, Math.min(1, levelData.progress))
+      : 0;
+    levelBadge.textContent = "Lv." + level;
+    levelPercent.textContent = Math.round(progress * 100) + "%";
+    levelProgressFill.style.width = Math.round(progress * 100) + "%";
+    if (levelData.nextThreshold == null) {
+      levelSubtitle.textContent = "Max level reached";
+    } else {
+      levelSubtitle.textContent = formatExperience(levelData.remainingExperience) + " XP to Lv." + (level + 1);
     }
   }
 
