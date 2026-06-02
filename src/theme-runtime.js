@@ -2,6 +2,7 @@
 
 const defaultFs = require("fs");
 const defaultPath = require("path");
+const { normalizeLevel } = require("./theme-levels");
 
 // Design invariant: this closure is the only active-theme owner. theme-loader
 // stays a stateless loader; legacy active facades must delegate here.
@@ -53,6 +54,12 @@ function createThemeRuntime(options = {}) {
   let activeThemeContext = null;
   let reloadInProgress = false;
 
+  // Current pet level drives the skin swap. The prefs key may not exist yet (a
+  // parallel phase adds it), so an undefined/invalid value normalizes to 1.
+  function resolveCurrentLevel() {
+    return normalizeLevel(settingsController.get("petLevel"));
+  }
+
   function buildThemeContext(theme) {
     return typeof themeLoader.createThemeContext === "function"
       ? themeLoader.createThemeContext(theme)
@@ -66,7 +73,8 @@ function createThemeRuntime(options = {}) {
   }
 
   function loadInitialTheme(themeId, opts = {}) {
-    const theme = themeLoader.loadTheme(themeId, opts);
+    const level = opts.level == null ? resolveCurrentLevel() : opts.level;
+    const theme = themeLoader.loadTheme(themeId, { ...opts, level });
     theme._overrideSignature = JSON.stringify(opts.overrides || {});
     return setActiveTheme(theme);
   }
@@ -135,12 +143,14 @@ function createThemeRuntime(options = {}) {
     const currentOverrides = settingsController.get("themeOverrides") || {};
     const targetOverrideMap = arguments.length >= 3 ? arguments[2] : (currentOverrides[themeId] || null);
     const targetOverrideSignature = JSON.stringify(targetOverrideMap || {});
+    const targetLevel = resolveCurrentLevel();
 
     if (
       activeTheme &&
       activeTheme._id === themeId &&
       activeTheme._variantId === targetVariant &&
       (activeTheme._overrideSignature || "{}") === targetOverrideSignature &&
+      (activeTheme._levelId || 1) === targetLevel &&
       !(activateOptions && activateOptions.forceReload === true)
     ) {
       return { themeId, variantId: activeTheme._variantId };
@@ -150,6 +160,7 @@ function createThemeRuntime(options = {}) {
       strict: true,
       variant: targetVariant,
       overrides: targetOverrideMap,
+      level: targetLevel,
     });
     newTheme._overrideSignature = targetOverrideSignature;
 
@@ -257,6 +268,7 @@ function createThemeRuntime(options = {}) {
       strict: true,
       variant: targetVariant,
       overrides: overrideMap,
+      level: activeTheme._levelId || resolveCurrentLevel(),
     });
     newTheme._overrideSignature = targetOverrideSignature;
     setActiveTheme(newTheme);

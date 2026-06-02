@@ -20,6 +20,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onMiniModeChange: (cb) => ipcRenderer.on("mini-mode-change", (_, enabled, edge, options) => cb(enabled, edge, options)),
   onMiniClip: (cb) => ipcRenderer.on("mini-clip", (_, info) => cb(info)),
   onLowPowerIdleModeChange: (cb) => ipcRenderer.on("low-power-idle-mode-change", (_, enabled) => cb(enabled)),
+  // Pet leveling: fired on a level-up so the renderer can show a celebration
+  // toast. The skin swap itself rides the theme reload, so this is purely UI.
+  onPetLevelChange: (cb) => ipcRenderer.on("pet-level-change", (_, payload) => cb(payload)),
   // Reaction control (from main, relayed from hit window)
   onStartDragReaction: (cb) => ipcRenderer.on("start-drag-reaction", (_, direction) => cb(direction)),
   onEndDragReaction: (cb) => ipcRenderer.on("end-drag-reaction", () => cb()),

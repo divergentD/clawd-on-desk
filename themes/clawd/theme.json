@@ -285,5 +285,62 @@
     "heightRatio": 1.3,
     "offsetX": -0.45,
     "offsetY": -0.25
+  },
+  "levels": {
+    "_comment": "Per-level skins for token-driven pet leveling. Level 1 is the base theme above; levels 2-4 reuse existing Clawd SVGs until dedicated art ships.",
+    "2": {
+      "name": "Clawd Lv.2",
+      "states": {
+        "idle": [
+          "clawd-working-typing-boss.svg"
+        ],
+        "working": [
+          "clawd-working-typing-boss.svg"
+        ]
+      },
+      "workingTiers": [
+        {
+          "minSessions": 1,
+          "file": "clawd-working-typing-boss.svg"
+        }
+      ]
+    },
+    "3": {
+      "name": "Clawd Lv.3",
+      "states": {
+        "idle": [
+          "clawd-working-wizard.svg"
+        ],
+        "working": [
+          "clawd-working-wizard.svg"
+        ],
+        "thinking": [
+          "clawd-working-wizard.svg"
+        ]
+      },
+      "workingTiers": [
+        {
+          "minSessions": 1,
+          "file": "clawd-working-wizard.svg"
+        }
+      ]
+    },
+    "4": {
+      "name": "Clawd Lv.4",
+      "states": {
+        "idle": [
+          "clawd-working-ultrathink.svg"
+        ],
+        "working": [
+          "clawd-working-ultrathink.svg"
+        ]
+      },
+      "workingTiers": [
+        {
+          "minSessions": 1,
+          "file": "clawd-working-ultrathink.svg"
+        }
+      ]
+    }
   }
 }

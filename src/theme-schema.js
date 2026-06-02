@@ -240,7 +240,57 @@ function validateTheme(cfg) {
     }
   }
 
+  validateLevels(cfg, errors);
+
   return errors;
+}
+
+// `levels` is an optional per-level skin-swap block keyed by "2".."4" (level 1
+// is the base theme). Validation is intentionally lenient: it checks structure
+// and the field allow-list, but does NOT check asset-file existence — missing
+// per-level art gracefully falls back to the base skin at load time. Themes
+// without a `levels` block behave exactly as before.
+function validateLevels(cfg, errors) {
+  if (cfg.levels === undefined) return;
+  if (!isPlainObject(cfg.levels)) {
+    errors.push("levels must be an object when present");
+    return;
+  }
+  // Lazy require to avoid a load-time cycle (theme-levels requires theme-schema).
+  let allowedKeys = null;
+  try {
+    allowedKeys = require("./theme-levels").LEVEL_ALLOWED_KEYS;
+  } catch { allowedKeys = null; }
+  for (const [levelKey, levelSpec] of Object.entries(cfg.levels)) {
+    if (levelKey.startsWith("_")) continue;
+    if (!/^[2-4]$/.test(levelKey)) {
+      errors.push(`levels key "${levelKey}" must be one of "2", "3", "4"`);
+      continue;
+    }
+    if (!isPlainObject(levelSpec)) {
+      errors.push(`levels.${levelKey} must be an object`);
+      continue;
+    }
+    for (const key of Object.keys(levelSpec)) {
+      if (key.startsWith("_")) continue;
+      if (key === "name" || key === "description" || key === "preview") continue;
+      if (allowedKeys && !allowedKeys.has(key)) {
+        errors.push(`levels.${levelKey} declares disallowed field "${key}"`);
+      }
+    }
+    if (levelSpec.states !== undefined) {
+      if (!isPlainObject(levelSpec.states)) {
+        errors.push(`levels.${levelKey}.states must be an object`);
+      } else {
+        for (const [stateKey, entry] of Object.entries(levelSpec.states)) {
+          if (stateKey.startsWith("_")) continue;
+          if (!hasStateBinding(entry)) {
+            errors.push(`levels.${levelKey}.states.${stateKey} must define files or fallbackTo`);
+          }
+        }
+      }
+    }
+  }
 }
 
 function isPlainObject(v) {
@@ -345,7 +395,11 @@ function addThemeAssetFile(out, filename) {
   if (safe) out.add(safe);
 }
 
-function collectRequiredAssetFiles(theme) {
+// `opts.includeLevels` opts into collecting per-level skin assets too. It is
+// OFF by default so the loader's hard asset-existence check (which would error
+// on not-yet-shipped per-level art) keeps treating missing level art as a
+// graceful fallback. The theme validator passes it (and warns, not fails).
+function collectRequiredAssetFiles(theme, opts = {}) {
   const files = new Set();
   if (theme && theme.states) {
     for (const stateFiles of Object.values(theme.states)) {
@@ -388,6 +442,23 @@ function collectRequiredAssetFiles(theme) {
   }
   if (isPlainObject(theme && theme.updateVisuals) && typeof theme.updateVisuals.checking === "string") {
     addThemeAssetFile(files, theme.updateVisuals.checking);
+  }
+  if (opts && opts.includeLevels) {
+    for (const file of collectAllLevelAssetFiles(theme)) addThemeAssetFile(files, file);
+  }
+  return [...files];
+}
+
+// Flatten every per-level asset reference into a single basename list. Delegates
+// to theme-levels via lazy require to avoid a module load-time cycle.
+function collectAllLevelAssetFiles(theme) {
+  let perLevel = {};
+  try {
+    perLevel = require("./theme-levels").collectLevelAssetFiles(theme) || {};
+  } catch { perLevel = {}; }
+  const files = new Set();
+  for (const list of Object.values(perLevel)) {
+    if (Array.isArray(list)) for (const file of list) addThemeAssetFile(files, file);
   }
   return [...files];
 }
@@ -724,6 +795,7 @@ module.exports = {
   deriveSleepMode,
   buildCapabilities,
   collectRequiredAssetFiles,
+  collectAllLevelAssetFiles,
   deepMergeObject,
   basenameOnly,
   normalizeViewBox,

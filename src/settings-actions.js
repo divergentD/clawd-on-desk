@@ -331,6 +331,19 @@ const updateRegistry = {
     return { status: "ok" };
   },
 
+  // ── Pet leveling system ──
+  // petLevel is clamped to 1..4; petLevelTokenTotal is a non-negative integer.
+  // Runtime writes go through the `setPetLevel` command (atomic commit of both),
+  // but the single-field validators keep direct applyUpdate / hydrate paths safe.
+  petLevel: requireIntegerInRange("petLevel", 1, 4),
+  petLevelTokenTotal(value) {
+    if (!Number.isInteger(value) || value < 0) {
+      return { status: "error", message: "petLevelTokenTotal must be an integer >= 0" };
+    }
+    return { status: "ok" };
+  },
+  petLevelEnabled: requireBoolean("petLevelEnabled"),
+
   // ── Phase 2/3 placeholders — schema reserves these so applyUpdate accepts them ──
   agents: requirePlainObject("agents"),
   themeOverrides: requirePlainObject("themeOverrides"),
@@ -585,6 +598,24 @@ function setSessionAlias(payload, deps) {
     return { status: "ok", noop: true };
   }
   return { status: "ok", commit: { sessionAliases: prunedAliases } };
+}
+
+// Pet leveling: atomically commit the current level + the token total it was
+// computed from. Called by pet-level-controller.js when fetchTokenTotal() +
+// computeLevel() detect a change. Mirrors setSessionAlias's `{ status, commit }`
+// shape so the controller writes both fields in one transaction.
+function setPetLevel(payload, _deps) {
+  if (!payload || typeof payload !== "object") {
+    return { status: "error", message: "setPetLevel: payload must be an object" };
+  }
+  const { petLevel, petLevelTokenTotal } = payload;
+  if (!Number.isInteger(petLevel) || petLevel < 1 || petLevel > 4) {
+    return { status: "error", message: "setPetLevel.petLevel must be an integer between 1 and 4" };
+  }
+  if (!Number.isInteger(petLevelTokenTotal) || petLevelTokenTotal < 0) {
+    return { status: "error", message: "setPetLevel.petLevelTokenTotal must be an integer >= 0" };
+  }
+  return { status: "ok", commit: { petLevel, petLevelTokenTotal } };
 }
 
 const _validateRemoveThemeId = requireString("removeTheme.themeId");
@@ -1143,6 +1174,7 @@ const commandRegistry = {
   setBubbleCategoryEnabled,
   "sessionCleanup.setTriple": setSessionCleanupTriple,
   setSessionAlias,
+  setPetLevel,
   setAnimationOverride,
   setSoundOverride,
   setThemeOverrideDisabled,

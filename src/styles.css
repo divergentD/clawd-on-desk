@@ -50,3 +50,54 @@ html, body {
 #pet-container.mini-left {
   transform: scaleX(-1);
 }
+
+/* ── Pet level-up celebration ──
+   Lightweight, non-intrusive toast shown over the pet on a level change.
+   The skin itself swaps via the theme reload; this is purely celebratory.
+   pointer-events: none so it never steals clicks from the pet/hit window. */
+#pet-levelup {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  transform: translate(-50%, -6px);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff8e1;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #ffb300, #ff7043);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28), 0 0 12px rgba(255, 179, 0, 0.55);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 50;
+}
+
+#pet-levelup .pet-levelup-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.28);
+  font-size: 10px;
+}
+
+#pet-levelup.pet-levelup-show {
+  animation: pet-levelup-pop 2400ms ease-out forwards;
+}
+
+@keyframes pet-levelup-pop {
+  0%   { opacity: 0; transform: translate(-50%, 2px) scale(0.8); }
+  12%  { opacity: 1; transform: translate(-50%, -6px) scale(1.06); }
+  24%  { transform: translate(-50%, -6px) scale(1); }
+  78%  { opacity: 1; transform: translate(-50%, -6px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -12px) scale(0.96); }
+}
