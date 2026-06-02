@@ -53,49 +53,82 @@ function resolveStateAndEvent(payload, hookName) {
   return HOOK_TO_STATE[hookName] || null;
 }
 
-readStdinJson().then((payload) => {
-  const argvOverride = process.argv[2];
-  const hookNameResolved = argvOverride || (payload && payload.hook_event_name) || "";
-  const mapped = resolveStateAndEvent(payload, hookNameResolved);
-  if (!mapped) {
-    process.stdout.write(stdoutForCursorHook(hookNameResolved) + "\n");
-    process.exit(0);
-    return;
-  }
-
+/**
+ * Build the /state POST body for a mapped Cursor hook event. `resolved` is the
+ * createPidResolver() result (ignored in remote mode). Cursor includes the
+ * composer `model` on every agent hook and `subagent_model` on subagent hooks
+ * (workspaceOpen-style lifecycle hooks omit both), so we forward whichever is
+ * present to drive the model logo / token display.
+ */
+function buildCursorStateBody(mapped, payload, hookName, resolved = {}, options = {}) {
   const { state, event } = mapped;
-  if (hookNameResolved === "sessionStart" && !process.env.WANGPET_REMOTE) resolve();
+  const remote = options.remote === true;
 
-  const sessionId =
-    (payload && (payload.conversation_id || payload.session_id)) || "default";
+  const sessionId = (payload && (payload.conversation_id || payload.session_id)) || "default";
   let cwd = (payload && payload.cwd) || "";
   if (!cwd && payload && Array.isArray(payload.workspace_roots) && payload.workspace_roots[0]) {
     cwd = payload.workspace_roots[0];
   }
 
-  const { stablePid, agentPid, detectedEditor, pidChain } = resolve();
-
   const body = { state, session_id: sessionId, event };
   body.agent_id = "cursor-agent";
+  const model = (payload && (payload.model || payload.subagent_model)) || "";
+  if (typeof model === "string" && model.trim()) body.model = model.trim();
   applyTokenUsageFields(body, payload);
-  const hint = displaySvgFromToolHook(hookNameResolved, payload);
+  const hint = displaySvgFromToolHook(hookName, payload);
   if (hint !== undefined) body.display_svg = hint;
   if (cwd) body.cwd = cwd;
-  if (process.env.WANGPET_REMOTE) {
-    body.host = readHostPrefix();
+
+  if (remote) {
+    body.host = options.host || readHostPrefix();
   } else {
-    body.source_pid = stablePid;
-    body.editor = detectedEditor || "cursor";
-    if (agentPid) {
-      body.agent_pid = agentPid;
-      body.cursor_pid = agentPid;
+    body.source_pid = resolved.stablePid;
+    body.editor = resolved.detectedEditor || "cursor";
+    if (resolved.agentPid) {
+      body.agent_pid = resolved.agentPid;
+      body.cursor_pid = resolved.agentPid;
     }
-    if (pidChain.length) body.pid_chain = pidChain;
+    if (Array.isArray(resolved.pidChain) && resolved.pidChain.length) {
+      body.pid_chain = resolved.pidChain;
+    }
   }
 
-  const outLine = stdoutForCursorHook(hookNameResolved);
-  postStateToRunningServer(JSON.stringify(body), { timeoutMs: 100 }, () => {
-    process.stdout.write(outLine + "\n");
-    process.exit(0);
+  return body;
+}
+
+function main() {
+  return readStdinJson().then((payload) => {
+    const argvOverride = process.argv[2];
+    const hookNameResolved = argvOverride || (payload && payload.hook_event_name) || "";
+    const mapped = resolveStateAndEvent(payload, hookNameResolved);
+    if (!mapped) {
+      process.stdout.write(stdoutForCursorHook(hookNameResolved) + "\n");
+      process.exit(0);
+      return;
+    }
+
+    if (hookNameResolved === "sessionStart" && !process.env.WANGPET_REMOTE) resolve();
+
+    const resolved = resolve();
+    const body = buildCursorStateBody(mapped, payload, hookNameResolved, resolved, {
+      remote: !!process.env.WANGPET_REMOTE,
+    });
+
+    const outLine = stdoutForCursorHook(hookNameResolved);
+    postStateToRunningServer(JSON.stringify(body), { timeoutMs: 100 }, () => {
+      process.stdout.write(outLine + "\n");
+      process.exit(0);
+    });
   });
-});
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  HOOK_TO_STATE,
+  resolveStateAndEvent,
+  displaySvgFromToolHook,
+  buildCursorStateBody,
+};

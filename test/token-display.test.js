@@ -4,6 +4,7 @@ const assert = require("node:assert");
 const Module = require("node:module");
 const test = require("node:test");
 const { groupTokenUsage } = require("../src/token-display-models");
+const { getModelIconUrl } = require("../src/state-model-icons");
 
 function loadTokenDisplay(BrowserWindow) {
   const originalLoad = Module._load;
@@ -32,7 +33,7 @@ test("token display bounds clamp to the selected work area", () => {
   });
 });
 
-test("token display forwards model metadata to the renderer", () => {
+test("token display forwards model metadata and resolves provider logos", () => {
   const initTokenDisplay = loadTokenDisplay(function BrowserWindow() {});
   assert.deepStrictEqual(initTokenDisplay.buildTokenData({
     sessions: [{
@@ -49,6 +50,8 @@ test("token display forwards model metadata to the renderer", () => {
       id: "s1",
       agentId: "codex",
       iconUrl: "file:///codex.png",
+      modelIconUrl: getModelIconUrl("gpt-5.4", { dark: false }),
+      modelIconUrlDark: getModelIconUrl("gpt-5.4", { dark: true }),
       model: "gpt-5.4",
       inputTokens: 5,
       outputTokens: 2,
@@ -68,12 +71,50 @@ test("token display groups usage by model and folds overflow into other", () => 
   ]), {
     totalTokens: 39,
     rows: [
-      { model: "gpt-5.4", tokens: 16, iconUrl: "file:///codex.png" },
-      { model: "claude-sonnet", tokens: 9, iconUrl: null },
-      { model: "qwen", tokens: 6, iconUrl: null },
-      { model: "other (2)", tokens: 8, iconUrl: null },
+      { model: "gpt-5.4", tokens: 16, iconUrl: "file:///codex.png", iconUrlDark: "file:///codex.png" },
+      { model: "claude-sonnet", tokens: 9, iconUrl: null, iconUrlDark: null },
+      { model: "qwen", tokens: 6, iconUrl: null, iconUrlDark: null },
+      { model: "other (2)", tokens: 8, iconUrl: null, iconUrlDark: null },
     ],
   });
+});
+
+test("token display prefers the model provider logo and its dark variant", () => {
+  const { rows } = groupTokenUsage([
+    {
+      model: "claude-sonnet-4-5",
+      iconUrl: "file:///agent.png",
+      modelIconUrl: "file:///models/anthropic.svg",
+      modelIconUrlDark: "file:///models/anthropic-dark.svg",
+      inputTokens: 10,
+      outputTokens: 0,
+    },
+  ]);
+  assert.deepStrictEqual(rows, [{
+    model: "claude-sonnet-4-5",
+    tokens: 10,
+    iconUrl: "file:///models/anthropic.svg",
+    iconUrlDark: "file:///models/anthropic-dark.svg",
+  }]);
+});
+
+test("token display falls back to the agent icon when no model logo exists", () => {
+  const { rows } = groupTokenUsage([
+    {
+      model: "llama-3-70b",
+      iconUrl: "file:///agent.png",
+      modelIconUrl: null,
+      modelIconUrlDark: null,
+      inputTokens: 4,
+      outputTokens: 0,
+    },
+  ]);
+  assert.deepStrictEqual(rows, [{
+    model: "llama-3-70b",
+    tokens: 4,
+    iconUrl: "file:///agent.png",
+    iconUrlDark: "file:///agent.png",
+  }]);
 });
 
 test("token display forwards the pet center and respects visibility policy", () => {

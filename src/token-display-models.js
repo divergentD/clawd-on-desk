@@ -9,6 +9,20 @@
     return Number.isFinite(value) && value > 0 ? value : 0;
   }
 
+  function pickSessionIcon(session) {
+    if (session.modelIconUrl) {
+      return {
+        iconUrl: session.modelIconUrl,
+        iconUrlDark: session.modelIconUrlDark || session.modelIconUrl,
+      };
+    }
+    if (session.iconUrl) {
+      // Agent icon has no theme variant; use the same image for both.
+      return { iconUrl: session.iconUrl, iconUrlDark: session.iconUrl };
+    }
+    return { iconUrl: null, iconUrlDark: null };
+  }
+
   function groupTokenUsage(sessions, maxVisibleModels = 4) {
     const grouped = new Map();
     let totalTokens = 0;
@@ -19,9 +33,15 @@
       const model = typeof session.model === "string" && session.model.trim()
         ? session.model.trim()
         : "unknown";
-      const row = grouped.get(model) || { tokens: 0, iconUrl: session.iconUrl || null };
+      // Prefer the model provider logo (themed light/dark); fall back to the reporting
+      // agent icon (single variant), and finally to a colored dot in the renderer.
+      const icon = pickSessionIcon(session);
+      const row = grouped.get(model) || { tokens: 0, iconUrl: icon.iconUrl, iconUrlDark: icon.iconUrlDark };
       row.tokens += tokens;
-      if (!row.iconUrl && session.iconUrl) row.iconUrl = session.iconUrl;
+      if (!row.iconUrl && icon.iconUrl) {
+        row.iconUrl = icon.iconUrl;
+        row.iconUrlDark = icon.iconUrlDark;
+      }
       grouped.set(model, row);
       totalTokens += tokens;
     });
@@ -35,6 +55,7 @@
         model: `other (${hidden.length})`,
         tokens: hidden.reduce((sum, row) => sum + row.tokens, 0),
         iconUrl: null,
+        iconUrlDark: null,
       });
     }
 

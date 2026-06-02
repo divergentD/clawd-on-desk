@@ -2,6 +2,7 @@
 
 const { BrowserWindow } = require("electron");
 const path = require("path");
+const { getModelIconUrl } = require("./state-model-icons");
 
 const isLinux = process.platform === "linux";
 const isMac = process.platform === "darwin";
@@ -43,6 +44,8 @@ function buildTokenData(snapshot) {
       id: session.id,
       agentId: session.agentId,
       iconUrl: session.iconUrl,
+      modelIconUrl: getModelIconUrl(session.model, { dark: false }),
+      modelIconUrlDark: getModelIconUrl(session.model, { dark: true }),
       model: session.model,
       inputTokens: session.inputTokens,
       outputTokens: session.outputTokens,

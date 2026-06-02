@@ -9,6 +9,15 @@
   let currentTotal = 0;
   let animating = false;
   let pendingTotal = null;
+  let lastRows = [];
+
+  const darkScheme = window.matchMedia
+    ? window.matchMedia("(prefers-color-scheme: dark)")
+    : null;
+
+  function isDarkTheme() {
+    return !!(darkScheme && darkScheme.matches);
+  }
 
   function formatNumber(num) {
     if (num >= 1000000) {
@@ -87,6 +96,7 @@
   function handleSnapshot(data) {
     if (!data || !Array.isArray(data.sessions)) return;
     const { totalTokens, rows } = window.tokenDisplayModels.groupTokenUsage(data.sessions);
+    lastRows = rows;
     renderModelRows(rows);
     if (totalTokens !== currentTotal) {
       animateCountUp(totalTokens, 800);
@@ -94,15 +104,17 @@
   }
 
   function renderModelRows(rows) {
+    const dark = isDarkTheme();
     modelRows.replaceChildren();
-    rows.forEach(({ model, tokens, iconUrl }, index) => {
+    rows.forEach(({ model, tokens, iconUrl, iconUrlDark }, index) => {
+      const src = (dark && iconUrlDark) ? iconUrlDark : iconUrl;
       const row = document.createElement("div");
       row.className = "model-row";
 
-      const icon = document.createElement(iconUrl ? "img" : "span");
-      icon.className = iconUrl ? "model-icon" : "model-dot";
-      if (iconUrl) {
-        icon.src = iconUrl;
+      const icon = document.createElement(src ? "img" : "span");
+      icon.className = src ? "model-icon" : "model-dot";
+      if (src) {
+        icon.src = src;
         icon.alt = "";
       } else {
         icon.style.backgroundColor = MODEL_COLORS[index % MODEL_COLORS.length];
@@ -120,6 +132,15 @@
       row.append(icon, name, value);
       modelRows.append(row);
     });
+  }
+
+  if (darkScheme) {
+    const onSchemeChange = () => renderModelRows(lastRows);
+    if (typeof darkScheme.addEventListener === "function") {
+      darkScheme.addEventListener("change", onSchemeChange);
+    } else if (typeof darkScheme.addListener === "function") {
+      darkScheme.addListener(onSchemeChange);
+    }
   }
 
   if (typeof window.tokenDisplayAPI !== "undefined") {

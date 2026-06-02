@@ -21,6 +21,7 @@ Copilot CLI 状态同步（command hook，非阻塞）：
 Cursor Agent 状态同步（command hook，stdin JSON，非阻塞）：
   Cursor IDE 触发事件
     → hooks/cursor-hook.js（hook_event_name → 映射为 PascalCase event + HTTP POST，stdout 返回 allow/continue 以满足 preToolUse 等 hook）
+    → body 转发 Cursor payload 的 model（subagent hook 用 subagent_model；workspaceOpen 等生命周期事件无 model），供 token display 的模型 logo 识别
     → 同上状态机（agent_id: cursor-agent）
 
 Codex CLI 状态同步（official hooks primary + JSONL fallback）：
