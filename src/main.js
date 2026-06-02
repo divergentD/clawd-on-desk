@@ -1430,6 +1430,7 @@ const _tokenDisplay = require("./token-display")({
   getPetWindowBounds,
   getHitRectScreen,
   getNearestWorkArea,
+  getSettingsSnapshot: () => _settingsController.getSnapshot(),
 });
 repositionTokenDisplay = _tokenDisplay.reposition;
 syncTokenDisplayVisibility = _tokenDisplay.syncVisibility;

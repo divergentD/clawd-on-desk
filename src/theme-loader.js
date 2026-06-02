@@ -91,16 +91,24 @@ function _createThemeContext(theme) {
   });
 }
 
-// Build an asset-existence predicate scoped to where a theme's source SVGs live
-// (assets/svg/ for built-in, {themeDir}/assets/ for external). Used by the
-// level patch so a missing per-level art file falls back to the base skin slot
-// rather than pointing the renderer at a file that does not exist.
+// Build an asset-existence predicate scoped to where a theme's source assets
+// live. Built-in themes may either use their own `themes/<id>/assets/` folder
+// (WangZai / Cloudling) or the legacy shared `assets/svg/` folder (WangPet).
+// Used by the level patch so missing per-level art falls back to the base slot.
 function _makeLevelAssetExists(isBuiltin, themeDir) {
-  const dir = isBuiltin ? assetsSvgDir : _externalAssetsSourceDir(themeDir);
+  const localAssetsDir = themeDir ? path.join(themeDir, "assets") : null;
+  const dirs = [];
+  if (localAssetsDir) dirs.push(localAssetsDir);
+  if (isBuiltin && assetsSvgDir) dirs.push(assetsSvgDir);
+  if (!isBuiltin) {
+    const externalDir = _externalAssetsSourceDir(themeDir);
+    if (externalDir && externalDir !== localAssetsDir) dirs.push(externalDir);
+  }
   return (filename) => {
-    if (!dir || typeof filename !== "string" || !filename) return false;
+    if (typeof filename !== "string" || !filename) return false;
+    const basename = _basenameOnly(filename);
     try {
-      return fs.existsSync(path.join(dir, _basenameOnly(filename)));
+      return dirs.some((dir) => dir && fs.existsSync(path.join(dir, basename)));
     } catch {
       return false;
     }

@@ -26,10 +26,10 @@ test("token display bounds clamp to the selected work area", () => {
     petHitRect: { left: 1900, top: 1060, right: 1980, bottom: 1140 },
     workArea: { x: 0, y: 0, width: 1920, height: 1080 },
   }), {
-    x: 1716,
-    y: 956,
-    width: 196,
-    height: 116,
+    x: 1684,
+    y: 920,
+    width: 228,
+    height: 152,
   });
 });
 
@@ -45,7 +45,21 @@ test("token display forwards model metadata and resolves provider logos", () => 
       outputTokens: 2,
       totalCost: 0.01,
     }],
+  }, {
+    petLevel: 3,
+    petLevelTokenTotal: 1_200_000_000,
+    petLevelEnabled: true,
   }), {
+    petLevel: {
+      enabled: true,
+      level: 3,
+      maxLevel: 4,
+      experience: 1_200_000_000,
+      currentThreshold: 1_000_000_000,
+      nextThreshold: 5_000_000_000,
+      progress: 0.05,
+      remainingExperience: 3_800_000_000,
+    },
     sessions: [{
       id: "s1",
       agentId: "codex",
@@ -58,6 +72,16 @@ test("token display forwards model metadata and resolves provider logos", () => 
       totalCost: 0.01,
     }],
   });
+});
+
+test("token display omits pet level data when leveling is disabled", () => {
+  const initTokenDisplay = loadTokenDisplay(function BrowserWindow() {});
+  const data = initTokenDisplay.buildTokenData({ sessions: [] }, {
+    petLevel: 2,
+    petLevelTokenTotal: 100_000_000,
+    petLevelEnabled: false,
+  });
+  assert.strictEqual(data.petLevel.enabled, false);
 });
 
 test("token display groups usage by model and folds overflow into other", () => {
@@ -163,5 +187,44 @@ test("token display forwards the pet center and respects visibility policy", () 
   assert.strictEqual(created.length, 1);
   assert.deepStrictEqual(workAreaCalls, [[140, 230]]);
   assert.strictEqual(created[0].options.x, 161);
-  assert.strictEqual(created[0].options.y, 172);
+  assert.strictEqual(created[0].options.y, 154);
+});
+
+test("token display can show the pet level dashboard without live token rows", () => {
+  const created = [];
+  class BrowserWindow {
+    constructor(options) {
+      this.options = options;
+      this.webContents = {
+        isLoading: () => true,
+        on: () => {},
+      };
+      created.push(this);
+    }
+    isDestroyed() { return false; }
+    loadFile() {}
+    setVisibleOnAllWorkspaces() {}
+    once() {}
+    hide() {}
+    show() {}
+  }
+  const initTokenDisplay = loadTokenDisplay(BrowserWindow);
+  const ctx = {
+    tokenDisplayEnabled: true,
+    mouseOverPet: true,
+    petHidden: false,
+    getMiniMode: () => false,
+    getMiniTransitioning: () => false,
+    getPetWindowBounds: () => ({ x: 100, y: 200, width: 80, height: 60 }),
+    getHitRectScreen: () => ({ left: 115, top: 210, right: 155, bottom: 250 }),
+    getNearestWorkArea: () => ({ x: 0, y: 0, width: 1920, height: 1080 }),
+    getSettingsSnapshot: () => ({
+      petLevelEnabled: true,
+      petLevel: 2,
+      petLevelTokenTotal: 100_000_000,
+    }),
+  };
+  const display = initTokenDisplay(ctx);
+  display.sendSnapshot({ sessions: [] });
+  assert.strictEqual(created.length, 1);
 });

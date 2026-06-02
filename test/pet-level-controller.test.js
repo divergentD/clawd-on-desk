@@ -57,6 +57,10 @@ function fixedSource(totalTokens) {
   return async () => ({ totalTokens, asOf: 1700000000000 });
 }
 
+function fixedExperienceSource(payload) {
+  return async () => ({ asOf: 1700000000000, ...payload });
+}
+
 // Timer injection: capture the interval handle without ever firing it, so the
 // initial poll (awaited via start()) is the only cycle under test.
 function makeTimers() {
@@ -98,7 +102,7 @@ describe("pet-level-controller", () => {
       initial: { petLevelEnabled: false },
       fetchTokenTotal: async () => {
         fetched += 1;
-        return { totalTokens: 50_000_000, asOf: 1 };
+        return { totalTokens: 5_000_000_000, asOf: 1 };
       },
     });
 
@@ -113,7 +117,7 @@ describe("pet-level-controller", () => {
   });
 
   it("persists the token total on the first poll (no level change)", async () => {
-    // total 500 is below L2 (1_000_000) → level stays 1, but total changed.
+    // total 500 is below L2 (100_000_000 XP) → level stays 1, but total changed.
     const { controller, settings, theme, broadcast } = makeController({
       initial: { petLevel: 1, petLevelTokenTotal: 0 },
       totalTokens: 500,
@@ -134,7 +138,7 @@ describe("pet-level-controller", () => {
   it("levels up: persists, reloads the skin, and broadcasts the payload", async () => {
     const { controller, settings, theme, broadcast } = makeController({
       initial: { petLevel: 1, petLevelTokenTotal: 0 },
-      totalTokens: 1_000_000, // exactly L2 threshold
+      totalTokens: 100_000_000, // exactly L2 threshold
     });
 
     await controller.start();
@@ -142,7 +146,7 @@ describe("pet-level-controller", () => {
     assert.equal(settings.commands.length, 1);
     assert.deepEqual(settings.commands[0].payload, {
       petLevel: 2,
-      petLevelTokenTotal: 1_000_000,
+      petLevelTokenTotal: 100_000_000,
     });
     assert.equal(theme.reloads, 1, "level change forces exactly one skin reload");
     assert.equal(broadcast.calls.length, 1, "level change broadcasts once");
@@ -150,15 +154,35 @@ describe("pet-level-controller", () => {
     assert.deepEqual(broadcast.calls[0].payload, {
       level: 2,
       previousLevel: 1,
-      totalTokens: 1_000_000,
-      nextThreshold: 10_000_000,
+      totalTokens: 100_000_000,
+      experience: 100_000_000,
+      nextThreshold: 1_000_000_000,
     });
+  });
+
+  it("uses the reserved experience conversion interface for non-token sources", async () => {
+    const { controller, settings, theme, broadcast } = makeController({
+      initial: { petLevel: 1, petLevelTokenTotal: 0 },
+      fetchTokenTotal: fixedExperienceSource({
+        totalTokens: 50_000_000,
+        sources: [{ id: "achievement", experience: 50_000_000 }],
+      }),
+    });
+
+    await controller.start();
+
+    assert.deepEqual(settings.commands[0].payload, {
+      petLevel: 2,
+      petLevelTokenTotal: 50_000_000,
+    });
+    assert.equal(theme.reloads, 1);
+    assert.equal(broadcast.calls[0].payload.experience, 100_000_000);
   });
 
   it("broadcasts a null nextThreshold at max level", async () => {
     const { controller, broadcast } = makeController({
       initial: { petLevel: 1, petLevelTokenTotal: 0 },
-      totalTokens: 50_000_000, // L4 (max)
+      totalTokens: 5_000_000_000, // L4 (max)
     });
 
     await controller.start();
@@ -171,13 +195,13 @@ describe("pet-level-controller", () => {
   it("never downgrades on a transient source reset", async () => {
     // Stored at L3 with a big total; source resets to 0.
     const { controller, settings, theme, broadcast } = makeController({
-      initial: { petLevel: 3, petLevelTokenTotal: 10_000_000 },
+      initial: { petLevel: 3, petLevelTokenTotal: 1_000_000_000 },
       totalTokens: 0,
     });
 
     await controller.start();
 
-    // Total changed (10_000_000 → 0) so it persists, but the LEVEL is held at 3.
+    // Total changed (1_000_000_000 → 0) so it persists, but the LEVEL is held at 3.
     assert.equal(settings.commands.length, 1);
     assert.deepEqual(settings.commands[0].payload, {
       petLevel: 3,
@@ -189,10 +213,10 @@ describe("pet-level-controller", () => {
   });
 
   it("persists a token-total bump without reload/broadcast when level is unchanged", async () => {
-    // Stored L2 at 1_000_000; new total 2_000_000 is still below L3 (10_000_000).
+    // Stored L2 at 100_000_000; new total 200_000_000 is still below L3 (1_000_000_000).
     const { controller, settings, theme, broadcast } = makeController({
-      initial: { petLevel: 2, petLevelTokenTotal: 1_000_000 },
-      totalTokens: 2_000_000,
+      initial: { petLevel: 2, petLevelTokenTotal: 100_000_000 },
+      totalTokens: 200_000_000,
     });
 
     await controller.start();
@@ -200,7 +224,7 @@ describe("pet-level-controller", () => {
     assert.equal(settings.commands.length, 1);
     assert.deepEqual(settings.commands[0].payload, {
       petLevel: 2,
-      petLevelTokenTotal: 2_000_000,
+      petLevelTokenTotal: 200_000_000,
     });
     assert.equal(theme.reloads, 0);
     assert.equal(broadcast.calls.length, 0);
@@ -208,8 +232,8 @@ describe("pet-level-controller", () => {
 
   it("does nothing to persist when neither level nor total changed", async () => {
     const { controller, settings, theme, broadcast } = makeController({
-      initial: { petLevel: 2, petLevelTokenTotal: 5_000_000 },
-      totalTokens: 5_000_000,
+      initial: { petLevel: 2, petLevelTokenTotal: 500_000_000 },
+      totalTokens: 500_000_000,
     });
 
     await controller.start();

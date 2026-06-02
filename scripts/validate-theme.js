@@ -247,6 +247,12 @@ function collectFiles() {
       if (f) files.add(f);
     }
   }
+  // Level skins are optional runtime references; include them so generated
+  // L2-L4 assets are not reported as orphaned by the base asset scan.
+  const levelAssetsByKey = collectLevelAssetFiles(raw);
+  for (const refs of Object.values(levelAssetsByKey)) {
+    for (const f of refs) files.add(f);
+  }
   return files;
 }
 

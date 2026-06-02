@@ -3,13 +3,19 @@
 const { BrowserWindow } = require("electron");
 const path = require("path");
 const { getModelIconUrl } = require("./state-model-icons");
+const {
+  LEVEL_THRESHOLDS,
+  MAX_LEVEL,
+  computeLevelFromExperience,
+  nextThreshold,
+} = require("./pet-level");
 
 const isLinux = process.platform === "linux";
 const isMac = process.platform === "darwin";
 const isWin = process.platform === "win32";
 
-const TOKEN_DISPLAY_WIDTH = 196;
-const TOKEN_DISPLAY_HEIGHT = 116;
+const TOKEN_DISPLAY_WIDTH = 228;
+const TOKEN_DISPLAY_HEIGHT = 152;
 const GAP = 6;
 const EDGE_MARGIN = 8;
 const WIN_TOPMOST_LEVEL = "pop-up-menu";
@@ -38,8 +44,38 @@ function computeTokenDisplayBounds({ petHitRect, workArea }) {
   };
 }
 
-function buildTokenData(snapshot) {
+function normalizeNonNegativeInteger(value) {
+  return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+}
+
+function buildPetLevelData(settingsSnapshot) {
+  const enabled = !settingsSnapshot || settingsSnapshot.petLevelEnabled !== false;
+  if (!enabled) return { enabled: false };
+  const experience = normalizeNonNegativeInteger(settingsSnapshot && settingsSnapshot.petLevelTokenTotal);
+  const computedLevel = computeLevelFromExperience(experience);
+  const level = Number.isInteger(settingsSnapshot && settingsSnapshot.petLevel)
+    ? Math.max(1, Math.min(MAX_LEVEL, settingsSnapshot.petLevel))
+    : computedLevel;
+  const currentThreshold = LEVEL_THRESHOLDS[level] || 0;
+  const upcoming = nextThreshold(level);
+  const denominator = upcoming == null ? 1 : Math.max(1, upcoming - currentThreshold);
+  const rawProgress = upcoming == null ? 1 : (experience - currentThreshold) / denominator;
+  const progress = Math.max(0, Math.min(1, rawProgress));
   return {
+    enabled: true,
+    level,
+    maxLevel: MAX_LEVEL,
+    experience,
+    currentThreshold,
+    nextThreshold: upcoming,
+    progress,
+    remainingExperience: upcoming == null ? 0 : Math.max(0, upcoming - experience),
+  };
+}
+
+function buildTokenData(snapshot, settingsSnapshot) {
+  return {
+    petLevel: buildPetLevelData(settingsSnapshot),
     sessions: ((snapshot && snapshot.sessions) || []).map((session) => ({
       id: session.id,
       agentId: session.agentId,
@@ -131,7 +167,7 @@ module.exports = function initTokenDisplay(ctx) {
 
     tokenWindow.webContents.on("did-finish-load", () => {
       if (lastSnapshot) {
-        tokenWindow.webContents.send("token-display:snapshot", buildTokenData(lastSnapshot));
+        tokenWindow.webContents.send("token-display:snapshot", buildTokenData(lastSnapshot, ctx.getSettingsSnapshot && ctx.getSettingsSnapshot()));
       }
       if (isVisible) {
         tokenWindow.show();
@@ -157,13 +193,18 @@ module.exports = function initTokenDisplay(ctx) {
       && snapshot.sessions.some((session) => session.inputTokens || session.outputTokens));
   }
 
+  function hasPetLevelData() {
+    const settings = typeof ctx.getSettingsSnapshot === "function" ? ctx.getSettingsSnapshot() : null;
+    return buildPetLevelData(settings).enabled === true;
+  }
+
   function shouldShow() {
     return ctx.tokenDisplayEnabled !== false &&
       !ctx.petHidden &&
       !!ctx.mouseOverPet &&
       !ctx.getMiniMode() &&
       !ctx.getMiniTransitioning() &&
-      snapshotHasTokenData(lastSnapshot);
+      (snapshotHasTokenData(lastSnapshot) || hasPetLevelData());
   }
 
   function updateVisibility() {
@@ -191,7 +232,7 @@ module.exports = function initTokenDisplay(ctx) {
     if (tokenWindow.webContents.isLoading()) {
       return;
     }
-    tokenWindow.webContents.send("token-display:snapshot", buildTokenData(snapshot));
+    tokenWindow.webContents.send("token-display:snapshot", buildTokenData(snapshot, ctx.getSettingsSnapshot && ctx.getSettingsSnapshot()));
   }
 
   function syncVisibility() {
@@ -203,10 +244,11 @@ module.exports = function initTokenDisplay(ctx) {
     reposition,
     sendSnapshot,
     syncVisibility,
-    hasTokenData: () => snapshotHasTokenData(lastSnapshot),
+    hasTokenData: () => snapshotHasTokenData(lastSnapshot) || hasPetLevelData(),
     destroy: destroyWindow,
   };
 };
 
 module.exports.computeTokenDisplayBounds = computeTokenDisplayBounds;
 module.exports.buildTokenData = buildTokenData;
+module.exports.buildPetLevelData = buildPetLevelData;

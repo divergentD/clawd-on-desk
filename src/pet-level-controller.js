@@ -2,10 +2,10 @@
 
 // ── Pet level controller (main-process orchestrator) ──
 //
-// Ties the leveling system together: poll the (mockable) token source, map the
-// total onto a level via the pure engine, persist any change through the
-// settings controller, and — only when the LEVEL itself changes — force a skin
-// reload and tell the renderer to celebrate.
+// Ties the leveling system together: poll the (mockable) token source, convert
+// the result into upgrade experience, persist any change through the settings
+// controller, and — only when the LEVEL itself changes — force a skin reload
+// and tell the renderer to celebrate.
 //
 // Design notes:
 //   - Dependency-injection factory (no direct Electron / store / timer access)
@@ -19,7 +19,7 @@
 //     the poll short-circuits.
 //
 // Deps:
-//   fetchTokenTotal   async () => { totalTokens, asOf }   (pet-token-source.js)
+//   fetchTokenTotal   async () => { totalTokens, sources?, bonusExperience?, asOf }
 //   settingsController { get(key), applyCommand(name, payload) }
 //   themeRuntime      { reloadActiveTheme() }             (force-reload entry)
 //   broadcast         (channel, payload) => void          (send to renderer)
@@ -27,7 +27,13 @@
 //   setInterval / clearInterval   timer injection (default globals)
 //   log               (...args) => void                   (default no-op)
 
-const { computeLevel, nextThreshold, MIN_LEVEL, MAX_LEVEL } = require("./pet-level");
+const {
+  computeExperience,
+  computeLevelFromExperience,
+  nextThreshold,
+  MIN_LEVEL,
+  MAX_LEVEL,
+} = require("./pet-level");
 
 const PET_LEVEL_CHANGE_CHANNEL = "pet-level-change";
 const DEFAULT_INTERVAL_MS = 60_000;
@@ -84,7 +90,12 @@ function createPetLevelController(deps = {}) {
     try {
       const result = await fetchTokenTotal();
       const totalTokens = normalizeTokenTotal(result && result.totalTokens);
-      const computed = computeLevel(totalTokens);
+      const experience = computeExperience({
+        totalTokens,
+        bonusExperience: result && result.bonusExperience,
+        sources: (result && (result.sources || result.experienceSources)) || [],
+      });
+      const computed = computeLevelFromExperience(experience);
 
       const storedLevel = clampStoredLevel(settingsController.get("petLevel"));
       const storedTotalRaw = settingsController.get("petLevelTokenTotal");
@@ -128,6 +139,7 @@ function createPetLevelController(deps = {}) {
             level: nextLevel,
             previousLevel: storedLevel,
             totalTokens,
+            experience,
             nextThreshold: nextThreshold(nextLevel),
           });
         } catch (err) {
