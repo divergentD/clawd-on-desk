@@ -4,7 +4,7 @@
   "author": "divergentD",
   "version": "1.0.0",
   "description": "A small astronaut coding companion.",
-  "preview": "codex-pet-idle-loop.svg",
+  "preview": "wangzai-idle-natural.apng",
   "viewBox": {
     "x": 0,
     "y": 0,
@@ -26,55 +26,101 @@
   "rendering": {
     "svgChannel": "object"
   },
-  "codexPet": {
-    "previewAtlas": "spritesheet.webp"
-  },
   "states": {
     "idle": [
-      "codex-pet-idle-loop.svg"
+      "wangzai-idle-natural.apng"
+    ],
+    "yawning": [
+      "wangzai-yawning.apng"
+    ],
+    "dozing": [
+      "wangzai-dozing.apng"
+    ],
+    "collapsing": [
+      "wangzai-collapsing.apng"
     ],
     "thinking": [
-      "codex-pet-review-loop.svg"
+      "wangzai-review.apng"
     ],
     "working": [
-      "codex-pet-running-loop.svg"
+      "wangzai-rocket-repair.apng"
     ],
     "juggling": [
-      "codex-pet-running-loop.svg"
+      "wangzai-mission-control.apng"
     ],
     "sweeping": [
-      "codex-pet-running-loop.svg"
+      "wangzai-sample-vacuum.apng"
     ],
     "carrying": [
-      "codex-pet-running-loop.svg"
+      "wangzai-carrying-module.apng"
     ],
     "notification": [
-      "codex-pet-waiting-loop.svg"
+      "wangzai-waiting.apng"
     ],
     "attention": [
-      "codex-pet-jumping-loop.svg"
+      "wangzai-happy.apng"
     ],
     "error": [
-      "codex-pet-failed-loop.svg"
+      "wangzai-failed.apng"
     ],
     "sleeping": [
-      "codex-pet-idle-static.svg"
+      "wangzai-sleeping.apng"
+    ],
+    "waking": [
+      "wangzai-waking.apng"
     ]
   },
   "sleepSequence": {
-    "mode": "direct"
+    "mode": "full"
   },
   "workingTiers": [
     {
+      "minSessions": 3,
+      "file": "wangzai-rover-welding.apng"
+    },
+    {
+      "minSessions": 2,
+      "file": "wangzai-mission-control.apng"
+    },
+    {
       "minSessions": 1,
-      "file": "codex-pet-running-loop.svg"
+      "file": "wangzai-rocket-repair.apng"
     }
   ],
   "jugglingTiers": [
     {
+      "minSessions": 2,
+      "file": "wangzai-robotic-arms.apng"
+    },
+    {
       "minSessions": 1,
-      "file": "codex-pet-running-loop.svg"
+      "file": "wangzai-mission-control.apng"
     }
+  ],
+  "idleAnimations": [
+    {
+      "file": "wangzai-idle-natural.apng",
+      "duration": 4200
+    }
+  ],
+  "displayHintMap": {
+    "clawd-working-building.svg": "wangzai-rover-welding.apng",
+    "clawd-working-typing.svg": "wangzai-rocket-repair.apng",
+    "clawd-headphones-groove.svg": "wangzai-mission-control.apng",
+    "clawd-working-juggling.svg": "wangzai-mission-control.apng",
+    "clawd-working-conducting.svg": "wangzai-robotic-arms.apng"
+  },
+  "timings": {
+    "collapseDuration": 2700,
+    "yawnDuration": 3120,
+    "wakeDuration": 2100,
+    "deepSleepTimeout": 600000,
+    "mouseIdleTimeout": 20000,
+    "mouseSleepTimeout": 60000
+  },
+  "sleepingHitboxFiles": [
+    "wangzai-sleeping.apng",
+    "wangzai-collapsing.apng"
   ],
   "hitBoxes": {
     "default": {
@@ -98,26 +144,80 @@
   },
   "reactions": {
     "drag": {
-      "file": "codex-pet-running-loop.svg",
-      "fileLeft": "codex-pet-running-left-loop.svg",
-      "fileRight": "codex-pet-running-right-loop.svg"
+      "file": "wangzai-rocket-repair.apng",
+      "fileLeft": "wangzai-drag-left.apng",
+      "fileRight": "wangzai-drag-right.apng"
     },
     "clickLeft": {
-      "file": "codex-pet-jumping-once.svg",
+      "file": "wangzai-poke.apng",
       "duration": 840
     },
     "clickRight": {
-      "file": "codex-pet-jumping-once.svg",
+      "file": "wangzai-poke.apng",
       "duration": 840
     },
     "double": {
       "files": [
-        "codex-pet-waving-once.svg"
+        "wangzai-wave.apng"
       ],
       "duration": 700
     }
   },
+  "objectScale": {
+    "imgBottom": 0,
+    "fileScales": {
+      "wangzai-mini-idle.apng": 0.65,
+      "wangzai-mini-alert.apng": 0.65,
+      "wangzai-mini-happy.apng": 0.65,
+      "wangzai-mini-enter.apng": 0.65,
+      "wangzai-mini-peek.apng": 0.65,
+      "wangzai-mini-crabwalk.apng": 0.65,
+      "wangzai-mini-enter-sleep.apng": 0.65,
+      "wangzai-mini-sleep.apng": 0.65
+    }
+  },
   "miniMode": {
-    "supported": false
+    "supported": true,
+    "flipAssets": true,
+    "offsetRatio": 0.4,
+    "states": {
+      "mini-idle": [
+        "wangzai-mini-idle.apng"
+      ],
+      "mini-alert": [
+        "wangzai-mini-alert.apng"
+      ],
+      "mini-happy": [
+        "wangzai-mini-happy.apng"
+      ],
+      "mini-enter": [
+        "wangzai-mini-enter.apng"
+      ],
+      "mini-peek": [
+        "wangzai-mini-peek.apng"
+      ],
+      "mini-crabwalk": [
+        "wangzai-mini-crabwalk.apng"
+      ],
+      "mini-enter-sleep": [
+        "wangzai-mini-enter-sleep.apng"
+      ],
+      "mini-sleep": [
+        "wangzai-mini-sleep.apng"
+      ]
+    },
+    "timings": {
+      "minDisplay": {
+        "mini-alert": 4000,
+        "mini-happy": 4000,
+        "mini-peek": 1500
+      },
+      "autoReturn": {
+        "mini-alert": 4000,
+        "mini-happy": 4000,
+        "mini-peek": 1500
+      }
+    },
+    "glyphFlips": {}
   }
 }
