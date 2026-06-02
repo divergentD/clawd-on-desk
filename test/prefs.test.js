@@ -70,6 +70,13 @@ describe("prefs.getDefaults", () => {
     });
   });
 
+  it("includes the pet leveling fields with correct defaults", () => {
+    const d = prefs.getDefaults();
+    assert.strictEqual(d.petLevel, 1);
+    assert.strictEqual(d.petLevelTokenTotal, 0);
+    assert.strictEqual(d.petLevelEnabled, true);
+  });
+
   it("seeds all known agents as enabled", () => {
     const d = prefs.getDefaults();
     for (const id of ["claude-code", "codex", "copilot-cli", "cursor-agent", "gemini-cli", "antigravity-cli", "codebuddy", "kiro-cli", "kimi-cli", "qwen-code", "opencode", "pi", "openclaw", "hermes"]) {
@@ -842,6 +849,41 @@ describe("prefs.migrate v7 → v8 (Telegram bare completion default)", () => {
     assert.strictEqual(validated.lang, "zh");
     assert.strictEqual(validated.tgApproval.notifyOnComplete, false);
     assert.strictEqual(validated.tgApproval.completionOutputMode, "full");
+  });
+});
+
+describe("prefs.migrate v8 → v9 (pet leveling fields)", () => {
+  it("bumps a v8 file to v9 and backfills pet leveling defaults", () => {
+    const upgraded = prefs.migrate({
+      version: 8,
+      lang: "ja",
+      theme: "calico",
+    });
+    const validated = prefs.validate(upgraded);
+
+    assert.strictEqual(validated.version, prefs.CURRENT_VERSION);
+    assert.strictEqual(validated.version, 9);
+    // New fields backfilled from schema defaults
+    assert.strictEqual(validated.petLevel, 1);
+    assert.strictEqual(validated.petLevelTokenTotal, 0);
+    assert.strictEqual(validated.petLevelEnabled, true);
+    // Existing fields preserved through the migration
+    assert.strictEqual(validated.lang, "ja");
+    assert.strictEqual(validated.theme, "calico");
+  });
+
+  it("preserves explicit pet leveling values across a v8 → v9 migration", () => {
+    const validated = prefs.validate(prefs.migrate({
+      version: 8,
+      petLevel: 3,
+      petLevelTokenTotal: 12_345_678,
+      petLevelEnabled: false,
+    }));
+
+    assert.strictEqual(validated.version, 9);
+    assert.strictEqual(validated.petLevel, 3);
+    assert.strictEqual(validated.petLevelTokenTotal, 12_345_678);
+    assert.strictEqual(validated.petLevelEnabled, false);
   });
 });
 

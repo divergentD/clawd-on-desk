@@ -38,7 +38,7 @@ const {
 } = require("./bubble-policy");
 const { normalizeSessionAliases } = require("./session-alias");
 
-const CURRENT_VERSION = 8;
+const CURRENT_VERSION = 9;
 
 // ── Schema ──
 // Each field has: type, default OR defaultFactory, optional enum/normalize/validate.
@@ -276,6 +276,22 @@ const SCHEMA = {
     defaultFactory: () => ({}),
     normalize: normalizeDismissedUpdateVersions,
   },
+  // ── Pet leveling system ──
+  // Persisted current level (1-4) and the cumulative token total the level was
+  // computed from. petLevelEnabled gates the whole feature. The controller
+  // (pet-level-controller.js) is the only writer at runtime, via the
+  // `setPetLevel` command in settings-actions.js.
+  petLevel: {
+    type: "number",
+    default: 1,
+    validate: (v) => Number.isInteger(v) && v >= 1 && v <= 4,
+  },
+  petLevelTokenTotal: {
+    type: "number",
+    default: 0,
+    validate: (v) => Number.isInteger(v) && v >= 0,
+  },
+  petLevelEnabled: { type: "boolean", default: true },
 };
 
 const SCHEMA_KEYS = Object.freeze(Object.keys(SCHEMA));
@@ -465,6 +481,12 @@ function migrate(raw) {
       out.tgApproval.notifyOnComplete = false;
     }
     out.version = 8;
+  }
+  // v8 → v9: introduce the pet leveling fields (petLevel / petLevelTokenTotal /
+  // petLevelEnabled). No data conversion needed — validate() backfills the new
+  // keys from schema defaults; the bump just records that the schema grew.
+  if (out.version < 9) {
+    out.version = 9;
   }
   if ((typeof out.version === "number" ? out.version : 0) < CURRENT_VERSION) {
     out.version = CURRENT_VERSION;

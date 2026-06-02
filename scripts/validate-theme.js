@@ -20,6 +20,10 @@ const fs = require("fs");
 const path = require("path");
 const themeLoader = require("../src/theme-loader");
 const { VARIANT_ALLOWED_KEYS } = require("../src/theme-variants");
+const {
+  LEVEL_ALLOWED_KEYS,
+  collectLevelAssetFiles,
+} = require("../src/theme-levels");
 
 // ── Colors (ANSI) ──
 const R = "\x1b[31m";  // red
@@ -606,6 +610,65 @@ if (raw.variants !== undefined) {
       }
 
       console.log(`    ${PASS} variant "${variantId}" structurally valid (${variantAssets.size} asset ref${variantAssets.size === 1 ? "" : "s"})`);
+    }
+  }
+}
+
+// ── 6. Levels (pet leveling skin swaps) ──
+// `levels` is keyed by "2".."4" (level 1 = base). Structure errors hard-fail,
+// but missing per-level art only WARNS — the loader gracefully falls back to
+// the base skin until real art ships.
+if (raw.levels !== undefined) {
+  console.log(`\n${C}[Levels]${D}`);
+  if (!isPlainObject(raw.levels)) {
+    check(false, "levels must be a plain object");
+  } else {
+    const levelAssetsByKey = collectLevelAssetFiles(raw);
+    for (const [levelKey, levelSpec] of Object.entries(raw.levels)) {
+      if (levelKey.startsWith("_")) continue;
+      console.log(`\n  ${C}[Level: ${levelKey}]${D}`);
+
+      if (!/^[2-4]$/.test(levelKey)) {
+        check(false, `level key "${levelKey}" must be one of "2", "3", "4"`);
+        continue;
+      }
+      if (!isPlainObject(levelSpec)) {
+        check(false, `level "${levelKey}" must be a plain object`);
+        continue;
+      }
+
+      for (const key of Object.keys(levelSpec)) {
+        if (key.startsWith("_")) continue;
+        if (key === "name" || key === "description" || key === "preview") continue;
+        check(
+          LEVEL_ALLOWED_KEYS.has(key),
+          `level "${levelKey}" field "${key}" is in the level allow-list`
+        );
+      }
+
+      if (levelSpec.states !== undefined) {
+        check(isPlainObject(levelSpec.states), `level "${levelKey}".states is an object`);
+        if (isPlainObject(levelSpec.states)) {
+          for (const [stateKey, entry] of Object.entries(levelSpec.states)) {
+            if (stateKey.startsWith("_")) continue;
+            check(
+              hasStateBinding(entry),
+              `level "${levelKey}".states.${stateKey} defines files or fallbackTo`
+            );
+          }
+        }
+      }
+
+      const levelAssets = levelAssetsByKey[levelKey] || [];
+      if (assetsDirExists) {
+        for (const file of levelAssets) {
+          const filePath = path.join(assetsDir, path.basename(file));
+          if (!fs.existsSync(filePath)) {
+            warn(false, `level "${levelKey}" references missing asset: ${file} (falls back to base skin)`);
+          }
+        }
+      }
+      console.log(`    ${PASS} level "${levelKey}" structurally valid (${levelAssets.length} asset ref${levelAssets.length === 1 ? "" : "s"})`);
     }
   }
 }

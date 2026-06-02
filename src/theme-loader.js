@@ -41,6 +41,10 @@ const {
   buildBaseBindingMetadata: _buildBaseBindingMetadata,
   applyUserOverridesPatch: _applyUserOverridesPatch,
 } = require("./theme-variants");
+const {
+  resolveLevel: _resolveLevel,
+  applyLevelPatch: _applyLevelPatch,
+} = require("./theme-levels");
 
 // ── State ──
 
@@ -85,6 +89,22 @@ function _createThemeContext(theme) {
     assetsSvgDir,
     assetsSoundsDir,
   });
+}
+
+// Build an asset-existence predicate scoped to where a theme's source SVGs live
+// (assets/svg/ for built-in, {themeDir}/assets/ for external). Used by the
+// level patch so a missing per-level art file falls back to the base skin slot
+// rather than pointing the renderer at a file that does not exist.
+function _makeLevelAssetExists(isBuiltin, themeDir) {
+  const dir = isBuiltin ? assetsSvgDir : _externalAssetsSourceDir(themeDir);
+  return (filename) => {
+    if (!dir || typeof filename !== "string" || !filename) return false;
+    try {
+      return fs.existsSync(path.join(dir, _basenameOnly(filename)));
+    } catch {
+      return false;
+    }
+  };
 }
 
 function bindActiveThemeRuntime(owner) {
@@ -149,7 +169,7 @@ function _scanThemesDir(dir, builtin, themes, seen) {
  * a missing variant is a UX concern, not a theme-breaking condition.
  *
  * @param {string} themeId
- * @param {{ strict?: boolean, variant?: string, overrides?: object|null }} [opts]
+ * @param {{ strict?: boolean, variant?: string, overrides?: object|null, level?: number }} [opts]
  * @returns {object} merged theme config
  */
 function loadTheme(themeId, opts = {}) {
@@ -176,20 +196,32 @@ function loadTheme(themeId, opts = {}) {
 
   // Resolve variant + apply patch BEFORE mergeDefaults so that geometry
   // derivation (imgWidthRatio/imgOffsetX/imgBottom), tier sorting, and
-  // basename sanitization all run on the patched raw.
+  // basename sanitization all run on the patched raw. Order is:
+  //   read JSON -> validate -> variant patch -> level patch -> user overrides -> mergeDefaults
   const { resolvedId, spec: variantSpec } = _resolveVariant(raw, requestedVariant);
   const afterVariant = variantSpec ? _applyVariantPatch(raw, variantSpec, themeId, resolvedId) : raw;
-  const patchedRaw = userOverrides ? _applyUserOverridesPatch(afterVariant, userOverrides) : afterVariant;
+
+  // Pet level skin swap: applied after the variant patch, before user overrides.
+  // Missing levels / missing per-level art gracefully fall back to the base skin.
+  const { resolvedLevel, spec: levelSpec } = _resolveLevel(afterVariant, opts.level);
+  const afterLevel = levelSpec
+    ? _applyLevelPatch(afterVariant, levelSpec, themeId, resolvedLevel, {
+      assetExists: _makeLevelAssetExists(isBuiltin, themeDir),
+    })
+    : afterVariant;
+
+  const patchedRaw = userOverrides ? _applyUserOverridesPatch(afterLevel, userOverrides) : afterLevel;
 
   // Merge defaults for optional fields
   const theme = mergeDefaults(patchedRaw, themeId, isBuiltin);
   theme._themeDir = themeDir;
   theme._variantId = resolvedId;
+  theme._levelId = resolvedLevel;
   theme._userOverrides = userOverrides;
-  theme._bindingBase = _buildBaseBindingMetadata(afterVariant);
+  theme._bindingBase = _buildBaseBindingMetadata(afterLevel);
   theme._baseTransitions = {};
-  if (afterVariant.transitions && typeof afterVariant.transitions === "object") {
-    for (const [file, transition] of Object.entries(afterVariant.transitions)) {
+  if (afterLevel.transitions && typeof afterLevel.transitions === "object") {
+    for (const [file, transition] of Object.entries(afterLevel.transitions)) {
       const name = _basenameOnly(file);
       if (!name || !transition || typeof transition !== "object") continue;
       const clean = {};
@@ -198,8 +230,8 @@ function loadTheme(themeId, opts = {}) {
       if (Object.keys(clean).length > 0) theme._baseTransitions[name] = clean;
     }
   }
-  theme._baseWideHitboxFiles = Array.isArray(afterVariant.wideHitboxFiles)
-    ? [...new Set(afterVariant.wideHitboxFiles.map((file) => _basenameOnly(file)).filter(Boolean))]
+  theme._baseWideHitboxFiles = Array.isArray(afterLevel.wideHitboxFiles)
+    ? [...new Set(afterLevel.wideHitboxFiles.map((file) => _basenameOnly(file)).filter(Boolean))]
     : [];
   theme._capabilities = _buildCapabilities(theme);
 

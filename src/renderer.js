@@ -1383,6 +1383,46 @@ window.electronAPI.onWakeFromDoze(() => {
   }
 });
 
+// --- Pet level-up celebration toast ---
+// The new skin loads automatically via the theme reload triggered in main; this
+// handler is purely the lightweight "you leveled up" indicator. Non-intrusive,
+// pointer-events: none, auto-dismisses via CSS animation.
+let _levelupEl = null;
+let _levelupHideTimer = null;
+
+function showLevelUpToast(payload) {
+  const level = payload && Number.isFinite(payload.level) ? payload.level : null;
+  if (level == null) return;
+  if (!_levelupEl) {
+    _levelupEl = document.createElement("div");
+    _levelupEl.id = "pet-levelup";
+    const badge = document.createElement("span");
+    badge.className = "pet-levelup-badge";
+    const label = document.createElement("span");
+    label.className = "pet-levelup-label";
+    _levelupEl.appendChild(badge);
+    _levelupEl.appendChild(label);
+    (container || document.body).appendChild(_levelupEl);
+  }
+  _levelupEl.querySelector(".pet-levelup-badge").textContent = "Lv." + level;
+  _levelupEl.querySelector(".pet-levelup-label").textContent = "Level Up!";
+  // Restart the CSS animation by toggling the class off/on across a reflow.
+  _levelupEl.classList.remove("pet-levelup-show");
+  void _levelupEl.offsetWidth;
+  _levelupEl.classList.add("pet-levelup-show");
+  if (_levelupHideTimer) clearTimeout(_levelupHideTimer);
+  _levelupHideTimer = setTimeout(() => {
+    if (_levelupEl) _levelupEl.classList.remove("pet-levelup-show");
+    _levelupHideTimer = null;
+  }, 2500);
+}
+
+if (window.electronAPI && typeof window.electronAPI.onPetLevelChange === "function") {
+  window.electronAPI.onPetLevelChange((payload) => {
+    try { showLevelUpToast(payload); } catch (e) {}
+  });
+}
+
 // --- Initial frame: always go through swapToFile so the right channel and theme scaling apply ---
 if (!currentDisplayedSvg && _idleFollowSvg) {
   currentIdleSvg = _idleFollowSvg;

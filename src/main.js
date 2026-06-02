@@ -45,6 +45,8 @@ const createTopmostRuntime = require("./topmost-runtime");
 const { WIN_TOPMOST_LEVEL } = createTopmostRuntime;
 const createThemeFadeSequencer = require("./theme-fade-sequencer");
 const createThemeRuntime = require("./theme-runtime");
+const createPetLevelController = require("./pet-level-controller");
+const { fetchTokenTotal: fetchPetTokenTotal } = require("./pet-token-source");
 const createAgentRuntimeMain = require("./agent-runtime-main");
 const createFloatingWindowRuntime = require("./floating-window-runtime");
 const createPetWindowRuntime = require("./pet-window-runtime");
@@ -2588,6 +2590,21 @@ const _remoteSshIpc = registerRemoteSshIpc({
   isPackaged: app.isPackaged,
 });
 
+// ── Pet leveling controller ──
+//
+// Polls the (mockable) token source, persists level/total through the settings
+// controller, and on a LEVEL change forces a full skin reload + pushes a
+// `pet-level-change` event to the pet renderer for a celebration toast. The
+// skin swap itself rides the existing themeRuntime reload (renderer stays a
+// dumb view). Started after the window is ready; stopped on before-quit.
+const _petLevelController = createPetLevelController({
+  fetchTokenTotal: fetchPetTokenTotal,
+  settingsController: _settingsController,
+  themeRuntime,
+  broadcast: (channel, payload) => sendToRenderer(channel, payload),
+  log: (...args) => console.warn("WangPet pet-level:", ...args),
+});
+
 // ── Settings panel window ──
 //
 // Single-instance, non-modal, system-titlebar BrowserWindow that hosts the
@@ -3055,6 +3072,14 @@ if (!gotTheLock) {
     // shouldn't see its file watcher spin up on the next launch.
     agentRuntime.startCodexLogMonitor();
 
+    // Start the pet leveling poll loop now that the window exists, so a
+    // level-up's skin reload + celebration toast have a live renderer to hit.
+    try {
+      _petLevelController.start();
+    } catch (err) {
+      console.warn("WangPet: failed to start pet level controller:", err && err.message);
+    }
+
     try {
       hardwareBuddyAdapter.start();
     } catch (err) {
@@ -3102,6 +3127,7 @@ if (!gotTheLock) {
     themeRuntime.cleanup();
     _focus.cleanup();
     if (animationOverridesMain) animationOverridesMain.cleanup();
+    try { _petLevelController.stop(); } catch {}
     try { _remoteSshIpc.dispose(); } catch {}
     try { _remoteSshRuntime.cleanup(); } catch {}
     if (hitWin && !hitWin.isDestroyed()) hitWin.destroy();
