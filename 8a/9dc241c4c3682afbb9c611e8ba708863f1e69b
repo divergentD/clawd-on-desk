@@ -1,0 +1,21 @@
+themes/clawd/theme.json
+  s_6a8c8cd03e8c5e::t_95e8b4edd5c540 290-341
+test/theme-levels.test.js
+  s_6a8c8cd03e8c5e::t_df4954b45a7ee2 301-320
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.5.3",
+  "base_commit_sha": "8a9dc241c4c3682afbb9c611e8ba708863f1e69b",
+  "prompts": {},
+  "sessions": {
+    "s_6a8c8cd03e8c5e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1c1ff31e-c6c6-4c43-a05e-48b30cefb72a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "divergentD <zhouxinyu3@huawei.com>"
+    }
+  }
+}
