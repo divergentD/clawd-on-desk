@@ -65,6 +65,18 @@ const isMac = process.platform === "darwin";
 const isLinux = process.platform === "linux";
 const isWin = process.platform === "win32";
 
+// ── Linux sandbox workaround ──
+//
+// Ubuntu 26.04 can flood /var/log when Chromium's zygote cannot establish the
+// sandboxed child-process channel. Keep Linux startup explicit and allow users
+// to opt back in when their environment supports Electron's sandbox cleanly.
+if (isLinux && process.env.WANGPET_ENABLE_SANDBOX !== "1") {
+  process.env.ELECTRON_DISABLE_SANDBOX = "1";
+  process.env.CHROME_DEVEL_SANDBOX = "";
+  app.commandLine.appendSwitch("no-sandbox");
+  app.commandLine.appendSwitch("disable-setuid-sandbox");
+}
+
 // ── Linux/Wayland workaround ──
 // Ubuntu 26.04 defaults to Wayland, but Electron's native Wayland support
 // for transparent + alwaysOnTop + frequent setBounds (drag) is poor.

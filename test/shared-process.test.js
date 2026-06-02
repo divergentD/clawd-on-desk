@@ -148,6 +148,24 @@ describe("buildElectronLaunchConfig()", () => {
     assert.strictEqual(sourceEnv.ELECTRON_RUN_AS_NODE, "1");
   });
 
+  it("disables the Electron sandbox by default on Linux", () => {
+    const cfg = buildElectronLaunchConfig("/app", {
+      platform: "linux",
+      env: {},
+      forwardedArgs: ["--foo"],
+    });
+
+    assert.deepStrictEqual(cfg.args, [
+      ".",
+      "--ozone-platform=x11",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--foo",
+    ]);
+    assert.strictEqual(cfg.env.ELECTRON_DISABLE_SANDBOX, "1");
+    assert.strictEqual(cfg.env.CHROME_DEVEL_SANDBOX, "");
+  });
+
   it("keeps the Linux sandbox fallback when requested", () => {
     const cfg = buildElectronLaunchConfig("/app", {
       platform: "linux",
@@ -158,10 +176,30 @@ describe("buildElectronLaunchConfig()", () => {
       forwardedArgs: ["--foo"],
     });
 
-    assert.deepStrictEqual(cfg.args, [".", "--no-sandbox", "--disable-setuid-sandbox", "--foo"]);
+    assert.deepStrictEqual(cfg.args, [
+      ".",
+      "--ozone-platform=x11",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--foo",
+    ]);
     assert.strictEqual(cfg.env.ELECTRON_RUN_AS_NODE, undefined);
     assert.strictEqual(cfg.env.ELECTRON_DISABLE_SANDBOX, "1");
     assert.strictEqual(cfg.env.CHROME_DEVEL_SANDBOX, "");
+  });
+
+  it("allows Linux users to opt back into the Electron sandbox", () => {
+    const cfg = buildElectronLaunchConfig("/app", {
+      platform: "linux",
+      env: {
+        WANGPET_ENABLE_SANDBOX: "1",
+      },
+      forwardedArgs: ["--foo"],
+    });
+
+    assert.deepStrictEqual(cfg.args, [".", "--ozone-platform=x11", "--foo"]);
+    assert.strictEqual(cfg.env.ELECTRON_DISABLE_SANDBOX, undefined);
+    assert.strictEqual(cfg.env.CHROME_DEVEL_SANDBOX, undefined);
   });
 });
 

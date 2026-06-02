@@ -175,7 +175,7 @@ node hooks/openclaw-install.js
 
 ## Linux 说明
 
-- **源码运行**（`npm start`）：默认启用 Electron sandbox。如果你的 Linux 开发环境仍然遇到 chrome-sandbox 初始化失败，可临时使用 `WANGPET_DISABLE_SANDBOX=1 npm start` 作为兼容方案。
+- **源码运行**（`npm start`）：Linux 默认禁用 Electron sandbox，以避免新版 Ubuntu 上 Chromium zygote 启动失败并疯狂写入 `/var/log`。如果你的环境能稳定支持 Electron sandbox，可使用 `WANGPET_ENABLE_SANDBOX=1 npm start` 显式开启。
 - **安装包**：AppImage 和 `.deb` 可从 [GitHub Releases](https://github.com/rullerzhou-afk/wang-pet/releases) 下载。deb 安装后应用图标会出现在 GNOME 应用菜单。
 - **终端聚焦**：依赖 `wmctrl` 或 `xdotool`（有一个就行）。安装：`sudo apt install wmctrl` 或 `sudo apt install xdotool`。
 - **自动更新**：源码运行时，"检查更新"会执行 `git pull` + `npm install`（依赖有变化时）并自动重启。

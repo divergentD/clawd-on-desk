@@ -312,7 +312,7 @@ function buildElectronLaunchConfig(projectDir, options = {}) {
   const env = { ...(options.env || process.env) };
   delete env.ELECTRON_RUN_AS_NODE;
 
-  const disableSandbox = platform === "linux" && env.WANGPET_DISABLE_SANDBOX === "1";
+  const disableSandbox = platform === "linux" && env.WANGPET_ENABLE_SANDBOX !== "1";
   if (disableSandbox) {
     env.ELECTRON_DISABLE_SANDBOX = "1";
     env.CHROME_DEVEL_SANDBOX = "";

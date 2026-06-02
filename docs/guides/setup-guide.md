@@ -191,7 +191,7 @@ node hooks/openclaw-install.js
 
 ## Linux Notes
 
-- **From source** (`npm start`): the Electron sandbox is enabled by default. If your Linux dev environment still fails chrome-sandbox initialization, use `WANGPET_DISABLE_SANDBOX=1 npm start` as a temporary workaround.
+- **From source** (`npm start`): the Electron sandbox is disabled by default on Linux to avoid Chromium zygote startup failures and `/var/log` spam on newer Ubuntu builds. If your environment supports Electron's sandbox cleanly, use `WANGPET_ENABLE_SANDBOX=1 npm start` to opt back in.
 - **Packages**: AppImage and `.deb` are available from [GitHub Releases](https://github.com/rullerzhou-afk/wang-pet/releases). After deb install, the app icon appears in GNOME's app menu.
 - **Terminal focus**: uses `wmctrl` or `xdotool` (whichever is available). Install one for session terminal jumping to work: `sudo apt install wmctrl` or `sudo apt install xdotool`.
 - **Auto-update**: when running from a cloned repo, "Check for Updates" performs `git pull` + `npm install` (if dependencies changed) and restarts the app automatically.
