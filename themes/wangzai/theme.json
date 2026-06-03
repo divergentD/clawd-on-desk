@@ -219,5 +219,230 @@
       }
     },
     "glyphFlips": {}
+  },
+  "levels": {
+    "_comment": "Lv.2-Lv.4 preserve Wangzai's Lv.1 body, silhouette, and APNG motion while upgrading only astronaut suit surfaces, attached tools, and the Lv.4 assistant orb.",
+    "2": {
+      "name": "WangZai Mission Cadet",
+      "preview": "wangzai-lv2-idle-natural.apng",
+      "states": {
+        "idle": ["wangzai-lv2-idle-natural.apng"],
+        "yawning": ["wangzai-lv2-yawning.apng"],
+        "dozing": ["wangzai-lv2-dozing.apng"],
+        "collapsing": ["wangzai-lv2-collapsing.apng"],
+        "thinking": ["wangzai-lv2-review.apng"],
+        "working": ["wangzai-lv2-rocket-repair.apng"],
+        "juggling": ["wangzai-lv2-mission-control.apng"],
+        "sweeping": ["wangzai-lv2-sample-vacuum.apng"],
+        "carrying": ["wangzai-lv2-carrying-module.apng"],
+        "notification": ["wangzai-lv2-waiting.apng"],
+        "attention": ["wangzai-lv2-happy.apng"],
+        "error": ["wangzai-lv2-failed.apng"],
+        "sleeping": ["wangzai-lv2-sleeping.apng"],
+        "waking": ["wangzai-lv2-waking.apng"]
+      },
+      "workingTiers": [
+        { "minSessions": 3, "file": "wangzai-lv2-rover-welding.apng" },
+        { "minSessions": 2, "file": "wangzai-lv2-mission-control.apng" },
+        { "minSessions": 1, "file": "wangzai-lv2-rocket-repair.apng" }
+      ],
+      "jugglingTiers": [
+        { "minSessions": 2, "file": "wangzai-lv2-robotic-arms.apng" },
+        { "minSessions": 1, "file": "wangzai-lv2-mission-control.apng" }
+      ],
+      "idleAnimations": [
+        { "file": "wangzai-lv2-idle-natural.apng", "duration": 4200 }
+      ],
+      "displayHintMap": {
+        "clawd-working-building.svg": "wangzai-lv2-rover-welding.apng",
+        "clawd-working-typing.svg": "wangzai-lv2-rocket-repair.apng",
+        "clawd-headphones-groove.svg": "wangzai-lv2-mission-control.apng",
+        "clawd-working-juggling.svg": "wangzai-lv2-mission-control.apng",
+        "clawd-working-conducting.svg": "wangzai-lv2-robotic-arms.apng"
+      },
+      "sleepingHitboxFiles": ["wangzai-lv2-sleeping.apng", "wangzai-lv2-collapsing.apng"],
+      "reactions": {
+        "drag": {
+          "file": "wangzai-lv2-rocket-repair.apng",
+          "fileLeft": "wangzai-lv2-drag-left.apng",
+          "fileRight": "wangzai-lv2-drag-right.apng"
+        },
+        "clickLeft": { "file": "wangzai-lv2-poke.apng", "duration": 840 },
+        "clickRight": { "file": "wangzai-lv2-poke.apng", "duration": 840 },
+        "double": { "files": ["wangzai-lv2-wave.apng"], "duration": 700 }
+      },
+      "objectScale": {
+        "fileScales": {
+          "wangzai-lv2-mini-idle.apng": 0.65,
+          "wangzai-lv2-mini-alert.apng": 0.65,
+          "wangzai-lv2-mini-happy.apng": 0.65,
+          "wangzai-lv2-mini-enter.apng": 0.65,
+          "wangzai-lv2-mini-peek.apng": 0.65,
+          "wangzai-lv2-mini-crabwalk.apng": 0.65,
+          "wangzai-lv2-mini-enter-sleep.apng": 0.65,
+          "wangzai-lv2-mini-sleep.apng": 0.65
+        }
+      },
+      "miniMode": {
+        "states": {
+          "mini-idle": ["wangzai-lv2-mini-idle.apng"],
+          "mini-alert": ["wangzai-lv2-mini-alert.apng"],
+          "mini-happy": ["wangzai-lv2-mini-happy.apng"],
+          "mini-enter": ["wangzai-lv2-mini-enter.apng"],
+          "mini-peek": ["wangzai-lv2-mini-peek.apng"],
+          "mini-crabwalk": ["wangzai-lv2-mini-crabwalk.apng"],
+          "mini-enter-sleep": ["wangzai-lv2-mini-enter-sleep.apng"],
+          "mini-sleep": ["wangzai-lv2-mini-sleep.apng"]
+        }
+      }
+    },
+    "3": {
+      "name": "WangZai Flight Engineer",
+      "preview": "wangzai-lv3-idle-natural.apng",
+      "states": {
+        "idle": ["wangzai-lv3-idle-natural.apng"],
+        "yawning": ["wangzai-lv3-yawning.apng"],
+        "dozing": ["wangzai-lv3-dozing.apng"],
+        "collapsing": ["wangzai-lv3-collapsing.apng"],
+        "thinking": ["wangzai-lv3-review.apng"],
+        "working": ["wangzai-lv3-rocket-repair.apng"],
+        "juggling": ["wangzai-lv3-mission-control.apng"],
+        "sweeping": ["wangzai-lv3-sample-vacuum.apng"],
+        "carrying": ["wangzai-lv3-carrying-module.apng"],
+        "notification": ["wangzai-lv3-waiting.apng"],
+        "attention": ["wangzai-lv3-happy.apng"],
+        "error": ["wangzai-lv3-failed.apng"],
+        "sleeping": ["wangzai-lv3-sleeping.apng"],
+        "waking": ["wangzai-lv3-waking.apng"]
+      },
+      "workingTiers": [
+        { "minSessions": 3, "file": "wangzai-lv3-rover-welding.apng" },
+        { "minSessions": 2, "file": "wangzai-lv3-mission-control.apng" },
+        { "minSessions": 1, "file": "wangzai-lv3-rocket-repair.apng" }
+      ],
+      "jugglingTiers": [
+        { "minSessions": 2, "file": "wangzai-lv3-robotic-arms.apng" },
+        { "minSessions": 1, "file": "wangzai-lv3-mission-control.apng" }
+      ],
+      "idleAnimations": [
+        { "file": "wangzai-lv3-idle-natural.apng", "duration": 4200 }
+      ],
+      "displayHintMap": {
+        "clawd-working-building.svg": "wangzai-lv3-rover-welding.apng",
+        "clawd-working-typing.svg": "wangzai-lv3-rocket-repair.apng",
+        "clawd-headphones-groove.svg": "wangzai-lv3-mission-control.apng",
+        "clawd-working-juggling.svg": "wangzai-lv3-mission-control.apng",
+        "clawd-working-conducting.svg": "wangzai-lv3-robotic-arms.apng"
+      },
+      "sleepingHitboxFiles": ["wangzai-lv3-sleeping.apng", "wangzai-lv3-collapsing.apng"],
+      "reactions": {
+        "drag": {
+          "file": "wangzai-lv3-rocket-repair.apng",
+          "fileLeft": "wangzai-lv3-drag-left.apng",
+          "fileRight": "wangzai-lv3-drag-right.apng"
+        },
+        "clickLeft": { "file": "wangzai-lv3-poke.apng", "duration": 840 },
+        "clickRight": { "file": "wangzai-lv3-poke.apng", "duration": 840 },
+        "double": { "files": ["wangzai-lv3-wave.apng"], "duration": 700 }
+      },
+      "objectScale": {
+        "fileScales": {
+          "wangzai-lv3-mini-idle.apng": 0.65,
+          "wangzai-lv3-mini-alert.apng": 0.65,
+          "wangzai-lv3-mini-happy.apng": 0.65,
+          "wangzai-lv3-mini-enter.apng": 0.65,
+          "wangzai-lv3-mini-peek.apng": 0.65,
+          "wangzai-lv3-mini-crabwalk.apng": 0.65,
+          "wangzai-lv3-mini-enter-sleep.apng": 0.65,
+          "wangzai-lv3-mini-sleep.apng": 0.65
+        }
+      },
+      "miniMode": {
+        "states": {
+          "mini-idle": ["wangzai-lv3-mini-idle.apng"],
+          "mini-alert": ["wangzai-lv3-mini-alert.apng"],
+          "mini-happy": ["wangzai-lv3-mini-happy.apng"],
+          "mini-enter": ["wangzai-lv3-mini-enter.apng"],
+          "mini-peek": ["wangzai-lv3-mini-peek.apng"],
+          "mini-crabwalk": ["wangzai-lv3-mini-crabwalk.apng"],
+          "mini-enter-sleep": ["wangzai-lv3-mini-enter-sleep.apng"],
+          "mini-sleep": ["wangzai-lv3-mini-sleep.apng"]
+        }
+      }
+    },
+    "4": {
+      "name": "WangZai Star Commander",
+      "preview": "wangzai-lv4-idle-natural.apng",
+      "states": {
+        "idle": ["wangzai-lv4-idle-natural.apng"],
+        "yawning": ["wangzai-lv4-yawning.apng"],
+        "dozing": ["wangzai-lv4-dozing.apng"],
+        "collapsing": ["wangzai-lv4-collapsing.apng"],
+        "thinking": ["wangzai-lv4-review.apng"],
+        "working": ["wangzai-lv4-rocket-repair.apng"],
+        "juggling": ["wangzai-lv4-mission-control.apng"],
+        "sweeping": ["wangzai-lv4-sample-vacuum.apng"],
+        "carrying": ["wangzai-lv4-carrying-module.apng"],
+        "notification": ["wangzai-lv4-waiting.apng"],
+        "attention": ["wangzai-lv4-happy.apng"],
+        "error": ["wangzai-lv4-failed.apng"],
+        "sleeping": ["wangzai-lv4-sleeping.apng"],
+        "waking": ["wangzai-lv4-waking.apng"]
+      },
+      "workingTiers": [
+        { "minSessions": 3, "file": "wangzai-lv4-rover-welding.apng" },
+        { "minSessions": 2, "file": "wangzai-lv4-mission-control.apng" },
+        { "minSessions": 1, "file": "wangzai-lv4-rocket-repair.apng" }
+      ],
+      "jugglingTiers": [
+        { "minSessions": 2, "file": "wangzai-lv4-robotic-arms.apng" },
+        { "minSessions": 1, "file": "wangzai-lv4-mission-control.apng" }
+      ],
+      "idleAnimations": [
+        { "file": "wangzai-lv4-idle-natural.apng", "duration": 4200 }
+      ],
+      "displayHintMap": {
+        "clawd-working-building.svg": "wangzai-lv4-rover-welding.apng",
+        "clawd-working-typing.svg": "wangzai-lv4-rocket-repair.apng",
+        "clawd-headphones-groove.svg": "wangzai-lv4-mission-control.apng",
+        "clawd-working-juggling.svg": "wangzai-lv4-mission-control.apng",
+        "clawd-working-conducting.svg": "wangzai-lv4-robotic-arms.apng"
+      },
+      "sleepingHitboxFiles": ["wangzai-lv4-sleeping.apng", "wangzai-lv4-collapsing.apng"],
+      "reactions": {
+        "drag": {
+          "file": "wangzai-lv4-rocket-repair.apng",
+          "fileLeft": "wangzai-lv4-drag-left.apng",
+          "fileRight": "wangzai-lv4-drag-right.apng"
+        },
+        "clickLeft": { "file": "wangzai-lv4-poke.apng", "duration": 840 },
+        "clickRight": { "file": "wangzai-lv4-poke.apng", "duration": 840 },
+        "double": { "files": ["wangzai-lv4-wave.apng"], "duration": 700 }
+      },
+      "objectScale": {
+        "fileScales": {
+          "wangzai-lv4-mini-idle.apng": 0.65,
+          "wangzai-lv4-mini-alert.apng": 0.65,
+          "wangzai-lv4-mini-happy.apng": 0.65,
+          "wangzai-lv4-mini-enter.apng": 0.65,
+          "wangzai-lv4-mini-peek.apng": 0.65,
+          "wangzai-lv4-mini-crabwalk.apng": 0.65,
+          "wangzai-lv4-mini-enter-sleep.apng": 0.65,
+          "wangzai-lv4-mini-sleep.apng": 0.65
+        }
+      },
+      "miniMode": {
+        "states": {
+          "mini-idle": ["wangzai-lv4-mini-idle.apng"],
+          "mini-alert": ["wangzai-lv4-mini-alert.apng"],
+          "mini-happy": ["wangzai-lv4-mini-happy.apng"],
+          "mini-enter": ["wangzai-lv4-mini-enter.apng"],
+          "mini-peek": ["wangzai-lv4-mini-peek.apng"],
+          "mini-crabwalk": ["wangzai-lv4-mini-crabwalk.apng"],
+          "mini-enter-sleep": ["wangzai-lv4-mini-enter-sleep.apng"],
+          "mini-sleep": ["wangzai-lv4-mini-sleep.apng"]
+        }
+      }
+    }
   }
 }

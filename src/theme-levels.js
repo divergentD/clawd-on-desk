@@ -25,6 +25,7 @@ const LEVEL_ALLOWED_KEYS = new Set([
   // Runtime fields
   "states", "miniMode", "reactions",
   "workingTiers", "jugglingTiers", "idleAnimations",
+  "displayHintMap", "sleepingHitboxFiles",
   "eyeTracking", "objectScale",
 ]);
 
@@ -135,6 +136,14 @@ function levelFieldAssetFiles(key, value) {
         if (isPlainObject(entry) && typeof entry.file === "string") push(entry.file);
       }
     }
+  } else if (key === "displayHintMap") {
+    if (isPlainObject(value)) {
+      for (const file of Object.values(value)) push(file);
+    }
+  } else if (key === "sleepingHitboxFiles") {
+    if (Array.isArray(value)) {
+      for (const file of value) push(file);
+    }
   } else if (key === "reactions") {
     if (isPlainObject(value)) {
       for (const entry of Object.values(value)) {
@@ -237,6 +246,12 @@ function collectLevelAssetFiles(raw) {
           if (isPlainObject(entry) && typeof entry.file === "string") add(entry.file);
         }
       }
+    }
+    if (isPlainObject(spec.displayHintMap)) {
+      for (const file of Object.values(spec.displayHintMap)) add(file);
+    }
+    if (Array.isArray(spec.sleepingHitboxFiles)) {
+      for (const file of spec.sleepingHitboxFiles) add(file);
     }
     if (isPlainObject(spec.reactions)) {
       for (const entry of Object.values(spec.reactions)) {

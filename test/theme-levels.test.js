@@ -188,7 +188,7 @@ describe("theme level patching", () => {
 
 describe("theme level allow-list shape", () => {
   it("permits full-skin fields (states + miniMode) and array replace fields", () => {
-    for (const key of ["states", "miniMode", "reactions", "workingTiers", "jugglingTiers", "idleAnimations", "eyeTracking", "objectScale"]) {
+    for (const key of ["states", "miniMode", "reactions", "workingTiers", "jugglingTiers", "idleAnimations", "displayHintMap", "sleepingHitboxFiles", "eyeTracking", "objectScale"]) {
       assert.ok(LEVEL_ALLOWED_KEYS.has(key), `expected level allow-list to include ${key}`);
     }
     for (const key of ["workingTiers", "jugglingTiers", "idleAnimations"]) {
@@ -209,12 +209,14 @@ describe("collectLevelAssetFiles", () => {
         "4": {
           workingTiers: [{ minSessions: 1, file: "c.svg" }],
           reactions: { drag: { file: "d.svg" } },
+          displayHintMap: { "base.svg": "e.svg" },
+          sleepingHitboxFiles: ["f.svg"],
         },
       },
     };
     const out = collectLevelAssetFiles(raw);
     assert.deepStrictEqual(out["2"].sort(), ["a.svg", "b.svg", "m.svg"]);
-    assert.deepStrictEqual(out["4"].sort(), ["c.svg", "d.svg"]);
+    assert.deepStrictEqual(out["4"].sort(), ["c.svg", "d.svg", "e.svg", "f.svg"]);
     assert.ok(!("_comment" in out));
   });
 });
@@ -318,5 +320,21 @@ describe("loadTheme level option", () => {
     assert.deepStrictEqual(lvl4.states.idle, ["clawd-working-ultrathink.svg"]);
     assert.deepStrictEqual(lvl4.states.working, ["clawd-working-ultrathink.svg"]);
     assert.deepStrictEqual(lvl4.workingTiers, [{ minSessions: 1, file: "clawd-working-ultrathink.svg" }]);
+  });
+
+  it("applies the complete Wangzai ornament skin across states, reactions, hints, hitboxes, and mini mode", () => {
+    themeLoader.init(path.join(__dirname, "..", "src"));
+
+    for (const level of [2, 3, 4]) {
+      const prefix = `wangzai-lv${level}-`;
+      const theme = themeLoader.loadTheme("wangzai", { strict: true, level });
+      assert.strictEqual(theme._levelId, level);
+      assert.deepStrictEqual(theme.states.idle, [`${prefix}idle-natural.apng`]);
+      assert.deepStrictEqual(theme.states.working, [`${prefix}rocket-repair.apng`]);
+      assert.strictEqual(theme.reactions.drag.fileLeft, `${prefix}drag-left.apng`);
+      assert.strictEqual(theme.displayHintMap["clawd-working-building.svg"], `${prefix}rover-welding.apng`);
+      assert.strictEqual(theme.sleepingHitboxFiles[0], `${prefix}sleeping.apng`);
+      assert.deepStrictEqual(theme.miniMode.states["mini-idle"], [`${prefix}mini-idle.apng`]);
+    }
   });
 });
