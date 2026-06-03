@@ -20,3 +20,27 @@ astronaut suit surface design may evolve.
 Avoid gloomy dark palettes, flat recolor overlays, full-body tint washes,
 photorealism, text, logos, detached decorative clutter, and changes to
 Wangzai's face or body proportions.
+
+## Current Redraw Pass
+
+Accepted canonical references live in `canonical/`. Earlier animation attempts
+under `rejected/body-drift/` are retained only as negative examples: they drifted
+toward taller, heavier humanoid proportions.
+
+The current follow-up pass stores corrected generated strips in `strips/`:
+
+- `wangzai-lv2-idle-natural-strip.png`
+- `wangzai-lv2-drag-right-strip.png`
+- `wangzai-lv4-working-strip.png`
+- `wangzai-lv4-review-strip.png`
+
+Run the redraw preview builder from the repository root:
+
+```bash
+python3 assets/source/wangzai-level-redraw/build-redraw-apng.py
+```
+
+It writes transparent APNG previews to `apng/` and a visual QA sheet to
+`qa/wangzai-level-redraw-contact-sheet.png`. The builder extracts each frame by
+component anchors instead of equal slot cuts, removes chroma-key fragments, and
+normalizes purple hologram remnants into the allowed cyan control language.
