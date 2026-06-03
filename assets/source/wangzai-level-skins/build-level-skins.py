@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build Wangzai Lv.2-Lv.4 APNG skins with progressive astronaut suit upgrades.
+"""Build Wangzai Lv.3-Lv.4 APNG skins from the approved Lv.2 redraw set.
 
-The level art deliberately keeps Lv.1's body, scale, silhouette, and animation
-frames intact. Only the astronaut suit surface, attached interaction props, and
-Lv.4 assistant orb evolve.
+Lv.2 is installed directly from the image-generation redraw APNGs under
+`assets/source/wangzai-level-redraw/apng/`. This script keeps that body, scale,
+silhouette, and animation timing intact while adding only Lv.3/Lv.4 suit
+surfaces, holographic work tools, and the Lv.4 assistant orb.
 """
 
 from __future__ import annotations
@@ -16,8 +17,10 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 
-LEVELS = (2, 3, 4)
+LEVELS = (3, 4)
 ACTIVE_ORB_ASSETS = {
+    "idle-natural",
+    "happy",
     "review",
     "rocket-repair",
     "mission-control",
@@ -26,6 +29,10 @@ ACTIVE_ORB_ASSETS = {
     "sample-vacuum",
     "carrying-module",
     "waiting",
+    "mini-idle",
+    "mini-alert",
+    "mini-happy",
+    "mini-peek",
 }
 
 SUIT_PALETTES = {
@@ -37,16 +44,16 @@ SUIT_PALETTES = {
         "glow": (78, 240, 255, 240),
     },
     3: {
-        "soft_tint": (132, 190, 238),
-        "panel": (40, 125, 222, 238),
-        "panel_dark": (20, 74, 166, 238),
+        "soft_tint": (206, 238, 255),
+        "panel": (80, 188, 235, 238),
+        "panel_dark": (36, 132, 206, 238),
         "accent": (255, 196, 82, 255),
         "glow": (72, 238, 255, 245),
     },
     4: {
-        "soft_tint": (226, 238, 255),
-        "panel": (54, 148, 244, 238),
-        "panel_dark": (26, 86, 178, 238),
+        "soft_tint": (218, 246, 255),
+        "panel": (76, 204, 238, 238),
+        "panel_dark": (30, 150, 218, 238),
         "accent": (255, 205, 78, 255),
         "glow": (88, 250, 255, 248),
     },
@@ -133,8 +140,8 @@ def tint_suit(frame: Image.Image, visor: tuple[int, int, int, int], level: int) 
     region_bottom = min(height, y1 + 118)
     palettes = {
         2: (SUIT_PALETTES[2]["soft_tint"], 0.18),
-        3: (SUIT_PALETTES[3]["soft_tint"], 0.28),
-        4: (SUIT_PALETTES[4]["soft_tint"], 0.16),
+        3: (SUIT_PALETTES[3]["soft_tint"], 0.10),
+        4: (SUIT_PALETTES[4]["soft_tint"], 0.12),
     }
     target, amount = palettes[level]
     for y in range(region_top, region_bottom):
@@ -381,9 +388,8 @@ def draw_ornament(frame: Image.Image, level: int, asset: str, frame_index: int) 
     return clear_transparent_rgb(rgba)
 
 
-def build_apng(source: Path, destination: Path, level: int) -> None:
+def build_apng(source: Path, destination: Path, level: int, asset: str) -> None:
     image = Image.open(source)
-    asset = source.stem.removeprefix("wangzai-")
     frames = []
     durations = []
     for index in range(getattr(image, "n_frames", 1)):
@@ -409,17 +415,15 @@ def main() -> None:
     parser.add_argument("--assets-dir", default="themes/wangzai/assets")
     args = parser.parse_args()
     assets_dir = Path(args.assets_dir).expanduser().resolve()
-    sources = sorted(
-        path for path in assets_dir.glob("wangzai-*.apng")
-        if not path.name.startswith(("wangzai-lv2-", "wangzai-lv3-", "wangzai-lv4-"))
-    )
+    sources = sorted(assets_dir.glob("wangzai-lv2-*.apng"))
     if not sources:
-        raise SystemExit(f"no Wangzai APNG files found under {assets_dir}")
+        raise SystemExit(f"no Wangzai Lv.2 redraw APNG files found under {assets_dir}")
     for level in LEVELS:
         for source in sources:
-            suffix = source.name.removeprefix("wangzai-")
+            suffix = source.name.removeprefix("wangzai-lv2-")
+            asset = suffix.removesuffix(".apng")
             destination = assets_dir / f"wangzai-lv{level}-{suffix}"
-            build_apng(source, destination, level)
+            build_apng(source, destination, level, asset)
             print(f"wrote {destination}")
 
 
